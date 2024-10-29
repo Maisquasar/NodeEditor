@@ -1,4 +1,5 @@
 ﻿#include "NodeManager.h"
+#include <ranges>
 
 #include "Node.h"
 
@@ -10,28 +11,32 @@ void NodeManager::AddNode(NodeRef node)
     node->AddOutput("Output", Type::Float);
     node->AddOutput("Output", Type::Float);
     node->AddOutput("Output", Type::Float);
-    m_nodes.push_back(node);
+    m_nodes[node->p_uuid] = node;
     node->p_nodeManager = this;
 }
 
 void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
+    m_zoom = zoom;
+    m_origin = origin;
+    
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     NodeRef selectedNode = m_selectedNode.lock();
     bool wasNodeClicked = false;
     bool wasInputClicked = false;
-    for (NodeRef& node : m_nodes)
+    for (const NodeRef& node : m_nodes | std::views::values)
     {
         bool alreadyOneSelected = selectedNode != m_selectedNode.lock();
         node->Draw(zoom, origin);
 
         if (mouseClicked)
         {
-            for (int i = 0; i < node->p_inputs.size(); i++)
+            for (int i = 0; i < node->p_outputs.size(); i++)
             {
-                if (node->IsPointInsideCircle(mousePos, origin, zoom, i))
+                Vec2f circlePos = node->GetOutputPosition(i);
+                if (node->IsPointInsideCircle(mousePos, circlePos, origin, zoom, i))
                 {
-                    m_selectedInput = node->GetInput(i);
+                    m_selectedOutput = node->GetOutput(i);
                     alreadyOneSelected = true;
                     wasInputClicked = true;
                     break;
@@ -46,13 +51,9 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
             m_firstClickOffset = mousePos;
             m_defaultPosition = node->p_position;
 
-            m_selectedInput.reset();
+            m_selectedOutput.reset();
 
             wasNodeClicked = true;
-        }
-
-        for (int i = 0; i < node->p_outputs.size(); i++)
-        {
         }
     }
     
@@ -61,9 +62,20 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
         SelectNode(nullptr);
     }
 
+    if (auto selectedOutput = m_selectedOutput.lock())
+    {
+        NodeWeakRef nodeWeakRef = GetNode(selectedOutput->parentUUID);
+        Vec2f inPosition = nodeWeakRef.lock()->GetOutputPosition(selectedOutput->index, origin, zoom);
+        /*ImGui::GetWindowDrawList()->AddBezierCubic(
+            inPosition, inPosition ,
+            mousePos, mousePos ,
+            ImColor(255, 255, 255), 3, 12);*/
+        ImGui::GetWindowDrawList()->AddLine(inPosition, mousePos, ImColor(255, 255, 255), 3);
+    }
+
     NodeRef currentSelectedNode = m_selectedNode.lock();
     // Move selected node
-    if (!m_selectedInput.lock() && currentSelectedNode && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    if (!m_selectedOutput.lock() && currentSelectedNode && ImGui::IsMouseDown(ImGuiMouseButton_Left))
     {
         Vec2f newPosition = m_defaultPosition + (mousePos - m_firstClickOffset) / zoom;
         currentSelectedNode->SetPosition(newPosition);

@@ -1,21 +1,10 @@
 ﻿#pragma once
 #include <galaxymath/Maths.h>
 #include <memory>
-#include <vector>
+#include <unordered_map>
+#include "UUID.h"
 
-
-class Node;
-struct Input;
-struct Output;
-
-typedef std::shared_ptr<Node> NodeRef;
-typedef std::weak_ptr<Node> NodeWeakRef;
-
-typedef std::shared_ptr<Input> InputRef;
-typedef std::weak_ptr<Input> InputWeakRef;
-
-typedef std::shared_ptr<Output> OutputRef;
-typedef std::weak_ptr<Output> OutputWeakRef;
+#include "Node.h"
 
 
 class NodeManager
@@ -27,16 +16,22 @@ public:
 
     void SelectNode(NodeRef node);
     
+    NodeWeakRef GetNode(const UUID& uuid) { return m_nodes[uuid]; }
+    InputWeakRef GetInput(const UUID& uuid, uint32_t index) { return m_nodes[uuid]->GetInput(index); }
+    OutputWeakRef GetOutput(const UUID& uuid, uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
 
+    float GetZoom() const { return m_zoom; }
+    Vec2f GetOrigin() const { return m_origin; }
 private:
-    using NodeList = std::vector<NodeRef>;
+    using NodeList = std::pmr::unordered_map<UUID, NodeRef>;
     NodeList m_nodes;
 
     NodeWeakRef m_selectedNode;
-    InputWeakRef m_selectedInput;
+    OutputWeakRef m_selectedOutput;
 
     Vec2f m_firstClickOffset;
     Vec2f m_defaultPosition;
 
-    
+    float m_zoom = 0.f;
+    Vec2f m_origin;
 };
