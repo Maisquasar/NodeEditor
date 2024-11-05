@@ -4,6 +4,8 @@ build/
 vsxmake*/
 CMakeLists.txt
 
+*.*~
+
 # MacOS Cache
 .DS_Store
 
