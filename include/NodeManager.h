@@ -24,8 +24,8 @@ public:
     void RemoveNode(const UUID& uuid);
     void RemoveNode(const NodeWeakRef& weak);
     void UpdateDelete();
-    void OnInputClicked(const NodeRef& node, bool altClicked, size_t i);
-    void OnOutputClicked(const NodeRef& node, bool altClicked, size_t i);
+    void OnInputClicked(const NodeRef& node, bool altClicked, uint32_t i);
+    void OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t i);
     void UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node);
     void UpdateCurrentLink();
 

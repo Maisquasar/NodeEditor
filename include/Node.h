@@ -52,11 +52,11 @@ class Node
 {
 public:
     Node(std::string _name);
-    ~Node();
+    ~Node() = default;
     
     void Draw(float zoom, const Vec2f& origin) const;
 
-    static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index);
+    static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
     Vec2f GetMin(float zoom, const Vec2f& origin) const 
     {

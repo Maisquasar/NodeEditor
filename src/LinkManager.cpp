@@ -64,7 +64,7 @@ void LinkManager::RemoveLink(const NodeRef& fromNode, const uint32_t fromOutput,
 
 void LinkManager::RemoveLink(const UUID& fromNodeIndex, const uint32_t fromOutputIndex, const UUID& toNodeIndex, const uint32_t toOutputIndex)
 {
-    for (size_t i = 0; i < m_links.size(); i++)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->fromNodeIndex == fromNodeIndex &&
             m_links[i]->fromOutputIndex == fromOutputIndex &&
@@ -80,7 +80,7 @@ void LinkManager::RemoveLink(const UUID& fromNodeIndex, const uint32_t fromOutpu
 void LinkManager::RemoveLink(const LinkWeakRef& link)
 {
     LinkRef linkRef = link.lock();
-    for (size_t i = 0; i < m_links.size(); i++)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i] == linkRef)
         {
@@ -92,7 +92,7 @@ void LinkManager::RemoveLink(const LinkWeakRef& link)
 
 void LinkManager::RemoveLink(const InputRef& input)
 {
-    for (size_t i = 0; i < m_links.size(); i++)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->toNodeIndex == input->parentUUID && m_links[i]->toInputIndex == input->index)
         {
@@ -104,7 +104,7 @@ void LinkManager::RemoveLink(const InputRef& input)
 
 void LinkManager::RemoveLinks(const OutputRef& output)
 {
-    for (size_t i = 0; i < m_links.size(); i++)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->fromNodeIndex == output->parentUUID && m_links[i]->fromOutputIndex == output->index)
         {
@@ -116,7 +116,7 @@ void LinkManager::RemoveLinks(const OutputRef& output)
 
 void LinkManager::RemoveLinks(const NodeRef& node)
 {
-    for (size_t i = 0; i < m_links.size(); i++)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->fromNodeIndex == node->GetUUID() || m_links[i]->toNodeIndex == node->GetUUID())
         {
@@ -128,7 +128,7 @@ void LinkManager::RemoveLinks(const NodeRef& node)
 
 bool LinkManager::CanCreateLink(const Link& link) const
 {
-    if (link.fromNodeIndex == -1 || link.toNodeIndex == -1)
+    if (link.fromNodeIndex == UUID_NULL || link.toNodeIndex == UUID_NULL)
         return false;
     NodeManager* nodeManager = NodeManager::Get();
     

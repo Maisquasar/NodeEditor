@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <iostream>
+#define UUID_NULL -1ull
 
 class UUID
 {

@@ -77,7 +77,7 @@ void NodeManager::UpdateDelete()
     }
 }
 
-void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, size_t i)
+void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uint32_t i)
 {
     if (altClicked)
     {
@@ -88,15 +88,15 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, size_t i)
         m_currentLink.toNodeIndex = node->p_uuid;
         m_currentLink.toInputIndex = i;
 
-        if (m_currentLink.fromNodeIndex != -1 &&!m_linkManager->CanCreateLink(m_currentLink))
+        if (m_currentLink.fromNodeIndex != UUID_NULL &&!m_linkManager->CanCreateLink(m_currentLink))
         {
-            m_currentLink.toNodeIndex = -1;
-            m_currentLink.toInputIndex = -1;
+            m_currentLink.toNodeIndex = UUID_NULL;
+            m_currentLink.toInputIndex = UUID_NULL;
         }
     }
 }
 
-void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, size_t i)
+void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t i)
 {
     if (altClicked)
     {
@@ -107,10 +107,10 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, size_t i
         m_currentLink.fromNodeIndex = node->p_uuid;
         m_currentLink.fromOutputIndex = i;
         
-        if (m_currentLink.toNodeIndex != -1 && !m_linkManager->CanCreateLink(m_currentLink))
+        if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
         {
-            m_currentLink.fromNodeIndex = -1;
-            m_currentLink.fromOutputIndex = -1;
+            m_currentLink.fromNodeIndex = UUID_NULL;
+            m_currentLink.fromOutputIndex = UUID_NULL;
         }
     }
 }
@@ -121,9 +121,9 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
         return;
     
     bool altClicked = ImGui::IsKeyDown(ImGuiKey_LeftAlt);
-    if (m_currentLink.toNodeIndex == -1 || altClicked)
+    if (m_currentLink.toNodeIndex == UUID_NULL || altClicked)
     {
-        for (size_t i = 0; i < node->p_inputs.size(); i++)
+        for (uint32_t i = 0; i < node->p_inputs.size(); i++)
         {
             Vec2f circlePos = node->GetInputPosition(i);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
@@ -134,9 +134,9 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
         }
     }
 
-    if (m_currentLink.fromNodeIndex == -1 || altClicked)
+    if (m_currentLink.fromNodeIndex == UUID_NULL || altClicked)
     {
-        for (size_t i = 0; i < node->p_outputs.size(); i++)
+        for (uint32_t i = 0; i < node->p_outputs.size(); i++)
         {
             Vec2f circlePos = node->GetOutputPosition(i);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
@@ -155,7 +155,7 @@ void NodeManager::UpdateCurrentLink()
         m_currentLink = Link();
     }
         
-    if (m_currentLink.fromNodeIndex != -1 && m_currentLink.toNodeIndex != -1) // Is Linked
+    if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
         m_linkManager->AddLink(m_currentLink);
         m_currentLink = Link();
@@ -201,7 +201,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         SelectNode(nullptr);
     }
 
-    bool isAlmostLinked = m_currentLink.fromNodeIndex != -1 || m_currentLink.toNodeIndex != -1;
+    bool isAlmostLinked = m_currentLink.fromNodeIndex != UUID_NULL || m_currentLink.toNodeIndex != UUID_NULL;
     NodeRef currentSelectedNode = m_selectedNode.lock();
     // Move selected node
     if (!isAlmostLinked && currentSelectedNode && ImGui::IsMouseDown(ImGuiMouseButton_Left))
@@ -225,11 +225,11 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
         Vec2f inPosition = mousePos;
         Vec2f outPosition = mousePos;
 
-        if (m_currentLink.fromNodeIndex != -1)
+        if (m_currentLink.fromNodeIndex != UUID_NULL)
         {
             inPosition = GetNode(m_currentLink.fromNodeIndex).lock()->GetOutputPosition(m_currentLink.fromOutputIndex, origin, zoom);
         }
-        else if (m_currentLink.toNodeIndex != -1)
+        else if (m_currentLink.toNodeIndex != UUID_NULL)
         {
             outPosition = GetNode(m_currentLink.toNodeIndex).lock()->GetInputPosition(m_currentLink.toInputIndex, origin, zoom);
         }
@@ -258,5 +258,5 @@ LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) con
 
 bool NodeManager::IsAlmostLinked() const
 {
-    return m_currentLink.fromNodeIndex != -1 || m_currentLink.toNodeIndex != -1;
+    return m_currentLink.fromNodeIndex != UUID_NULL || m_currentLink.toNodeIndex != UUID_NULL;
 }

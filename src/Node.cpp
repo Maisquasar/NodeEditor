@@ -2,42 +2,32 @@
 
 #include "NodeManager.h"
 
-uint32_t GetColor(Type type)
+uint32_t GetColor(const Type type)
 {
     switch (type) {
     case Type::Float:
         return IM_COL32(0, 0, 255, 255);
-        break;
     case Type::Int:
         return IM_COL32(255, 0, 0, 255);
-        break;
     case Type::Bool:
         return IM_COL32(0, 255, 0, 255);
-        break;
     case Type::String:
         return IM_COL32(0, 255, 255, 255);
-        break;
     case Type::Vector2:
         return IM_COL32(255, 0, 255, 255);
-        break;
     case Type::Vector3:
         return IM_COL32(255, 255, 0, 255);
-        break;
     }
+    return 0;
 }
 
-Node::Node(std::string _name) : p_name(std::move(_name))
+Node::Node(std::string _name) : p_nodeManager(nullptr), p_name(std::move(_name))
 {
 }
 
-Node::~Node()
-{
-}
-
-//TODO implement Node
 void Node::Draw(float zoom, const Vec2f& origin) const
 {
-    auto drawList = ImGui::GetWindowDrawList();
+    const auto drawList = ImGui::GetWindowDrawList();
     //Background rect
     Vec2f pMin = GetMin(zoom, origin);
     Vec2f pMax = GetMax(pMin, zoom);
@@ -53,18 +43,18 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.000000, 240, 2);
     }
 
-    for (int i = 0; i < p_inputs.size(); i++)
+    for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
-        InputRef input = p_inputs[i];
+        const InputRef input = p_inputs[i];
         Vec2f position = GetInputPosition(i, origin, zoom);
         drawList->AddCircleFilled(position, 5 * zoom, IM_COL32(200, 200, 200, 255));
-        uint32_t color = GetColor(input->type);
+        const uint32_t color = GetColor(input->type);
         drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
         drawList->AddText(font, 14 * zoom, position + Vec2f(5, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
                           input->name.c_str());
     }
 
-    for (int i = 0; i < p_outputs.size(); i++)
+    for (uint32_t i = 0; i < p_outputs.size(); i++)
     {
         OutputRef output = p_outputs[i];
         Vec2f position = GetOutputPosition(i, origin, zoom);
@@ -77,7 +67,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     }
 }
 
-bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index)
+bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index)
 {
     Vec2f position = circlePos;
     float radius = 5 * zoom;
@@ -136,33 +126,33 @@ void Node::AddInput(std::string name, Type type)
     
 }
 
-void Node::AddOutput(std::string name, Type type)
+auto Node::AddOutput(std::string name, Type type) -> void
 {
     p_outputs.push_back(std::make_shared<Output>(p_uuid, p_outputs.size(), name, type));
     uint32_t size = p_outputs.size() * (25 + c_pointSize);
 
     if (p_outputs.size() * c_pointSize > p_size.y)
-        p_size.y = size;
+        p_size.y = static_cast<float>(size);
 }
 
-Vec2f Node::GetInputPosition(uint32_t index) const
+Vec2f Node::GetInputPosition(const uint32_t index) const
 {
     return GetInputPosition(index, p_nodeManager->GetOrigin(), p_nodeManager->GetZoom());
 }
 
-Vec2f Node::GetInputPosition(uint32_t index, const Vec2f& origin, float zoom) const
+Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
     return GetMin(zoom, origin) + Vec2f(10, c_topSize + 10 + c_pointSize * index) * zoom;
 }
 
-Vec2f Node::GetOutputPosition(uint32_t index) const
+Vec2f Node::GetOutputPosition(const uint32_t index) const
 {
     return GetOutputPosition(index, p_nodeManager->GetOrigin(), p_nodeManager->GetZoom());
 }
 
-Vec2f Node::GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const
+Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
-    return GetMin(zoom, origin)  + Vec2f(p_size.x - 10, c_topSize + 10 + c_pointSize * index) * zoom;
+    return GetMin(zoom, origin) + Vec2f(p_size.x - 10, c_topSize + 10 + c_pointSize * index) * zoom;
 }
 
 LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const
@@ -170,7 +160,7 @@ LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const
     return p_nodeManager->GetLinkWithOutput(p_uuid, index);
 }
 
-void Node::SetPosition(Vec2f position)
+void Node::SetPosition(const Vec2f position)
 {
     p_position = position;
 }
