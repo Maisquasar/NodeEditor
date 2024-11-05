@@ -126,6 +126,37 @@ void LinkManager::RemoveLinks(const NodeRef& node)
     }
 }
 
+bool LinkManager::CanCreateLink(const Link& link) const
+{
+    if (link.fromNodeIndex == -1 || link.toNodeIndex == -1)
+        return false;
+    NodeManager* nodeManager = NodeManager::Get();
+    
+    NodeRef fromNode = nodeManager->GetNode(link.fromNodeIndex).lock();
+    if (!fromNode)
+        return false;
+    OutputRef fromOutput = fromNode->GetOutput(link.fromOutputIndex);
+
+    
+    NodeRef toNode = nodeManager->GetNode(link.toNodeIndex).lock();
+    if (!toNode)
+        return false;
+    InputRef toInput = toNode->GetInput(link.toInputIndex);
+
+    // Check if nodes are valid, not the same and the same input and output type
+    if (!fromOutput || !toInput || fromNode == toNode || fromOutput->type != toInput->type)
+        return false;
+
+    // Check if input is already connected
+    for (const LinkRef& inLink : m_links)
+    {
+        if (inLink->toNodeIndex == link.toNodeIndex && inLink->toInputIndex == link.toInputIndex)
+            return false;
+    }
+    
+    return true;
+}
+
 bool LinkManager::IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold)
 {
     Vec2f lineVec = toPosition - fromPosition;

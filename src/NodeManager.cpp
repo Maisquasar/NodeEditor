@@ -11,32 +11,32 @@ NodeManager::NodeManager()
     m_linkManager = new LinkManager();
 
     NodeRef node = std::make_shared<Node>("Node");
-    node->SetPosition(Vec2f());
+    node->SetPosition(Vec2f(50, 50));
             
     node->AddInput("Input", Type::Float);
-    node->AddInput("Input", Type::Float);
-    node->AddInput("Input", Type::Float);
+    node->AddInput("Input", Type::Vector2);
+    node->AddInput("Input", Type::Vector3);
     node->AddOutput("Output", Type::Float);
-    node->AddOutput("Output", Type::Float);
-    node->AddOutput("Output", Type::Float);
+    node->AddOutput("Output", Type::Vector2);
+    node->AddOutput("Output", Type::Vector3);
             
     AddNode(node);
 
     NodeRef node2 = std::make_shared<Node>("Node");
-    node2->SetPosition(Vec2f(500, 0));
+    node2->SetPosition(Vec2f(500, 50));
             
     node2->AddInput("Input", Type::Float);
-    node2->AddInput("Input", Type::Float);
-    node2->AddInput("Input", Type::Float);
+    node2->AddInput("Input", Type::Vector2);
+    node2->AddInput("Input", Type::Vector3);
     node2->AddOutput("Output", Type::Float);
-    node2->AddOutput("Output", Type::Float);
-    node2->AddOutput("Output", Type::Float);
+    node2->AddOutput("Output", Type::Vector2);
+    node2->AddOutput("Output", Type::Vector3);
             
     AddNode(node2);
 
-    m_linkManager->CreateLink(node, 0, node2, 0);
-    m_linkManager->CreateLink(node, 0, node2, 1);
-    m_linkManager->CreateLink(node, 0, node2, 2);
+    // m_linkManager->CreateLink(node, 0, node2, 0);
+    // m_linkManager->CreateLink(node, 0, node2, 1);
+    // m_linkManager->CreateLink(node, 0, node2, 2);
 }
 
 NodeManager::~NodeManager()
@@ -77,6 +77,44 @@ void NodeManager::UpdateDelete()
     }
 }
 
+void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, size_t i)
+{
+    if (altClicked)
+    {
+        m_linkManager->RemoveLink(node->GetInput(i));
+    }
+    else
+    {
+        m_currentLink.toNodeIndex = node->p_uuid;
+        m_currentLink.toInputIndex = i;
+
+        if (m_currentLink.fromNodeIndex != -1 &&!m_linkManager->CanCreateLink(m_currentLink))
+        {
+            m_currentLink.toNodeIndex = -1;
+            m_currentLink.toInputIndex = -1;
+        }
+    }
+}
+
+void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, size_t i)
+{
+    if (altClicked)
+    {
+        m_linkManager->RemoveLinks(node->GetOutput(i));
+    }
+    else
+    {
+        m_currentLink.fromNodeIndex = node->p_uuid;
+        m_currentLink.fromOutputIndex = i;
+        
+        if (m_currentLink.toNodeIndex != -1 && !m_linkManager->CanCreateLink(m_currentLink))
+        {
+            m_currentLink.fromNodeIndex = -1;
+            m_currentLink.fromOutputIndex = -1;
+        }
+    }
+}
+
 void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
 {
     if (!mouseClicked)
@@ -90,17 +128,8 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
             Vec2f circlePos = node->GetInputPosition(i);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                if (altClicked)
-                {
-                    m_linkManager->RemoveLink(node->GetInput(i));
-                    return;
-                }
-                else
-                {
-                    m_currentLink.toNodeIndex = node->p_uuid;
-                    m_currentLink.toInputIndex = i;
-                    break;
-                }
+                OnInputClicked(node, altClicked, i);
+                return;
             }
         }
     }
@@ -112,17 +141,8 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
             Vec2f circlePos = node->GetOutputPosition(i);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                if (altClicked)
-                {
-                    m_linkManager->RemoveLinks(node->GetOutput(i));
-                    return;
-                }
-                else
-                {
-                    m_currentLink.fromNodeIndex = node->p_uuid;
-                    m_currentLink.fromOutputIndex = i;
-                    break;
-                }
+                OnOutputClicked(node, altClicked, i);
+                return;
             }
         }
     }

@@ -40,6 +40,8 @@ public:
     
     void RemoveLinks(const NodeRef& node);
 
+    bool CanCreateLink(const Link& link) const;
+
     static bool IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold = 1);
 
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;

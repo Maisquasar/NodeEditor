@@ -2,6 +2,30 @@
 
 #include "NodeManager.h"
 
+uint32_t GetColor(Type type)
+{
+    switch (type) {
+    case Type::Float:
+        return IM_COL32(0, 0, 255, 255);
+        break;
+    case Type::Int:
+        return IM_COL32(255, 0, 0, 255);
+        break;
+    case Type::Bool:
+        return IM_COL32(0, 255, 0, 255);
+        break;
+    case Type::String:
+        return IM_COL32(0, 255, 255, 255);
+        break;
+    case Type::Vector2:
+        return IM_COL32(255, 0, 255, 255);
+        break;
+    case Type::Vector3:
+        return IM_COL32(255, 255, 0, 255);
+        break;
+    }
+}
+
 Node::Node(std::string _name) : p_name(std::move(_name))
 {
 }
@@ -34,7 +58,8 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         InputRef input = p_inputs[i];
         Vec2f position = GetInputPosition(i, origin, zoom);
         drawList->AddCircleFilled(position, 5 * zoom, IM_COL32(200, 200, 200, 255));
-        drawList->AddCircle(position, 5 * zoom, IM_COL32(0, 0, 0, 255), 0, 2 * zoom);
+        uint32_t color = GetColor(input->type);
+        drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
         drawList->AddText(font, 14 * zoom, position + Vec2f(5, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
                           input->name.c_str());
     }
@@ -44,7 +69,8 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         OutputRef output = p_outputs[i];
         Vec2f position = GetOutputPosition(i, origin, zoom);
         drawList->AddCircleFilled(position, 5 * zoom, IM_COL32(200, 200, 200, 255));
-        drawList->AddCircle(position, 5 * zoom, IM_COL32(0, 0, 0, 255), 0, 2 * zoom);
+        uint32_t color = GetColor(output->type);
+        drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
         Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, output->name.c_str());
         drawList->AddText(font, 14 * zoom, position + Vec2f(-5, -7.5f) * zoom - Vec2f(textSize.x, 0),
                           IM_COL32(255, 255, 255, 255), output->name.c_str());

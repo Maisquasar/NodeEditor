@@ -46,6 +46,8 @@ typedef std::weak_ptr<Input> InputWeakRef;
 typedef std::shared_ptr<Output> OutputRef;
 typedef std::weak_ptr<Output> OutputWeakRef;
 
+uint32_t GetColor(Type type);
+
 class Node
 {
 public:
@@ -113,7 +115,7 @@ protected:
     std::vector<OutputRef> p_outputs;
     
     Vec2f p_position;
-    Vec2f p_size = {100.0f, c_topSize};
+    Vec2f p_size = {150.0f, c_topSize};
     
     bool p_selected = false;
 };
