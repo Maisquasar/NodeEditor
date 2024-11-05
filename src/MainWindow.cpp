@@ -2,6 +2,8 @@
 
 
 #include <galaxymath/Maths.h>
+
+#include "LinkManager.h"
 using namespace GALAXY;
 #include <imgui.h>
 
@@ -10,7 +12,8 @@ using namespace GALAXY;
 
 void MainWindow::Initialize()
 {
-    m_nodeManager = std::make_unique<NodeManager>();
+    NodeManager::Create();
+    m_nodeManager = NodeManager::Get();
 }
 
 void MainWindow::Update() const
@@ -94,6 +97,14 @@ void MainWindow::DrawGrid()
         {
             NodeRef node = std::make_shared<Node>("Node");
             node->SetPosition((mousePos - origin) / zoom);
+            
+            node->AddInput("Input", Type::Float);
+            node->AddInput("Input", Type::Float);
+            node->AddInput("Input", Type::Float);
+            node->AddOutput("Output", Type::Float);
+            node->AddOutput("Output", Type::Float);
+            node->AddOutput("Output", Type::Float);
+            
             m_nodeManager->AddNode(node);
             
             ImGui::CloseCurrentPopup();

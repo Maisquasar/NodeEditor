@@ -51,21 +51,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     }
 }
 
-void Node::DrawLinks(float zoom, const Vec2f& origin) const
-{
-    auto drawList = ImGui::GetWindowDrawList();
-    for (const Link& link : p_links)
-    {
-        NodeRef linkedNode = p_nodeManager->GetNode(link.toNodeIndex).lock();
-        assert(linkedNode != nullptr && linkedNode.get() != this);
-        Vec2f inputPosition = GetOutputPosition(link.fromOutputIndex, origin, zoom);
-        Vec2f outputPosition = linkedNode->GetInputPosition(link.toOutputIndex, origin, zoom);
-        
-        drawList->AddLine(inputPosition, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom);
-    }
-}
-
-bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const
+bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index)
 {
     Vec2f position = circlePos;
     float radius = 5 * zoom;
@@ -108,6 +94,11 @@ bool Node::IsOutputClicked(const Vec2f& point, const Vec2f& origin, float zoom, 
     return false;
 }
 
+bool Node::DoesOutputHaveLink(const uint32_t index) const
+{
+    return !p_nodeManager->GetLinkWithOutput(p_uuid, index).lock();
+}
+
 void Node::AddInput(std::string name, Type type)
 {
     p_inputs.push_back(std::make_shared<Input>(p_uuid, p_inputs.size(), name, type));
@@ -146,6 +137,11 @@ Vec2f Node::GetOutputPosition(uint32_t index) const
 Vec2f Node::GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const
 {
     return GetMin(zoom, origin)  + Vec2f(p_size.x - 10, c_topSize + 10 + c_pointSize * index) * zoom;
+}
+
+LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const
+{
+    return p_nodeManager->GetLinkWithOutput(p_uuid, index);
 }
 
 void Node::SetPosition(Vec2f position)

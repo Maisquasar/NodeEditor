@@ -19,14 +19,6 @@ enum class Type
     Vector3,
 };
 
-struct Link
-{
-    uint32_t fromOutputIndex = -1;
-
-    UUID toNodeIndex = -1;
-    uint32_t toOutputIndex = -1;
-};
-
 struct Input
 {
     UUID parentUUID;
@@ -61,9 +53,8 @@ public:
     ~Node();
     
     void Draw(float zoom, const Vec2f& origin) const;
-    void DrawLinks(float zoom, const Vec2f& origin) const;
-    
-    bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const;
+
+    static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index);
 
     Vec2f GetMin(float zoom, const Vec2f& origin) const 
     {
@@ -87,10 +78,10 @@ public:
 
     bool IsInputClicked(const Vec2f& point, const Vec2f& origin, float zoom, int& index) const;
     bool IsOutputClicked(const Vec2f& point, const Vec2f& origin, float zoom, int& index) const;
+    bool DoesOutputHaveLink(uint32_t index) const;
 
     void AddInput(std::string name, Type type);
     void AddOutput(std::string name, Type type);
-    void AddLink(const Link& link) { p_links.push_back(link); }
 
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
@@ -100,9 +91,14 @@ public:
     Vec2f GetOutputPosition(uint32_t index) const;
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
 
+    std::weak_ptr<struct Link> GetLinkWithOutput(uint32_t index) const;
+
     void SetPosition(Vec2f position);
     void SetName(std::string name) { p_name = std::move(name); }
     void SetTopColor(uint32_t color) { p_topColor = color; }
+    
+    UUID GetUUID() const { return p_uuid; }
+
 protected:
     friend class NodeManager;
 
@@ -115,8 +111,6 @@ protected:
     
     std::vector<InputRef> p_inputs;
     std::vector<OutputRef> p_outputs;
-
-    std::vector<Link> p_links;
     
     Vec2f p_position;
     Vec2f p_size = {100.0f, c_topSize};

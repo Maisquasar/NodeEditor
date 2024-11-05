@@ -1,6 +1,8 @@
 #pragma once
 #include "NodeManager.h"
 
+class LinkManager;
+
 struct GridWindow
 {
     Vec2f origin;
@@ -23,7 +25,7 @@ private:
     void DrawGrid();
 
 private:
-    std::unique_ptr<NodeManager> m_nodeManager;
+    NodeManager* m_nodeManager = nullptr;
     
     GridWindow m_gridWindow;
 };
