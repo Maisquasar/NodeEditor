@@ -1,10 +1,18 @@
 #pragma once
 #include "NodeManager.h"
 
+struct GridWindow
+{
+    Vec2f origin;
+    float zoom = 1.f;
+};
+
 class MainWindow
 {
 public:
     void Initialize();
+
+    void Update() const;
     
     void Draw();
     
@@ -16,4 +24,6 @@ private:
 
 private:
     std::unique_ptr<NodeManager> m_nodeManager;
+    
+    GridWindow m_gridWindow;
 };

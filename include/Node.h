@@ -21,10 +21,10 @@ enum class Type
 
 struct Link
 {
-    uint32_t inputIndex = -1;
+    uint32_t fromOutputIndex = -1;
 
-    UUID outNodeIndex = -1;
-    uint32_t outputIndex = -1;
+    UUID toNodeIndex = -1;
+    uint32_t toOutputIndex = -1;
 };
 
 struct Input
@@ -61,13 +61,15 @@ public:
     ~Node();
     
     void Draw(float zoom, const Vec2f& origin) const;
-    bool IsPointInsideCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const;
+    void DrawLinks(float zoom, const Vec2f& origin) const;
+    
+    bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const;
 
     Vec2f GetMin(float zoom, const Vec2f& origin) const 
     {
         return origin + p_position * zoom;
     }
-    Vec2f GetMax(Vec2f& min, float zoom) const
+    Vec2f GetMax(const Vec2f& min, float zoom) const
     {
         return min + p_size * zoom;
     }
@@ -76,7 +78,7 @@ public:
         return GetMin(zoom, origin) + p_size * zoom;
     }
 
-    bool IsPointInNode(const Vec2f& point, const Vec2f& origin, float zoom) const
+    bool IsPointHoverNode(const Vec2f& point, const Vec2f& origin, float zoom) const
     {
         Vec2f min = GetMin(zoom, origin);
         Vec2f max = GetMax(min, zoom);
@@ -88,6 +90,7 @@ public:
 
     void AddInput(std::string name, Type type);
     void AddOutput(std::string name, Type type);
+    void AddLink(const Link& link) { p_links.push_back(link); }
 
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }

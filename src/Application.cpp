@@ -64,6 +64,8 @@ void Application::Run()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        m_mainWindow.Update();
+
         m_mainWindow.Draw();
 
         ImGui::Render();

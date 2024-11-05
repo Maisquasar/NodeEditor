@@ -13,6 +13,11 @@ void MainWindow::Initialize()
     m_nodeManager = std::make_unique<NodeManager>();
 }
 
+void MainWindow::Update() const
+{
+    m_nodeManager->UpdateNodes(m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos());
+}
+
 void MainWindow::Draw()
 {
     DrawGrid();
@@ -20,6 +25,7 @@ void MainWindow::Draw()
 
 void MainWindow::Delete()
 {
+    
 }
 
 void MainWindow::DrawGrid()
@@ -27,7 +33,9 @@ void MainWindow::DrawGrid()
     static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
     static bool opt_enable_context_menu = true;
-    static float zoom = 1.0f; // Add a zoom variable
+    
+    float& zoom = m_gridWindow.zoom;
+    Vec2f& origin = m_gridWindow.origin;
     
     // Using InvisibleButton() as a convenience 1) it will advance the layout cursor and 2) allows us to use IsItemHovered()/IsItemActive()
     ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
@@ -46,18 +54,16 @@ void MainWindow::DrawGrid()
     ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
     const bool is_hovered = ImGui::IsItemHovered(); // Hovered
     const bool is_active = ImGui::IsItemActive();   // Held// Adjust the origin based on zoom
-    const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+    origin = {canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y};
     // Adjust mouse position with zoom
     const ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
 
     ImGui::GetWindowDrawList()->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
     ImGui::GetWindowDrawList()->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
-
     
     // Zoom with mouse wheel
     if (is_hovered)
     {
-
         if (io.MouseWheel != 0.0f )
         {
             zoom += io.MouseWheel * 0.1f;
@@ -65,7 +71,6 @@ void MainWindow::DrawGrid()
             // scrolling.x += mouse_pos_in_canvas.x * zoom * 0.5f;
             // scrolling.y += mouse_pos_in_canvas.y * zoom * 0.5f;
         }
-
     }
 
     // Pan (we use a zero mouse threshold when there's no context menu)
@@ -106,8 +111,6 @@ void MainWindow::DrawGrid()
         for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y; y += GRID_STEP)
             draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y), ImVec2(canvas_p1.x, canvas_p0.y + y), IM_COL32(200, 200, 200, 40));
     }
-
-    std::cout << "Zoom: " << zoom << std::endl;
 
     m_nodeManager->DrawNodes(zoom, origin, mousePos);
     

@@ -51,7 +51,21 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     }
 }
 
-bool Node::IsPointInsideCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const
+void Node::DrawLinks(float zoom, const Vec2f& origin) const
+{
+    auto drawList = ImGui::GetWindowDrawList();
+    for (const Link& link : p_links)
+    {
+        NodeRef linkedNode = p_nodeManager->GetNode(link.toNodeIndex).lock();
+        assert(linkedNode != nullptr && linkedNode.get() != this);
+        Vec2f inputPosition = GetOutputPosition(link.fromOutputIndex, origin, zoom);
+        Vec2f outputPosition = linkedNode->GetInputPosition(link.toOutputIndex, origin, zoom);
+        
+        drawList->AddLine(inputPosition, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom);
+    }
+}
+
+bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, int index) const
 {
     Vec2f position = circlePos;
     float radius = 5 * zoom;
@@ -68,7 +82,7 @@ bool Node::IsInputClicked(const Vec2f& point, const Vec2f& origin, float zoom, i
     Vec2f pMin = GetMin(zoom, origin);
     for (int i = 0; i < p_inputs.size(); i++)
     {
-        if (IsPointInsideCircle(point, GetInputPosition(i), origin, zoom, i))
+        if (IsPointHoverCircle(point, GetInputPosition(i), origin, zoom, i))
         {
             index = i;
             return true;
