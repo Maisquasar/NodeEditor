@@ -8,7 +8,7 @@
 #include "UUID.h"
 
 struct Link
-{
+{    
     UUID fromNodeIndex = UUID_NULL;
     uint32_t fromOutputIndex = -1;
 
@@ -52,9 +52,13 @@ public:
     bool HasLink(const InputRef& input) const;
     
     LinkWeakRef GetLinkClicked(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
+
+    void DeleteSelectedLinks();
 private:
     
     std::vector<LinkRef> m_links;
+    std::vector<LinkWeakRef> m_selectedLinks;
+    
     float m_controlDistanceX = 50.f;
     int m_bezierSegmentCount = 10;
 };

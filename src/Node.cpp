@@ -99,6 +99,17 @@ bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const 
     return false;
 }
 
+bool Node::IsSelected(const Vec2f& rectMin, const Vec2f& rectMax, const Vec2f& origin, float zoom) const
+{
+    Vec2f pMin = GetMin(zoom, origin);
+    Vec2f pMax = GetMax(pMin, zoom);
+    if (pMin.x < rectMax.x && pMax.x > rectMin.x && pMin.y < rectMax.y && pMax.y > rectMin.y)
+    {
+        return true;
+    }
+    return false;
+}
+
 bool Node::IsNodeVisible(const Vec2f& origin, float zoom) const
 {
     Vec2f pMin = GetMin(zoom, origin);
@@ -112,12 +123,12 @@ bool Node::IsNodeVisible(const Vec2f& origin, float zoom) const
     return false;
 }
 
-bool Node::IsInputClicked(const Vec2f& point, const Vec2f& origin, float zoom, uint32_t& index) const
+bool Node::IsInputClicked(const Vec2f& point, const Vec2f& origin, const float zoom, uint32_t& index) const
 {
     Vec2f pMin = GetMin(zoom, origin);
     for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
-        if (IsPointHoverCircle(point, GetInputPosition(i), origin, zoom, i))
+        if (IsPointHoverCircle(point, GetInputPosition(i, origin, zoom), origin, zoom, i))
         {
             index = i;
             return true;
@@ -171,19 +182,9 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
         p_size.y = static_cast<float>(size);
 }
 
-Vec2f Node::GetInputPosition(const uint32_t index) const
-{
-    return GetInputPosition(index, p_nodeManager->GetOrigin(), p_nodeManager->GetZoom());
-}
-
 Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
     return GetMin(zoom, origin) + Vec2f(10, c_topSize + 10 + c_pointSize * index) * zoom;
-}
-
-Vec2f Node::GetOutputPosition(const uint32_t index) const
-{
-    return GetOutputPosition(index, p_nodeManager->GetOrigin(), p_nodeManager->GetZoom());
 }
 
 Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const

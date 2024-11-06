@@ -9,8 +9,9 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
     auto drawList = ImGui::GetWindowDrawList();
     NodeManager* nodeManager = NodeManager::Get();
 
-    if (LinkRef selectedLink = nodeManager->GetSelectedLink().lock())
+    for (const LinkWeakRef& link : m_selectedLinks)
     {
+        LinkRef selectedLink = link.lock();
         NodeRef fromNode = nodeManager->GetNode(selectedLink->fromNodeIndex).lock();
         NodeRef toNode = nodeManager->GetNode(selectedLink->toNodeIndex).lock();
         
@@ -268,4 +269,13 @@ LinkWeakRef LinkManager::GetLinkClicked(float zoom, const Vec2f& origin, const V
         }
     }
     return {};
+}
+
+void LinkManager::DeleteSelectedLinks()
+{
+    for (const auto& i : m_selectedLinks)
+    {
+        RemoveLink(i);
+    }
+    m_selectedLinks.clear();
 }

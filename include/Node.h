@@ -4,6 +4,7 @@
 
 #include <galaxymath/maths.h>
 
+#include "Selectable.h"
 #include "UUID.h"
 using namespace GALAXY;
 #include <imgui.h>
@@ -48,7 +49,7 @@ typedef std::weak_ptr<Output> OutputWeakRef;
 
 uint32_t GetColor(Type type);
 
-class Node
+class Node : public Selectable
 {
 public:
     Node(std::string _name);
@@ -60,6 +61,10 @@ public:
     void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
+
+    // Selected Methods
+    bool IsSelected(const Vec2f& point, const Vec2f& origin, float zoom) const override { return IsPointHoverNode(point, origin, zoom); }
+    bool IsSelected(const Vec2f& rectMin, const Vec2f& rectMax, const Vec2f& origin, float zoom) const override;
 
     Vec2f GetMin(float zoom, const Vec2f& origin) const 
     {
@@ -94,9 +99,7 @@ public:
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
 
-    Vec2f GetInputPosition(uint32_t index) const;
     Vec2f GetInputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
-    Vec2f GetOutputPosition(uint32_t index) const;
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
 
     using LinkWeakRef = std::weak_ptr<struct Link>;

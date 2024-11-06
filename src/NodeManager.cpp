@@ -67,13 +67,11 @@ void NodeManager::UpdateDelete()
     const bool deleteClicked = ImGui::IsKeyPressed(ImGuiKey_Delete);
     if (!deleteClicked)
         return;
-    if (m_selectedLink.lock())
+    m_linkManager->DeleteSelectedLinks();
+    
+    for (auto& selectedNode : m_selectedNodes)
     {
-        m_linkManager->RemoveLink(m_selectedLink);
-    }
-    if (m_selectedNode.lock())
-    {
-        RemoveNode(m_selectedNode);
+        RemoveNode(selectedNode);
     }
 }
 
@@ -125,7 +123,7 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         for (uint32_t i = 0; i < node->p_inputs.size(); i++)
         {
-            Vec2f circlePos = node->GetInputPosition(i);
+            Vec2f circlePos = node->GetInputPosition(i, origin, zoom);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
                 OnInputClicked(node, altClicked, i);
@@ -138,7 +136,7 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         for (uint32_t i = 0; i < node->p_outputs.size(); i++)
         {
-            Vec2f circlePos = node->GetOutputPosition(i);
+            Vec2f circlePos = node->GetOutputPosition(i, origin, zoom);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
                 OnOutputClicked(node, altClicked, i);
@@ -150,10 +148,6 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
 
 void NodeManager::UpdateCurrentLink()
 {
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-    {
-        m_currentLink = Link();
-    }
         
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
@@ -163,29 +157,20 @@ void NodeManager::UpdateCurrentLink()
 }
 
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
-{
-    m_zoom = zoom;
-    m_origin = origin;
-    
+{    
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    NodeRef selectedNode = m_selectedNode.lock();
     bool wasNodeClicked = false;
     bool wasInputClicked = false;
 
-    if (mouseClicked)
-    {
-        m_selectedLink = m_linkManager->GetLinkClicked(zoom, origin, mousePos).lock();
-    }
+    bool alreadyOneSelected = false;
     
     for (NodeRef& node : m_nodes | std::views::values)
-    {
-        bool alreadyOneSelected = selectedNode != m_selectedNode.lock();
-        
+    {        
         UpdateInOut(zoom, origin, mousePos, mouseClicked, node);
         
         UpdateCurrentLink();
 
-        if (mouseClicked && !alreadyOneSelected && node->IsPointHoverNode(mousePos, origin, zoom))
+        if (mouseClicked && !alreadyOneSelected && node->IsSelected(mousePos, origin, zoom))
         {
             SelectNode(node);
             
@@ -193,7 +178,13 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             m_defaultPosition = node->p_position;
 
             wasNodeClicked = true;
+            alreadyOneSelected = true;
         }
+    }
+    
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    {
+        m_currentLink = Link();
     }
     
     if (mouseClicked && !wasNodeClicked && !wasInputClicked)
@@ -202,7 +193,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     }
 
     bool isAlmostLinked = m_currentLink.fromNodeIndex != UUID_NULL || m_currentLink.toNodeIndex != UUID_NULL;
-    NodeRef currentSelectedNode = m_selectedNode.lock();
+    NodeRef currentSelectedNode = m_selectedNodes.empty() ? nullptr : m_selectedNodes.back().lock();
     // Move selected node
     if (!isAlmostLinked && currentSelectedNode && ImGui::IsMouseDown(ImGuiMouseButton_Left))
     {
@@ -245,13 +236,38 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
 
 void NodeManager::SelectNode(const NodeRef& node)
 {
-    if (NodeRef selectedNode = m_selectedNode.lock())
-        selectedNode->p_selected = false;
-    
-    m_selectedNode = node;
+    ClearSelectedNodes();
+    AddSelectedNode(node);
+}
 
-    if (NodeRef selectedNode = m_selectedNode.lock())
-        selectedNode->p_selected = true;
+void NodeManager::AddSelectedNode(const NodeRef& node)
+{
+    if (!node)
+        return;
+    m_selectedNodes.push_back(node);
+    node->p_selected = true;
+}
+
+void NodeManager::RemoveSelectedNode(const NodeWeakRef& node)
+{
+    for (auto it = m_selectedNodes.begin(); it != m_selectedNodes.end(); it++)
+    {
+        if ((*it).lock() == node.lock())
+        {
+            it->lock()->p_selected = false;
+            m_selectedNodes.erase(it);
+            return;
+        }
+    }
+}
+
+void NodeManager::ClearSelectedNodes()
+{
+    for (NodeRef& node : m_nodes | std::views::values)
+    {
+        node->p_selected = false;
+    }
+    m_selectedNodes.clear();
 }
 
 LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const

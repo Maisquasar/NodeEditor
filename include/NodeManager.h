@@ -33,6 +33,9 @@ public:
     void UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos);
 
     void SelectNode(const NodeRef& node);
+    void AddSelectedNode(const NodeRef& node);
+    void RemoveSelectedNode(const NodeWeakRef& node);
+    void ClearSelectedNodes();
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
     NodeWeakRef GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
@@ -40,11 +43,7 @@ public:
     OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
 
-    float GetZoom() const { return m_zoom; }
-    Vec2f GetOrigin() const { return m_origin; }
-
     // Link
-    LinkWeakRef GetSelectedLink() const { return m_selectedLink; }
     bool IsAlmostLinked() const;
 private:
     static std::unique_ptr<NodeManager> m_instance;
@@ -55,12 +54,8 @@ private:
 
     Link m_currentLink; // The link when creating a new link
 
-    NodeWeakRef m_selectedNode;
-    LinkWeakRef m_selectedLink;
+    std::vector<NodeWeakRef> m_selectedNodes;
 
     Vec2f m_firstClickOffset;
     Vec2f m_defaultPosition;
-
-    float m_zoom;
-    Vec2f m_origin;
 };
