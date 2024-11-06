@@ -61,21 +61,29 @@ void MainWindow::DrawGrid()
     // Adjust mouse position with zoom
     const ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
 
-    ImGui::GetWindowDrawList()->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
-    ImGui::GetWindowDrawList()->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
+    draw_list->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
+    draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
     
     // Zoom with mouse wheel
     if (is_hovered)
     {
         if (io.MouseWheel != 0.0f )
         {
-            zoom += io.MouseWheel * 0.1f;
-            zoom = zoom < 0.1f ? 0.1f : zoom; // Prevent zoom from going too small
-            // scrolling.x += mouse_pos_in_canvas.x * zoom * 0.5f;
-            // scrolling.y += mouse_pos_in_canvas.y * zoom * 0.5f;
+            // Get mouse position relative to the origin (before zoom)
+            ImVec2 mouse_offset = ImVec2((mousePos.x - origin.x) / zoom, (mousePos.y - origin.y) / zoom);
+
+            // Calculate zoom scale based on current zoom
+            float zoom_scale = 0.1f * zoom;
+
+            // Update zoom and clamp to a minimum value
+            zoom += io.MouseWheel * zoom_scale;
+            zoom = zoom < 0.1f ? 0.1f : zoom;
+
+            // Recalculate origin to zoom towards the mouse position
+            scrolling.x = mousePos.x - mouse_offset.x * zoom - canvas_p0.x;
+            scrolling.y = mousePos.y - mouse_offset.y * zoom - canvas_p0.y;
         }
     }
-
     // Pan (we use a zero mouse threshold when there's no context menu)
     // You may decide to make that threshold dynamic based on whether the mouse is hovering something etc.
     const float mouse_threshold_for_pan = opt_enable_context_menu ? -1.0f : 0.0f;
