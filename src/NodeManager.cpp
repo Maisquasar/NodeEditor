@@ -10,33 +10,16 @@ NodeManager::NodeManager()
 {
     m_linkManager = new LinkManager();
 
-    NodeRef node = std::make_shared<Node>("Node");
+    NodeRef node = std::make_shared<Node>("Material");
+    node->SetTopColor(IM_COL32(156, 122, 72, 255));
     node->SetPosition(Vec2f(50, 50));
             
-    node->AddInput("Input", Type::Float);
-    node->AddInput("Input", Type::Vector2);
-    node->AddInput("Input", Type::Vector3);
-    node->AddOutput("Output", Type::Float);
-    node->AddOutput("Output", Type::Vector2);
-    node->AddOutput("Output", Type::Vector3);
-            
-    AddNode(node);
-
-    NodeRef node2 = std::make_shared<Node>("Node");
-    node2->SetPosition(Vec2f(500, 50));
-            
-    node2->AddInput("Input", Type::Float);
-    node2->AddInput("Input", Type::Vector2);
-    node2->AddInput("Input", Type::Vector3);
-    node2->AddOutput("Output", Type::Float);
-    node2->AddOutput("Output", Type::Vector2);
-    node2->AddOutput("Output", Type::Vector3);
-            
-    AddNode(node2);
-
-    // m_linkManager->CreateLink(node, 0, node2, 0);
-    // m_linkManager->CreateLink(node, 0, node2, 1);
-    // m_linkManager->CreateLink(node, 0, node2, 2);
+    node->AddInput("Base Color", Type::Vector3);
+    node->AddInput("Metallic", Type::Float);
+    node->AddInput("Specular", Type::Float);
+    node->AddInput("Roughness", Type::Float);
+    
+    AddNode(node);       
 }
 
 NodeManager::~NodeManager()
@@ -161,27 +144,44 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool wasInputClicked = false;
-
     bool alreadyOneSelected = false;
+    bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
     
     for (NodeRef& node : m_nodes | std::views::values)
     {        
         UpdateInOut(zoom, origin, mousePos, mouseClicked, node);
-        
         UpdateCurrentLink();
 
         if (mouseClicked && !alreadyOneSelected && node->IsSelected(mousePos, origin, zoom))
         {
-            SelectNode(node);
+            if (ctrlClick)
+            {
+                if (!node->p_selected)
+                {
+                    AddSelectedNode(node);
+                }
+                else
+                {
+                    RemoveSelectedNode(node);
+                }
+            }
+            else if (!node->p_selected)
+            {
+                SelectNode(node);
+            }
             
-            m_firstClickOffset = mousePos;
-            m_defaultPosition = node->p_position;
+            for (auto& selectedNode : m_selectedNodes)
+            {
+                // Calculate offset accounting for zoom and origin
+                selectedNode.lock()->p_clickOffset = (selectedNode.lock()->p_position - (mousePos / zoom + origin));
+            }
 
             wasNodeClicked = true;
             alreadyOneSelected = true;
         }
     }
-    
+
+    // Cancel when escape pressed
     if (ImGui::IsKeyPressed(ImGuiKey_Escape))
     {
         m_currentLink = Link();
@@ -192,17 +192,23 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         SelectNode(nullptr);
     }
 
-    bool isAlmostLinked = m_currentLink.fromNodeIndex != UUID_NULL || m_currentLink.toNodeIndex != UUID_NULL;
-    NodeRef currentSelectedNode = m_selectedNodes.empty() ? nullptr : m_selectedNodes.back().lock();
-    // Move selected node
-    if (!isAlmostLinked && currentSelectedNode && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    // Move selected nodes with correct position adjustment
+    if (!IsAlmostLinked() && !m_selectedNodes.empty()
+        && ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f))
     {
-        Vec2f newPosition = m_defaultPosition + (mousePos - m_firstClickOffset) / zoom;
-        currentSelectedNode->SetPosition(newPosition);
+        for (const auto& m_selectedNode : m_selectedNodes)
+        {
+            Node* currentSelectedNode = m_selectedNode.lock().get();
+            Vec2f newPosition = (mousePos / zoom + origin) + currentSelectedNode->p_clickOffset;
+            m_selectedNode.lock()->SetPosition(newPosition);
+        }
     }
 
     UpdateDelete();
 }
+
+
+
 
 void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const
 {

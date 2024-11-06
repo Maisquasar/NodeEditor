@@ -129,6 +129,7 @@ protected:
     Vec2f p_size = {150.0f, c_topSize};
     
     bool p_selected = false;
+    Vec2f p_clickOffset = {0, 0};
 };
 
 typedef std::shared_ptr<Node> NodeRef;

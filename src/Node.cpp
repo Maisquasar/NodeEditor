@@ -54,7 +54,7 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
         
     const uint32_t color = GetColor(input->type);
     drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
-    drawList->AddText(font, 14 * zoom, position + Vec2f(5, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
+    drawList->AddText(font, 14 * zoom, position + Vec2f(10, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
                                   input->name.c_str());
 }
 
@@ -64,7 +64,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     //Background rect
     Vec2f pMin = GetMin(zoom, origin);
     Vec2f pMax = GetMax(pMin, zoom);
-    drawList->AddRectFilled(pMin, pMax, IM_COL32(100, 100, 100, 255), 8.000000, 240);
+    drawList->AddRectFilled(pMin, pMax, IM_COL32(26, 28, 26, 200), 8.000000, 240);
 
     // Draw Top
     drawList->AddRectFilled(pMin, pMin + Vec2f(p_size.x, c_topSize) * zoom, p_topColor, 8.000000, 48);
@@ -167,9 +167,9 @@ bool Node::DoesInputHaveLink(uint32_t index) const
 void Node::AddInput(const std::string& name, Type type)
 {
     p_inputs.push_back(std::make_shared<Input>(p_uuid, static_cast<uint32_t>(p_inputs.size()), name, type));
-    int size = p_inputs.size() * (25 + c_pointSize);
+    int size = p_inputs.size() * (10 + c_pointSize);
 
-    if (p_outputs.size() * c_pointSize > p_size.y)
+    if (size > p_size.y)
         p_size.y = size;
 }
 
@@ -184,7 +184,7 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
 
 Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
-    return GetMin(zoom, origin) + Vec2f(10, c_topSize + 10 + c_pointSize * index) * zoom;
+    return GetMin(zoom, origin) + Vec2f(10, c_topSize + 15 + c_pointSize * index) * zoom;
 }
 
 Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const

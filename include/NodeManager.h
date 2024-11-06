@@ -55,7 +55,4 @@ private:
     Link m_currentLink; // The link when creating a new link
 
     std::vector<NodeWeakRef> m_selectedNodes;
-
-    Vec2f m_firstClickOffset;
-    Vec2f m_defaultPosition;
 };
