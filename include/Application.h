@@ -13,7 +13,7 @@ public:
     void Delete();
 
 private:
-    GLFWwindow* m_window;
+    GLFWwindow* m_window = nullptr;
 
     MainWindow m_mainWindow;
     

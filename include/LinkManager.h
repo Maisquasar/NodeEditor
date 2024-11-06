@@ -9,10 +9,10 @@
 
 struct Link
 {
-    UUID fromNodeIndex = -1;
+    UUID fromNodeIndex = UUID_NULL;
     uint32_t fromOutputIndex = -1;
 
-    UUID toNodeIndex = -1;
+    UUID toNodeIndex = UUID_NULL;
     uint32_t toInputIndex = -1;
 };
 
@@ -43,11 +43,18 @@ public:
     bool CanCreateLink(const Link& link) const;
 
     static bool IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold = 1);
+    static bool IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, float threshold = 1, int numSamples = 10);
 
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
+    std::vector<LinkWeakRef> GetLinksWithInput(const UUID& uuid, uint32_t index) const;
+
+    bool HasLink(const OutputRef& output) const;
+    bool HasLink(const InputRef& input) const;
+    
     LinkWeakRef GetLinkClicked(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
 private:
     
     std::vector<LinkRef> m_links;
-    
+    float m_controlDistanceX = 50.f;
+    int m_bezierSegmentCount = 10;
 };

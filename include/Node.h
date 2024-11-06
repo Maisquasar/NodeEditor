@@ -53,8 +53,11 @@ class Node
 public:
     Node(std::string _name);
     ~Node() = default;
-    
+
+    // Draw Methods
     void Draw(float zoom, const Vec2f& origin) const;
+    void DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const;
+    void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
@@ -78,12 +81,15 @@ public:
         return point.x > min.x && point.x < max.x && point.y > min.y && point.y < max.y;
     }
 
-    bool IsInputClicked(const Vec2f& point, const Vec2f& origin, float zoom, int& index) const;
-    bool IsOutputClicked(const Vec2f& point, const Vec2f& origin, float zoom, int& index) const;
-    bool DoesOutputHaveLink(uint32_t index) const;
+    bool IsNodeVisible(const Vec2f& origin, float zoom) const;
 
-    void AddInput(std::string name, Type type);
-    void AddOutput(std::string name, Type type);
+    bool IsInputClicked(const Vec2f& point, const Vec2f& origin, float zoom, uint32_t& index) const;
+    bool IsOutputClicked(const Vec2f& point, const Vec2f& origin, float zoom, uint32_t& index) const;
+    bool DoesOutputHaveLink(uint32_t index) const;
+    bool DoesInputHaveLink(uint32_t index) const;
+
+    void AddInput(const std::string& name, Type type);
+    void AddOutput(const std::string& name, Type type);
 
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
@@ -93,7 +99,9 @@ public:
     Vec2f GetOutputPosition(uint32_t index) const;
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
 
-    std::weak_ptr<struct Link> GetLinkWithOutput(uint32_t index) const;
+    using LinkWeakRef = std::weak_ptr<struct Link>;
+    LinkWeakRef GetLinkWithOutput(uint32_t index) const;
+    std::vector<LinkWeakRef> GetLinksWithInput(uint32_t index) const;
 
     void SetPosition(Vec2f position);
     void SetName(std::string name) { p_name = std::move(name); }

@@ -61,8 +61,8 @@ void MainWindow::DrawGrid()
     // Adjust mouse position with zoom
     const ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
 
-    draw_list->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
-    draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
+    // draw_list->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
+    // draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
     
     // Zoom with mouse wheel
     if (is_hovered)
@@ -82,6 +82,9 @@ void MainWindow::DrawGrid()
             // Recalculate origin to zoom towards the mouse position
             scrolling.x = mousePos.x - mouse_offset.x * zoom - canvas_p0.x;
             scrolling.y = mousePos.y - mouse_offset.y * zoom - canvas_p0.y;
+
+            // Update origin 
+            origin = {canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y};
         }
     }
     // Pan (we use a zero mouse threshold when there's no context menu)

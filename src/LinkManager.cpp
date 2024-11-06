@@ -19,10 +19,10 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
         Vec2f inputPosition = fromNode->GetOutputPosition(selectedLink->fromOutputIndex, origin, zoom);
         Vec2f outputPosition = toNode->GetInputPosition(selectedLink->toInputIndex, origin, zoom);
         
-        Vec2f controlPoint1 = inputPosition + Vec2f(50.0f, 0.0f) * zoom;
-        Vec2f controlPoint2 = outputPosition - Vec2f(50.0f, 0.0f) * zoom;
+        Vec2f controlPoint1 = inputPosition + Vec2f(m_controlDistanceX, 0.0f) * zoom;
+        Vec2f controlPoint2 = outputPosition - Vec2f(m_controlDistanceX, 0.0f) * zoom;
         
-        drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 0, 255), 3 * zoom);
+        drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 0, 255), 3 * zoom, m_bezierSegmentCount);
     }
     
     for (const LinkRef& link : m_links)
@@ -35,10 +35,10 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
         Vec2f inputPosition = fromNode->GetOutputPosition(link->fromOutputIndex, origin, zoom);
         Vec2f outputPosition = toNode->GetInputPosition(link->toInputIndex, origin, zoom);
         
-        Vec2f controlPoint1 = inputPosition + Vec2f(50.0f, 0.0f) * zoom;
-        Vec2f controlPoint2 = outputPosition - Vec2f(50.0f, 0.0f) * zoom;
+        Vec2f controlPoint1 = inputPosition + Vec2f(m_controlDistanceX, 0.0f) * zoom;
+        Vec2f controlPoint2 = outputPosition - Vec2f(m_controlDistanceX, 0.0f) * zoom;
         
-        drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom);
+        drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom, m_bezierSegmentCount);
     }
 }
 
@@ -175,6 +175,32 @@ bool LinkManager::IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPositio
     return hoverVec.Length() <= threshold;
 }
 
+bool LinkManager::IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2,
+                                     Vec2f outputPosition, float threshold, int numSamples)
+{
+    for (int i = 0; i <= numSamples; ++i)
+    {
+        float t = i / static_cast<float>(numSamples);
+        
+        // Calculate the point on the cubic Bezier curve for this t
+        Vec2f bezierPoint = 
+            inputPosition * (1 - t) * (1 - t) * (1 - t) +
+            controlPoint1 * 3 * (1 - t) * (1 - t) * t +
+            controlPoint2 * 3 * (1 - t) * t * t +
+            outputPosition* t * t * t;
+        
+        // Calculate distance from the point to the Bezier point
+        const float distance = (pointPosition - bezierPoint).Length();
+        
+        // Check if this distance is within the threshold
+        if (distance < threshold)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 LinkWeakRef LinkManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) const
 {
     for (const LinkRef& link : m_links)
@@ -187,6 +213,43 @@ LinkWeakRef LinkManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) con
     return {};
 }
 
+std::vector<LinkWeakRef> LinkManager::GetLinksWithInput(const UUID& uuid, uint32_t index) const
+{
+    std::vector<LinkWeakRef> links;
+    for (const LinkRef& link : m_links)
+    {
+        if (link->toNodeIndex == uuid && link->toInputIndex == index)
+        {
+            links.push_back(link);
+        }
+    }
+    return links;
+}
+
+bool LinkManager::HasLink(const OutputRef& output) const
+{
+    for (const LinkRef& link : m_links)
+    {
+        if (link->fromNodeIndex == output->parentUUID && link->fromOutputIndex == output->index)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool LinkManager::HasLink(const InputRef& input) const
+{
+    for (const LinkRef& link : m_links)
+    {
+        if (link->toNodeIndex == input->parentUUID && link->toInputIndex == input->index)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 LinkWeakRef LinkManager::GetLinkClicked(float zoom, const Vec2f& origin, const Vec2f& mousePos) const
 {
     for (const LinkRef& link : m_links)
@@ -197,7 +260,9 @@ LinkWeakRef LinkManager::GetLinkClicked(float zoom, const Vec2f& origin, const V
         Vec2f inputPosition = fromNode->GetOutputPosition(link->fromOutputIndex, origin, zoom);
         Vec2f outputPosition = toNode->GetInputPosition(link->toInputIndex, origin, zoom);
         
-        if (IsPointHoverLineSegment(mousePos, inputPosition, outputPosition, 3.0f * zoom))
+        if (IsPointHoverBezier(mousePos, inputPosition, inputPosition + Vec2f(m_controlDistanceX, 0.0f) * zoom,
+                               outputPosition - Vec2f(m_controlDistanceX, 0.0f) * zoom, outputPosition, 3.f * zoom,
+                               m_bezierSegmentCount))
         {
             return link;
         }

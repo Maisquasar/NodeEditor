@@ -180,7 +180,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     for (NodeRef& node : m_nodes | std::views::values)
     {
         bool alreadyOneSelected = selectedNode != m_selectedNode.lock();
-
+        
         UpdateInOut(zoom, origin, mousePos, mouseClicked, node);
         
         UpdateCurrentLink();
@@ -217,6 +217,9 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
 {
     for (const NodeRef& node : m_nodes | std::views::values)
     {
+        
+        if (!node->IsNodeVisible(origin, zoom))
+            continue;
         node->Draw(zoom, origin);
     }
     
@@ -251,7 +254,7 @@ void NodeManager::SelectNode(const NodeRef& node)
         selectedNode->p_selected = true;
 }
 
-LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) const
+LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
     return m_linkManager->GetLinkWithOutput(uuid, index);
 }

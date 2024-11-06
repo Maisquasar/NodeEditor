@@ -12,10 +12,10 @@ public:
     UUID(UUID&&) noexcept = default;
     virtual ~UUID();
 
-    operator uint64_t() const { return m_UUID; }
+    operator uint64_t() const { return m_uuid; }
 
 private:
-    uint64_t m_UUID;
+    uint64_t m_uuid;
 };
 
 namespace std
