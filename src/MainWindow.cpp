@@ -62,7 +62,7 @@ void MainWindow::DrawGrid()
     const ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
 
     // draw_list->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
-    // draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
+    draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
     
     // Zoom with mouse wheel
     if (is_hovered)

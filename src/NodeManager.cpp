@@ -131,7 +131,6 @@ void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mous
 
 void NodeManager::UpdateCurrentLink()
 {
-        
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
         m_linkManager->AddLink(m_currentLink);
@@ -140,20 +139,38 @@ void NodeManager::UpdateCurrentLink()
 }
 
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
-{    
+{
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
-    bool wasInputClicked = false;
-    bool alreadyOneSelected = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
+
+    if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
+        && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    {
+        SetUserInputState(UserInputState::None);
+    }
+    else if (m_userInputState == UserInputState::SelectingSquare)
+    {
+        ClearSelectedNodes();
+    }
     
     for (NodeRef& node : m_nodes | std::views::values)
     {        
         UpdateInOut(zoom, origin, mousePos, mouseClicked, node);
-        UpdateCurrentLink();
 
-        if (mouseClicked && !alreadyOneSelected && node->IsSelected(mousePos, origin, zoom))
+        if (m_selectionSquare.shouldDraw)
         {
+            if (node->IsSelected(m_selectionSquare.min, m_selectionSquare.max, origin, zoom))
+            {
+                if (!node->p_selected)
+                {
+                    AddSelectedNode(node);
+                }
+            }
+        }
+        else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom))
+        {
+            SetUserInputState(UserInputState::ClickNode);
             if (ctrlClick)
             {
                 if (!node->p_selected)
@@ -177,24 +194,56 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             }
 
             wasNodeClicked = true;
-            alreadyOneSelected = true;
         }
+    }
+    
+    UpdateCurrentLink();
+
+    if (m_userInputState == UserInputState::ClickNode && CurrentLinkIsAlmostLinked())
+    {
+        RemoveSelectedNode(m_selectedNodes.back());
+        SetUserInputState(UserInputState::CreateLink);
     }
 
     // Cancel when escape pressed
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape))
     {
+        SetUserInputState(UserInputState::None);
         m_currentLink = Link();
     }
     
-    if (mouseClicked && !wasNodeClicked && !wasInputClicked)
+    if (mouseClicked && !wasNodeClicked)
     {
         SelectNode(nullptr);
     }
+    
+    if (mouseClicked)
+    {
+        Vec2f localMousePos = (mousePos - origin) / zoom;
+        m_selectionSquare.mousePosOnStart = localMousePos;
+    }
 
+    // Update States
+    if (m_userInputState == UserInputState::ClickNode
+        && ImGui::IsMouseDown(ImGuiMouseButton_Left)
+        && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f)
+        && !CurrentLinkIsAlmostLinked())
+    {
+        SetUserInputState(UserInputState::DragNode);
+    }
+    else if (m_userInputState == UserInputState::None
+        && ImGui::IsMouseDown(ImGuiMouseButton_Left)
+        && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f)
+        && CurrentLinkIsNone())
+    {
+        SetUserInputState(UserInputState::SelectingSquare);
+    }
+    
     // Move selected nodes with correct position adjustment
-    if (!IsAlmostLinked() && !m_selectedNodes.empty()
-        && ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f))
+    /*if (!CurrentLinkIsAlmostLinked() && !m_selectedNodes.empty()
+        && ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f)
+        && !m_selectionSquare.shouldDraw)*/
+    if (m_userInputState == UserInputState::DragNode)
     {
         for (const auto& m_selectedNode : m_selectedNodes)
         {
@@ -203,7 +252,19 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             m_selectedNode.lock()->SetPosition(newPosition);
         }
     }
-
+    
+    if (m_userInputState == UserInputState::SelectingSquare)
+    {
+        m_selectionSquare.min = m_selectionSquare.mousePosOnStart * zoom + origin;
+        m_selectionSquare.max = mousePos;
+        m_selectionSquare.shouldDraw = true;
+    }
+    else
+    {
+        m_selectionSquare.shouldDraw = false;
+    }
+    
+    
     UpdateDelete();
 }
 
@@ -212,15 +273,15 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
 void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const
 {
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
     for (const NodeRef& node : m_nodes | std::views::values)
     {
-        
         if (!node->IsNodeVisible(origin, zoom))
             continue;
         node->Draw(zoom, origin);
     }
     
-    if (IsAlmostLinked())
+    if (m_userInputState == UserInputState::CreateLink)
     {
         Vec2f inPosition = mousePos;
         Vec2f outPosition = mousePos;
@@ -233,11 +294,17 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
         {
             outPosition = GetNode(m_currentLink.toNodeIndex).lock()->GetInputPosition(m_currentLink.toInputIndex, origin, zoom);
         }
-        
-        ImGui::GetWindowDrawList()->AddLine(inPosition, outPosition, ImColor(255, 255, 255), 3 * zoom);
+
+        drawList->AddLine(inPosition, outPosition, ImColor(255, 255, 255), 3 * zoom);
     }
 
     m_linkManager->DrawLinks(zoom, origin);
+    
+    if (m_selectionSquare.shouldDraw)
+    {
+        drawList->AddRectFilled(m_selectionSquare.min, m_selectionSquare.max, IM_COL32(36, 91, 130, 155));
+        drawList->AddRect(m_selectionSquare.min, m_selectionSquare.max, IM_COL32(255, 255, 255, 255));
+    }
 }
 
 void NodeManager::SelectNode(const NodeRef& node)
@@ -281,7 +348,12 @@ LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t inde
     return m_linkManager->GetLinkWithOutput(uuid, index);
 }
 
-bool NodeManager::IsAlmostLinked() const
+bool NodeManager::CurrentLinkIsAlmostLinked() const
 {
     return m_currentLink.fromNodeIndex != UUID_NULL || m_currentLink.toNodeIndex != UUID_NULL;
+}
+
+bool NodeManager::CurrentLinkIsNone() const
+{
+    return m_currentLink.fromNodeIndex == UUID_NULL && m_currentLink.toNodeIndex == UUID_NULL;
 }

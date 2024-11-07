@@ -103,7 +103,10 @@ bool Node::IsSelected(const Vec2f& rectMin, const Vec2f& rectMax, const Vec2f& o
 {
     Vec2f pMin = GetMin(zoom, origin);
     Vec2f pMax = GetMax(pMin, zoom);
-    if (pMin.x < rectMax.x && pMax.x > rectMin.x && pMin.y < rectMax.y && pMax.y > rectMin.y)
+    if (std::min(pMin.x, pMax.x) <= std::max(rectMin.x, rectMax.x)
+        && std::max(pMin.x, pMax.x) >= std::min(rectMin.x, rectMax.x)
+        && std::min(pMin.y, pMax.y) <= std::max(rectMin.y, rectMax.y)
+        && std::max(pMin.y, pMax.y) >= std::min(rectMin.y, rectMax.y))
     {
         return true;
     }

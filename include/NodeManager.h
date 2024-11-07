@@ -11,6 +11,22 @@
 
 class LinkManager;
 using NodeList = std::pmr::unordered_map<UUID, NodeRef>;
+struct SelectionSquare
+{
+    Vec2f mousePosOnStart;
+    Vec2f min, max;
+    bool shouldDraw = false;
+};
+
+enum class UserInputState
+{
+    None,
+    CreateLink,
+    ClickNode,
+    DragNode,
+    SelectingSquare,
+};
+
 class NodeManager
 {
 public:
@@ -44,7 +60,10 @@ public:
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
 
     // Link
-    bool IsAlmostLinked() const;
+    bool CurrentLinkIsAlmostLinked() const;
+    bool CurrentLinkIsNone() const;
+
+    void SetUserInputState(const UserInputState& state) { m_userInputState = state; }
 private:
     static std::unique_ptr<NodeManager> m_instance;
     
@@ -55,4 +74,8 @@ private:
     Link m_currentLink; // The link when creating a new link
 
     std::vector<NodeWeakRef> m_selectedNodes;
+
+    SelectionSquare m_selectionSquare;
+
+    UserInputState m_userInputState = UserInputState::None;
 };
