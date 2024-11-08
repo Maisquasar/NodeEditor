@@ -27,6 +27,9 @@ void Application::Initialize()
         return;
     }
 
+    // Maximize the window
+    glfwMaximizeWindow(m_window);
+
     // Make the window's context current
     glfwMakeContextCurrent(m_window);
     glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);

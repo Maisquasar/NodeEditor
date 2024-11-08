@@ -96,7 +96,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
     }
 }
 
-void NodeManager::UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
+void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
 {
     if (!mouseClicked)
         return;
@@ -138,6 +138,52 @@ void NodeManager::UpdateCurrentLink()
     }
 }
 
+void NodeManager::UpdateNodeSelection(uint64_t index, float zoom, const Vec2f& origin, const Vec2f& mousePos,
+                                      bool mouseClicked, bool ctrlDown, bool& wasNodeClicked)
+{
+    NodeRef node = m_nodes[index];
+    if (!node)
+        return;
+    
+    if (m_selectionSquare.shouldDraw)
+    {
+        if (node->IsSelected(m_selectionSquare.min, m_selectionSquare.max, origin, zoom))
+        {
+            if (!node->p_selected)
+            {
+                AddSelectedNode(node);
+            }
+        }
+    }
+    else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom))
+    {
+        SetUserInputState(UserInputState::ClickNode);
+        if (ctrlDown)
+        {
+            if (!node->p_selected)
+            {
+                AddSelectedNode(node);
+            }
+            else
+            {
+                RemoveSelectedNode(node);
+            }
+        }
+        else if (!node->p_selected)
+        {
+            SelectNode(node);
+        }
+            
+        for (auto& selectedNode : m_selectedNodes)
+        {
+            // Calculate offset accounting for zoom and origin
+            selectedNode.lock()->p_clickOffset = (selectedNode.lock()->p_position - (mousePos / zoom + origin));
+        }
+
+        wasNodeClicked = true;
+    }
+}
+
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
@@ -153,49 +199,24 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         ClearSelectedNodes();
     }
-    
+
+    size_t i = 0;
     for (NodeRef& node : m_nodes | std::views::values)
-    {        
-        UpdateInOut(zoom, origin, mousePos, mouseClicked, node);
+    {
+        if (!node)
+            continue;
+        node->p_isVisible = node->IsNodeVisible(origin, zoom);
+        if (!node->p_isVisible)
+            continue;
+        
+        UpdateInputOutputClick(zoom, origin, mousePos, mouseClicked, node);
 
-        if (m_selectionSquare.shouldDraw)
-        {
-            if (node->IsSelected(m_selectionSquare.min, m_selectionSquare.max, origin, zoom))
-            {
-                if (!node->p_selected)
-                {
-                    AddSelectedNode(node);
-                }
-            }
-        }
-        else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom))
-        {
-            SetUserInputState(UserInputState::ClickNode);
-            if (ctrlClick)
-            {
-                if (!node->p_selected)
-                {
-                    AddSelectedNode(node);
-                }
-                else
-                {
-                    RemoveSelectedNode(node);
-                }
-            }
-            else if (!node->p_selected)
-            {
-                SelectNode(node);
-            }
-            
-            for (auto& selectedNode : m_selectedNodes)
-            {
-                // Calculate offset accounting for zoom and origin
-                selectedNode.lock()->p_clickOffset = (selectedNode.lock()->p_position - (mousePos / zoom + origin));
-            }
+        UpdateNodeSelection(i, zoom, origin, mousePos, mouseClicked, ctrlClick, wasNodeClicked);
 
-            wasNodeClicked = true;
-        }
+        i++;
     }
+
+    m_linkManager->UpdateLinkSelection(origin, zoom);
     
     UpdateCurrentLink();
 
@@ -238,11 +259,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         SetUserInputState(UserInputState::SelectingSquare);
     }
-    
-    // Move selected nodes with correct position adjustment
-    /*if (!CurrentLinkIsAlmostLinked() && !m_selectedNodes.empty()
-        && ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f)
-        && !m_selectionSquare.shouldDraw)*/
+
+    // Update dragging
     if (m_userInputState == UserInputState::DragNode)
     {
         for (const auto& m_selectedNode : m_selectedNodes)
@@ -252,7 +270,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             m_selectedNode.lock()->SetPosition(newPosition);
         }
     }
-    
+
+    // Update selection square rendering
     if (m_userInputState == UserInputState::SelectingSquare)
     {
         m_selectionSquare.min = m_selectionSquare.mousePosOnStart * zoom + origin;
@@ -276,7 +295,7 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     for (const NodeRef& node : m_nodes | std::views::values)
     {
-        if (!node->IsNodeVisible(origin, zoom))
+        if (!node->p_isVisible)
             continue;
         node->Draw(zoom, origin);
     }
@@ -295,7 +314,7 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
             outPosition = GetNode(m_currentLink.toNodeIndex).lock()->GetInputPosition(m_currentLink.toInputIndex, origin, zoom);
         }
 
-        drawList->AddLine(inPosition, outPosition, ImColor(255, 255, 255), 3 * zoom);
+        drawList->AddLine(inPosition, outPosition, IM_COL32(255, 255, 255, 255), 3 * zoom);
     }
 
     m_linkManager->DrawLinks(zoom, origin);

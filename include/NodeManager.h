@@ -39,11 +39,15 @@ public:
     void AddNode(const NodeRef& node);
     void RemoveNode(const UUID& uuid);
     void RemoveNode(const NodeWeakRef& weak);
-    void UpdateDelete();
+    
+    
     void OnInputClicked(const NodeRef& node, bool altClicked, uint32_t i);
     void OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t i);
-    void UpdateInOut(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node);
+    
+    void UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node);
     void UpdateCurrentLink();
+    void UpdateNodeSelection(uint64_t index, float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, bool ctrlDown, bool& wasNodeClicked);
+    void UpdateDelete();
 
     void DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
     void UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos);
@@ -64,6 +68,9 @@ public:
     bool CurrentLinkIsNone() const;
 
     void SetUserInputState(const UserInputState& state) { m_userInputState = state; }
+    UserInputState GetUserInputState() const { return m_userInputState; }
+
+    SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
 private:
     static std::unique_ptr<NodeManager> m_instance;
     

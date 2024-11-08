@@ -192,7 +192,7 @@ Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zo
 
 Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
-    return GetMin(zoom, origin) + Vec2f(p_size.x - 10, c_topSize + 10 + c_pointSize * index) * zoom;
+    return GetMin(zoom, origin) + Vec2f(p_size.x - 10, c_topSize + 15 + c_pointSize * index) * zoom;
 }
 
 LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const

@@ -130,6 +130,8 @@ protected:
     
     bool p_selected = false;
     Vec2f p_clickOffset = {0, 0};
+
+    bool p_isVisible = true;
 };
 
 typedef std::shared_ptr<Node> NodeRef;

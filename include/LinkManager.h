@@ -23,6 +23,8 @@ class LinkManager
 {
 public:
     
+
+    void UpdateLinkSelection(const Vec2f& origin, float zoom);
     void DrawLinks(float zoom, const Vec2f& origin) const;
 
     void CreateLink(const NodeRef& fromNode, uint32_t fromOutput, const NodeRef& toNode, uint32_t toOutput);
@@ -44,6 +46,7 @@ public:
 
     static bool IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold = 1);
     static bool IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, float threshold = 1, int numSamples = 10);
+    static bool BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, Vec2f rectMin, Vec2f rectMax);
 
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
     std::vector<LinkWeakRef> GetLinksWithInput(const UUID& uuid, uint32_t index) const;
@@ -53,7 +56,10 @@ public:
     
     LinkWeakRef GetLinkClicked(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
 
+    void AddSelectedLink(const LinkRef& link);
+
     void DeleteSelectedLinks();
+    void ClearSelectedLinks();
 private:
     
     std::vector<LinkRef> m_links;

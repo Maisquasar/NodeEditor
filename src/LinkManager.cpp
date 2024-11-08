@@ -3,6 +3,101 @@
 #include <utility>
 
 #include "NodeManager.h"
+namespace Utils
+{
+    // Utility function to get a point on a cubic Bezier curve for a given t (0 <= t <= 1)
+    Vec2f CubicBezierPoint(const Vec2f& p0, const Vec2f& p1, const Vec2f& p2, const Vec2f& p3, float t)
+    {
+        float u = 1 - t;
+        float tt = t * t;
+        float uu = u * u;
+        float uuu = uu * u;
+        float ttt = tt * t;
+
+        Vec2f point = p0 * uuu; // u^3 * p0
+        point += p1* 3 * uu * t; // 3 * u^2 * t * p1
+        point += p2 * 3 * u * tt; // 3 * u * t^2 * p2
+        point += p3 * ttt; // t^3 * p3
+
+        return point;
+    }
+
+    // Helper function to check if a line segment intersects the rectangle
+    bool LineIntersectsRect(const Vec2f& start, const Vec2f& end, const Vec2f& rectMin, const Vec2f& rectMax)
+    {
+        // Check if either endpoint is inside the rectangle
+        if ((rectMin.x <= start.x && start.x <= rectMax.x && rectMin.y <= start.y && start.y <= rectMax.y) ||
+            (rectMin.x <= end.x && end.x <= rectMax.x && rectMin.y <= end.y && end.y <= rectMax.y))
+        {
+            return true;
+        }
+
+        float dx = end.x - start.x;
+        float dy = end.y - start.y;
+
+        // Check for intersection with each edge of the rectangle
+        if (dx != 0) {
+            float t1 = (rectMin.x - start.x) / dx;
+            float t2 = (rectMax.x - start.x) / dx;
+            if (0 <= t1 && t1 <= 1) {
+                float y = start.y + t1 * dy;
+                if (rectMin.y <= y && y <= rectMax.y) return true;
+            }
+            if (0 <= t2 && t2 <= 1) {
+                float y = start.y + t2 * dy;
+                if (rectMin.y <= y && y <= rectMax.y) return true;
+            }
+        }
+        if (dy != 0) {
+            float t1 = (rectMin.y - start.y) / dy;
+            float t2 = (rectMax.y - start.y) / dy;
+            if (0 <= t1 && t1 <= 1) {
+                float x = start.x + t1 * dx;
+                if (rectMin.x <= x && x <= rectMax.x) return true;
+            }
+            if (0 <= t2 && t2 <= 1) {
+                float x = start.x + t2 * dx;
+                if (rectMin.x <= x && x <= rectMax.x) return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
+{
+    NodeManager* nodeManager = NodeManager::Get();
+
+    UserInputState userInputState = nodeManager->GetUserInputState();
+    if (userInputState == UserInputState::None && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        if (auto clickedLink = GetLinkClicked(zoom, origin, ImGui::GetMousePos()).lock())
+        {
+            AddSelectedLink(clickedLink);
+        }
+    }
+    
+    SelectionSquare selectionSquare = nodeManager->GetSelectionSquare();
+
+    if (!selectionSquare.shouldDraw)
+        return;
+
+    ClearSelectedLinks();
+
+    for (const LinkRef& link : m_links)
+    {
+        // check if the link is inside the selection square
+        Vec2f positionIn = nodeManager->GetNode(link->fromNodeIndex).lock()->GetOutputPosition(link->fromOutputIndex, origin, zoom);
+        Vec2f positionOut = nodeManager->GetNode(link->toNodeIndex).lock()->GetInputPosition(link->toInputIndex, origin, zoom);
+        if (BezierIntersectSquare(positionIn, positionIn + Vec2f(m_controlDistanceX, 0.0f) * zoom,
+                                  positionOut - Vec2f(m_controlDistanceX, 0.0f) * zoom, positionOut,
+                                  selectionSquare.min, selectionSquare.max))
+        {
+            m_selectedLinks.push_back(link);
+        }
+    }
+}
 
 void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
 {
@@ -202,6 +297,31 @@ bool LinkManager::IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, V
     return false;
 }
 
+bool LinkManager::BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2,
+    Vec2f outputPosition, Vec2f rectMin, Vec2f rectMax)
+{
+    const int segments = 10; // Increase for higher accuracy
+    std::vector<Vec2f> bezierPoints;
+
+    // Generate points along the Bezier curve
+    for (int i = 0; i <= segments; ++i)
+    {
+        float t = static_cast<float>(i) / segments;
+        bezierPoints.push_back(Utils::CubicBezierPoint(inputPosition, controlPoint1, controlPoint2, outputPosition, t));
+    }
+
+    // Check each segment of the Bezier curve against the rectangle
+    for (int i = 0; i < segments; ++i)
+    {
+        if (Utils::LineIntersectsRect(bezierPoints[i], bezierPoints[i + 1], rectMin, rectMax))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 LinkWeakRef LinkManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) const
 {
     for (const LinkRef& link : m_links)
@@ -271,11 +391,22 @@ LinkWeakRef LinkManager::GetLinkClicked(float zoom, const Vec2f& origin, const V
     return {};
 }
 
+void LinkManager::AddSelectedLink(const LinkRef& link)
+{
+    if (std::ranges::find_if(m_selectedLinks, [link](const LinkWeakRef& l) { return l.lock() == link; }) == m_selectedLinks.end())
+        m_selectedLinks.push_back(link);
+}
+
 void LinkManager::DeleteSelectedLinks()
 {
     for (const auto& i : m_selectedLinks)
     {
         RemoveLink(i);
     }
+    m_selectedLinks.clear();
+}
+
+void LinkManager::ClearSelectedLinks()
+{
     m_selectedLinks.clear();
 }
