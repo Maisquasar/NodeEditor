@@ -28,7 +28,7 @@ void Application::Initialize()
     }
 
     // Maximize the window
-    glfwMaximizeWindow(m_window);
+    // glfwMaximizeWindow(m_window);
 
     // Make the window's context current
     glfwMakeContextCurrent(m_window);

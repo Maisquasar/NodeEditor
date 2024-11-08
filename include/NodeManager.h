@@ -1,8 +1,10 @@
 ﻿#pragma once
+#include <functional>
 #include <galaxymath/Maths.h>
 #include <memory>
 #include <unordered_map>
 
+#include "Event.h"
 #include "LinkManager.h"
 #include "UUID.h"
 
@@ -39,14 +41,16 @@ public:
     void AddNode(const NodeRef& node);
     void RemoveNode(const UUID& uuid);
     void RemoveNode(const NodeWeakRef& weak);
-    
+
+    static Vec2f ToScreen(const Vec2f& worldPos, float zoom, const Vec2f& origin) { return worldPos * zoom + origin; }
+    static Vec2f ToGrid(const Vec2f& screenPos, float zoom, const Vec2f& origin) { return (screenPos - origin) / zoom; }
     
     void OnInputClicked(const NodeRef& node, bool altClicked, uint32_t i);
     void OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t i);
     
     void UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node);
     void UpdateCurrentLink();
-    void UpdateNodeSelection(uint64_t index, float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, bool ctrlDown, bool& wasNodeClicked);
+    void UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, bool ctrlDown, bool& wasNodeClicked);
     void UpdateDelete();
 
     void DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
@@ -71,6 +75,8 @@ public:
     UserInputState GetUserInputState() const { return m_userInputState; }
 
     SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
+
+    Utils::EventWithID<> EOnDrawEvent;
 private:
     static std::unique_ptr<NodeManager> m_instance;
     
@@ -81,6 +87,8 @@ private:
     Link m_currentLink; // The link when creating a new link
 
     std::vector<NodeWeakRef> m_selectedNodes;
+
+    Vec2f m_onClickPos;
 
     SelectionSquare m_selectionSquare;
 

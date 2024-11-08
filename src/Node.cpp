@@ -205,7 +205,7 @@ std::vector<LinkWeakRef> Node::GetLinksWithInput(uint32_t index) const
     return p_nodeManager->GetLinkManager()->GetLinksWithInput(p_uuid, index);
 }
 
-void Node::SetPosition(const Vec2f position)
+void Node::SetPosition(const Vec2f& position)
 {
     p_position = position;
 }

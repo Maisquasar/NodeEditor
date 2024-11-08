@@ -106,7 +106,7 @@ public:
     LinkWeakRef GetLinkWithOutput(uint32_t index) const;
     std::vector<LinkWeakRef> GetLinksWithInput(uint32_t index) const;
 
-    void SetPosition(Vec2f position);
+    void SetPosition(const Vec2f& position);
     void SetName(std::string name) { p_name = std::move(name); }
     void SetTopColor(uint32_t color) { p_topColor = color; }
     

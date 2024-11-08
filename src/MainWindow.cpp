@@ -33,6 +33,7 @@ void MainWindow::Delete()
 
 void MainWindow::DrawGrid()
 {
+    // static ImVec2 scrolling(ImGui::GetContentRegionAvail().x / 2.0f, ImGui::GetContentRegionAvail().y / 2.0f);
     static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
     static bool opt_enable_context_menu = true;
@@ -62,7 +63,7 @@ void MainWindow::DrawGrid()
     const ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
 
     // draw_list->AddCircleFilled(mousePos, 5, IM_COL32(255, 0, 0, 255));
-    draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 255, 255));
+    draw_list->AddCircleFilled(origin, 5, IM_COL32(0, 0, 0, 255));
     
     // Zoom with mouse wheel
     if (is_hovered)
@@ -135,6 +136,7 @@ void MainWindow::DrawGrid()
     }
 
     m_nodeManager->DrawNodes(zoom, origin, mousePos);
+    m_nodeManager->EOnDrawEvent.Invoke();
     
     draw_list->PopClipRect();
 }

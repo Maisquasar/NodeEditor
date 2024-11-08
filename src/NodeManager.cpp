@@ -12,7 +12,7 @@ NodeManager::NodeManager()
 
     NodeRef node = std::make_shared<Node>("Material");
     node->SetTopColor(IM_COL32(156, 122, 72, 255));
-    node->SetPosition(Vec2f(50, 50));
+    node->SetPosition(Vec2f(0, 0));
             
     node->AddInput("Base Color", Type::Vector3);
     node->AddInput("Metallic", Type::Float);
@@ -138,13 +138,9 @@ void NodeManager::UpdateCurrentLink()
     }
 }
 
-void NodeManager::UpdateNodeSelection(uint64_t index, float zoom, const Vec2f& origin, const Vec2f& mousePos,
+void NodeManager::UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& origin, const Vec2f& mousePos,
                                       bool mouseClicked, bool ctrlDown, bool& wasNodeClicked)
 {
-    NodeRef node = m_nodes[index];
-    if (!node)
-        return;
-    
     if (m_selectionSquare.shouldDraw)
     {
         if (node->IsSelected(m_selectionSquare.min, m_selectionSquare.max, origin, zoom))
@@ -176,8 +172,16 @@ void NodeManager::UpdateNodeSelection(uint64_t index, float zoom, const Vec2f& o
             
         for (auto& selectedNode : m_selectedNodes)
         {
-            // Calculate offset accounting for zoom and origin
-            selectedNode.lock()->p_clickOffset = (selectedNode.lock()->p_position - (mousePos / zoom + origin));
+            auto selectedNodeLock = selectedNode.lock();
+            Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
+            selectedNodeLock->p_clickOffset = mousePos - posOnScreen ;
+            EOnDrawEvent.Bind(1, [posOnScreen, mousePos, zoom]()
+                {
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    // drawList->AddCircleFilled(posOnScreen, 5 * zoom, IM_COL32(255, 0, 0, 255));
+                    // drawList->AddCircleFilled(mousePos, 5 * zoom, IM_COL32(255, 0, 0, 255));
+                    drawList->AddLine(mousePos, posOnScreen, IM_COL32(255, 0, 0, 255), 3 * zoom);
+                });
         }
 
         wasNodeClicked = true;
@@ -200,20 +204,16 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         ClearSelectedNodes();
     }
 
-    size_t i = 0;
     for (NodeRef& node : m_nodes | std::views::values)
     {
-        if (!node)
-            continue;
         node->p_isVisible = node->IsNodeVisible(origin, zoom);
+
         if (!node->p_isVisible)
             continue;
         
         UpdateInputOutputClick(zoom, origin, mousePos, mouseClicked, node);
 
-        UpdateNodeSelection(i, zoom, origin, mousePos, mouseClicked, ctrlClick, wasNodeClicked);
-
-        i++;
+        UpdateNodeSelection(node, zoom, origin, mousePos, mouseClicked, ctrlClick, wasNodeClicked);
     }
 
     m_linkManager->UpdateLinkSelection(origin, zoom);
@@ -240,7 +240,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     
     if (mouseClicked)
     {
-        Vec2f localMousePos = (mousePos - origin) / zoom;
+        Vec2f localMousePos = ToGrid(mousePos, zoom, origin);
         m_selectionSquare.mousePosOnStart = localMousePos;
     }
 
@@ -263,11 +263,22 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     // Update dragging
     if (m_userInputState == UserInputState::DragNode)
     {
+        // Move nodes
         for (const auto& m_selectedNode : m_selectedNodes)
         {
             Node* currentSelectedNode = m_selectedNode.lock().get();
-            Vec2f newPosition = (mousePos / zoom + origin) + currentSelectedNode->p_clickOffset;
-            m_selectedNode.lock()->SetPosition(newPosition);
+            Vec2f newPosition = ToGrid(mousePos, zoom, origin) - currentSelectedNode->p_clickOffset;
+            currentSelectedNode->p_clickOffset.Print();
+
+            EOnDrawEvent.Bind(0, [mousePos, zoom, origin, currentSelectedNode]()
+                {
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    // drawList->AddCircleFilled(ToGrid(currentSelectedNode->p_position, zoom, origin), 5 * zoom, IM_COL32(0, 255, 0, 255));
+                    drawList->AddCircleFilled(mousePoss, 5 * zoom, IM_COL32(255, 0, 0, 255));
+                    // drawList->AddLine(mousePos, newPosition, IM_COL32(255, 0, 0, 255), 3 * zoom);
+                });
+            
+            // currentSelectedNode->SetPosition(newPosition);
         }
     }
 
@@ -286,9 +297,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     
     UpdateDelete();
 }
-
-
-
 
 void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const
 {
@@ -344,7 +352,7 @@ void NodeManager::RemoveSelectedNode(const NodeWeakRef& node)
 {
     for (auto it = m_selectedNodes.begin(); it != m_selectedNodes.end(); it++)
     {
-        if ((*it).lock() == node.lock())
+        if (it->lock() == node.lock())
         {
             it->lock()->p_selected = false;
             m_selectedNodes.erase(it);
