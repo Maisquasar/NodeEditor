@@ -170,18 +170,12 @@ void NodeManager::UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& ori
             SelectNode(node);
         }
             
+        m_onClickPos = mousePos;
         for (auto& selectedNode : m_selectedNodes)
         {
             auto selectedNodeLock = selectedNode.lock();
             Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
-            selectedNodeLock->p_clickOffset = mousePos - posOnScreen ;
-            EOnDrawEvent.Bind(1, [posOnScreen, mousePos, zoom]()
-                {
-                    ImDrawList* drawList = ImGui::GetWindowDrawList();
-                    // drawList->AddCircleFilled(posOnScreen, 5 * zoom, IM_COL32(255, 0, 0, 255));
-                    // drawList->AddCircleFilled(mousePos, 5 * zoom, IM_COL32(255, 0, 0, 255));
-                    drawList->AddLine(mousePos, posOnScreen, IM_COL32(255, 0, 0, 255), 3 * zoom);
-                });
+            selectedNodeLock->p_positionOnClick = posOnScreen ;
         }
 
         wasNodeClicked = true;
@@ -193,6 +187,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
+    static float prevZoom = 1.f;
 
     if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -247,7 +242,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     // Update States
     if (m_userInputState == UserInputState::ClickNode
         && ImGui::IsMouseDown(ImGuiMouseButton_Left)
-        && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f)
         && !CurrentLinkIsAlmostLinked())
     {
         SetUserInputState(UserInputState::DragNode);
@@ -263,22 +257,27 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     // Update dragging
     if (m_userInputState == UserInputState::DragNode)
     {
-        // Move nodes
-        for (const auto& m_selectedNode : m_selectedNodes)
+        bool changePosition = false;
+        if (prevZoom != zoom)
         {
-            Node* currentSelectedNode = m_selectedNode.lock().get();
-            Vec2f newPosition = ToGrid(mousePos, zoom, origin) - currentSelectedNode->p_clickOffset;
-            currentSelectedNode->p_clickOffset.Print();
-
-            EOnDrawEvent.Bind(0, [mousePos, zoom, origin, currentSelectedNode]()
-                {
-                    ImDrawList* drawList = ImGui::GetWindowDrawList();
-                    // drawList->AddCircleFilled(ToGrid(currentSelectedNode->p_position, zoom, origin), 5 * zoom, IM_COL32(0, 255, 0, 255));
-                    drawList->AddCircleFilled(mousePoss, 5 * zoom, IM_COL32(255, 0, 0, 255));
-                    // drawList->AddLine(mousePos, newPosition, IM_COL32(255, 0, 0, 255), 3 * zoom);
-                });
+            changePosition = true;
+            prevZoom = zoom;
+        }
             
-            // currentSelectedNode->SetPosition(newPosition);
+        // Move nodes
+        for (const auto& selectedNode : m_selectedNodes)
+        {
+            if (changePosition)
+            {
+                Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
+                selectedNode.lock()->p_positionOnClick = posOnScreen ;
+                m_onClickPos = mousePos;
+            }
+            Node* currentSelectedNode = selectedNode.lock().get();
+            Vec2f offset = m_onClickPos - currentSelectedNode->p_positionOnClick;
+            Vec2f newPosition = ToGrid(mousePos - offset, zoom, origin) ;
+            
+            currentSelectedNode->SetPosition(newPosition);
         }
     }
 

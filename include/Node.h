@@ -129,7 +129,7 @@ protected:
     Vec2f p_size = {150.0f, c_topSize};
     
     bool p_selected = false;
-    Vec2f p_clickOffset = {0, 0};
+    Vec2f p_positionOnClick = {0, 0};
 
     bool p_isVisible = true;
 };
