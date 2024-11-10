@@ -9,6 +9,7 @@
 using namespace GALAXY;
 #include <imgui.h>
 
+namespace CppSer { class Serializer; class Parser; }
 
 enum class Type
 {
@@ -52,6 +53,7 @@ uint32_t GetColor(Type type);
 class Node : public Selectable
 {
 public:
+    explicit Node();
     Node(std::string _name);
     ~Node() = default;
 
@@ -103,17 +105,32 @@ public:
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
 
     using LinkWeakRef = std::weak_ptr<struct Link>;
+    std::vector<LinkWeakRef> GetLinks() const;
     LinkWeakRef GetLinkWithOutput(uint32_t index) const;
     std::vector<LinkWeakRef> GetLinksWithInput(uint32_t index) const;
 
     void SetPosition(const Vec2f& position);
     void SetName(std::string name) { p_name = std::move(name); }
     void SetTopColor(uint32_t color) { p_topColor = color; }
+    void ResetUUID() { p_uuid = UUID(); }
     
     UUID GetUUID() const { return p_uuid; }
+    std::string GetName() const { return p_name; }
+    Vec2f GetPosition() const { return p_position; }
+    Vec2f GetSize() const { return p_size; }
+    uint32_t GetTemplateID() const { return p_templateID; }
+    bool GetAllowInteraction() const { return p_allowInteraction; }
+
+    virtual void Serialize(CppSer::Serializer& serializer) const;
+    virtual void Deserialize(CppSer::Parser& parser);
+
+    virtual Node* Clone();
 
 protected:
+    friend class NodeTemplateHandler;
     friend class NodeManager;
+
+    uint32_t p_templateID = -1;
 
     NodeManager* p_nodeManager;
 
@@ -131,6 +148,7 @@ protected:
     bool p_selected = false;
     Vec2f p_positionOnClick = {0, 0};
 
+    bool p_allowInteraction = true; // Used for nodes that are not supposed to be delted or copied
     bool p_isVisible = true;
 };
 

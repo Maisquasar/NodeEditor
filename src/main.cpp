@@ -7,13 +7,15 @@
 
 int Main()
 {
-    Application app;
+    Application* app = Application::Create();
     
-    app.Initialize();
+    app->Initialize();
 
-    app.Run();
+    app->Run();
 
-    app.Delete();
+    app->Clean();
+
+    Application::Destroy();
     
     return 0;
 }
@@ -25,7 +27,7 @@ int main() {
     //  TODO: Remove Comments To Break on leaks
     // |
     // V
-    //_CrtSetBreakAlloc(863);
+    // _CrtSetBreakAlloc(516);
 #endif
 
     return Main();

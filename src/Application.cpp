@@ -7,6 +7,7 @@ using namespace GALAXY;
 #include <imgui_impl_opengl3.h>
 #include <glad/glad.h>
 
+Application* Application::s_instance = nullptr;
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -93,8 +94,10 @@ void Application::Run()
         
 }
 
-void Application::Delete()
+void Application::Clean() const
 {
+    m_mainWindow.Delete();
+    
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -102,4 +105,10 @@ void Application::Delete()
 
     glfwDestroyWindow(m_window);
     glfwTerminate();
+}
+
+void Application::Exit()
+{
+    auto instance = GetInstance();
+    glfwSetWindowShouldClose(instance->m_window, true);
 }

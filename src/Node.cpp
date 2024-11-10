@@ -1,5 +1,7 @@
 #include "Node.h"
 
+#include <CppSerializer.h>
+
 #include "NodeManager.h"
 
 uint32_t GetColor(const Type type)
@@ -21,6 +23,11 @@ uint32_t GetColor(const Type type)
     return 0;
 }
 
+Node::Node() : p_nodeManager(nullptr)
+{
+    
+}
+
 Node::Node(std::string _name) : p_nodeManager(nullptr), p_name(std::move(_name))
 {
 }
@@ -31,9 +38,6 @@ void Node::DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const
     ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
     OutputRef output = p_outputs[i];
     Vec2f position = GetOutputPosition(i, origin, zoom);
-    
-    if (DoesOutputHaveLink(i))
-        drawList->AddCircleFilled(position, 5 * zoom, IM_COL32(200, 200, 200, 255));
     
     uint32_t color = GetColor(output->type);
     drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
@@ -48,9 +52,6 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
     ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
     const InputRef input = p_inputs[i];
     Vec2f position = GetInputPosition(i, origin, zoom);
-        
-    if (DoesInputHaveLink(i))
-        drawList->AddCircleFilled(position, 5 * zoom, IM_COL32(200, 200, 200, 255));
         
     const uint32_t color = GetColor(input->type);
     drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
@@ -170,10 +171,10 @@ bool Node::DoesInputHaveLink(uint32_t index) const
 void Node::AddInput(const std::string& name, Type type)
 {
     p_inputs.push_back(std::make_shared<Input>(p_uuid, static_cast<uint32_t>(p_inputs.size()), name, type));
-    int size = p_inputs.size() * (10 + c_pointSize);
+    int size = 10 + p_inputs.size() * (10 + c_pointSize);
 
     if (size > p_size.y)
-        p_size.y = size;
+        p_size.y = static_cast<float>(size);
 }
 
 auto Node::AddOutput(const std::string& name, Type type) -> void
@@ -181,7 +182,7 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
     p_outputs.push_back(std::make_shared<Output>(p_uuid, static_cast<uint32_t>(p_outputs.size()), name, type));
     int size = p_outputs.size() * (25 + c_pointSize);
 
-    if (p_outputs.size() * c_pointSize > p_size.y)
+    if (size > p_size.y)
         p_size.y = static_cast<float>(size);
 }
 
@@ -193,6 +194,18 @@ Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zo
 Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
     return GetMin(zoom, origin) + Vec2f(p_size.x - 10, c_topSize + 15 + c_pointSize * index) * zoom;
+}
+
+std::vector<LinkWeakRef> Node::GetLinks() const
+{
+    for (auto& link : p_nodeManager->GetLinkManager()->GetLinks())
+    {
+        if (link->toNodeIndex == p_uuid || link->fromNodeIndex == p_uuid)
+        {
+            return { link };
+        }
+    }
+    return {};
 }
 
 LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const
@@ -208,4 +221,40 @@ std::vector<LinkWeakRef> Node::GetLinksWithInput(uint32_t index) const
 void Node::SetPosition(const Vec2f& position)
 {
     p_position = position;
+}
+
+void Node::Serialize(CppSer::Serializer& serializer) const
+{
+    serializer << CppSer::Pair::BeginMap << "Node";
+    serializer << CppSer::Pair::Key << "TemplateID" << CppSer::Pair::Value << p_templateID;
+    serializer << CppSer::Pair::Key << "UUID" << CppSer::Pair::Value << p_uuid;
+    serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
+    serializer << CppSer::Pair::EndMap << "Node";
+}
+
+void Node::Deserialize(CppSer::Parser& parser)
+{
+    p_uuid = parser["UUID"].As<uint64_t>();
+    p_position = parser["Position"].As<Vec2f>();
+}
+
+Node* Node::Clone()
+{
+    auto node = new Node(p_name);
+    node->p_inputs = p_inputs;
+    node->p_templateID = p_templateID;
+    for (auto& input : node->p_inputs)
+    {
+        input->parentUUID = node->p_uuid;
+    }
+    node->p_outputs = p_outputs;
+    for (auto& output : node->p_outputs)
+    {
+        output->parentUUID = node->p_uuid;
+    }
+    node->p_size = p_size;
+    node->p_position = p_position;
+    node->p_topColor = p_topColor;
+    node->p_allowInteraction = p_allowInteraction;
+    return node;
 }

@@ -1,25 +1,23 @@
 ﻿#include "NodeManager.h"
+
+#include <fstream>
 #include <ranges>
+#include <unordered_set>
 
 #include "LinkManager.h"
 #include "Node.h"
+#include "NodeTemplateHandler.h"
+#include "Serializer.h"
 
 std::unique_ptr<NodeManager> NodeManager::m_instance;
 
 NodeManager::NodeManager()
 {
-    m_linkManager = new LinkManager();
+    m_linkManager = new LinkManager(this);
 
-    NodeRef node = std::make_shared<Node>("Material");
-    node->SetTopColor(IM_COL32(156, 122, 72, 255));
-    node->SetPosition(Vec2f(0, 0));
-            
-    node->AddInput("Base Color", Type::Vector3);
-    node->AddInput("Metallic", Type::Float);
-    node->AddInput("Specular", Type::Float);
-    node->AddInput("Roughness", Type::Float);
+    auto node = NodeTemplateHandler::GetInstance()->CreateFromTemplate(0);
     
-    AddNode(node);       
+    AddNode(node);
 }
 
 NodeManager::~NodeManager()
@@ -29,6 +27,11 @@ NodeManager::~NodeManager()
 
 void NodeManager::AddNode(const NodeRef& node)
 {
+    if (m_nodes.contains(node->p_uuid))
+    {
+        std::cout << "Node with UUID " << node->p_uuid << " already exists\n";
+        return;
+    }
     m_nodes[node->p_uuid] = node;
     node->p_nodeManager = this;
 }
@@ -54,6 +57,8 @@ void NodeManager::UpdateDelete()
     
     for (auto& selectedNode : m_selectedNodes)
     {
+        if (!selectedNode.lock()->p_allowInteraction)
+            continue;
         RemoveNode(selectedNode);
     }
 }
@@ -182,12 +187,57 @@ void NodeManager::UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& ori
     }
 }
 
+void NodeManager::UpdateDragging(float zoom, const Vec2f& origin, const Vec2f& mousePos)
+{
+    static float prevZoom = 1.f;
+    // Update dragging
+    if (m_userInputState == UserInputState::DragNode)
+    {
+        bool changePosition = false;
+        if (prevZoom != zoom)
+        {
+            changePosition = true;
+            prevZoom = zoom;
+        }
+            
+        // Move nodes
+        for (const auto& selectedNode : m_selectedNodes)
+        {
+            if (changePosition)
+            {
+                Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
+                selectedNode.lock()->p_positionOnClick = posOnScreen ;
+                m_onClickPos = mousePos;
+            }
+            Node* currentSelectedNode = selectedNode.lock().get();
+            Vec2f offset = m_onClickPos - currentSelectedNode->p_positionOnClick;
+            Vec2f newPosition = ToGrid(mousePos - offset, zoom, origin) ;
+            
+            currentSelectedNode->SetPosition(newPosition);
+        }
+    }
+}
+
+void NodeManager::UpdateSelectionSquare(float zoom, const Vec2f& origin, const Vec2f& mousePos)
+{
+    // Update selection square rendering
+    if (m_userInputState == UserInputState::SelectingSquare)
+    {
+        m_selectionSquare.min = m_selectionSquare.mousePosOnStart * zoom + origin;
+        m_selectionSquare.max = mousePos;
+        m_selectionSquare.shouldDraw = true;
+    }
+    else
+    {
+        m_selectionSquare.shouldDraw = false;
+    }
+}
+
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
-    static float prevZoom = 1.f;
 
     if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -254,45 +304,9 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         SetUserInputState(UserInputState::SelectingSquare);
     }
 
-    // Update dragging
-    if (m_userInputState == UserInputState::DragNode)
-    {
-        bool changePosition = false;
-        if (prevZoom != zoom)
-        {
-            changePosition = true;
-            prevZoom = zoom;
-        }
-            
-        // Move nodes
-        for (const auto& selectedNode : m_selectedNodes)
-        {
-            if (changePosition)
-            {
-                Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
-                selectedNode.lock()->p_positionOnClick = posOnScreen ;
-                m_onClickPos = mousePos;
-            }
-            Node* currentSelectedNode = selectedNode.lock().get();
-            Vec2f offset = m_onClickPos - currentSelectedNode->p_positionOnClick;
-            Vec2f newPosition = ToGrid(mousePos - offset, zoom, origin) ;
-            
-            currentSelectedNode->SetPosition(newPosition);
-        }
-    }
+    UpdateDragging(zoom, origin, mousePos);
 
-    // Update selection square rendering
-    if (m_userInputState == UserInputState::SelectingSquare)
-    {
-        m_selectionSquare.min = m_selectionSquare.mousePosOnStart * zoom + origin;
-        m_selectionSquare.max = mousePos;
-        m_selectionSquare.shouldDraw = true;
-    }
-    else
-    {
-        m_selectionSquare.shouldDraw = false;
-    }
-    
+    UpdateSelectionSquare(zoom, origin, mousePos);
     
     UpdateDelete();
 }
@@ -382,4 +396,151 @@ bool NodeManager::CurrentLinkIsAlmostLinked() const
 bool NodeManager::CurrentLinkIsNone() const
 {
     return m_currentLink.fromNodeIndex == UUID_NULL && m_currentLink.toNodeIndex == UUID_NULL;
+}
+
+void NodeManager::SaveToFile(const std::string& path) const
+{
+    CppSer::Serializer serializer(path);
+    serializer.SetVersion("1.0");
+    Serialize(serializer);
+}
+
+void NodeManager::LoadFromFile(const std::string& filePath)
+{
+    std::filesystem::path path(filePath);
+    CppSer::Parser parser(path);
+    if (!parser.IsFileOpen())
+    {
+        std::cout << "Failed to open file\n";
+        return;
+    }
+    
+    if (parser.GetVersion() != "1.0")
+    {
+        std::cout << "Invalid file version\n";
+        return;
+    }
+
+    // Clean NodeManager
+    Clean();
+    
+    Deserialize(parser);
+}
+
+void NodeManager::Serialize(CppSer::Serializer& serializer) const
+{
+    serializer << CppSer::Pair::BeginMap << "Nodes";
+    serializer << CppSer::Pair::Key << "Node Count" << CppSer::Pair::Value << m_nodes.size();
+    serializer << CppSer::Pair::BeginTab;
+    for (const NodeRef& node : m_nodes | std::views::values)
+    {
+        node->Serialize(serializer);
+    }
+    serializer << CppSer::Pair::EndTab;
+    serializer << CppSer::Pair::EndMap << "Nodes";
+
+    m_linkManager->Serialize(serializer);
+}
+
+void NodeManager::SerializeSelectedNodes(CppSer::Serializer& serializer) const
+{
+    std::vector<NodeRef> nodesToSerialize;
+    nodesToSerialize.reserve(m_selectedNodes.size());
+    
+    // Collect selected nodes with interaction enabled
+    for (const NodeWeakRef& node : m_selectedNodes)
+    {
+        if (auto ref = node.lock(); ref && ref->p_allowInteraction)
+        {
+            nodesToSerialize.push_back(ref);
+        }
+    }
+
+    // Serialize nodes
+    serializer << CppSer::Pair::BeginMap << "Nodes";
+    serializer << CppSer::Pair::Key << "Node Count" << CppSer::Pair::Value << nodesToSerialize.size();
+    serializer << CppSer::Pair::BeginTab;
+    for (const NodeRef& node : nodesToSerialize)
+    {
+        node->Serialize(serializer);
+    }
+    serializer << CppSer::Pair::EndTab;
+    serializer << CppSer::Pair::EndMap << "Nodes";
+
+    // Prepare a set of UUIDs for faster lookups
+    std::unordered_set<UUID> nodeUUIDs;
+    for (const NodeRef& node : nodesToSerialize)
+    {
+        nodeUUIDs.insert(node->GetUUID());
+    }
+
+    // Collect unique links
+    std::vector<LinkRef> linkToSerialize;
+    std::unordered_set<LinkRef> uniqueLinks;
+
+    for (const NodeRef& node : nodesToSerialize)
+    {
+        auto links = node->GetLinks();
+        for (const LinkWeakRef& link : links)
+        {
+            if (auto linkPtr = link.lock();
+                nodeUUIDs.contains(linkPtr->fromNodeIndex) &&
+                nodeUUIDs.contains(linkPtr->toNodeIndex) &&
+                uniqueLinks.insert(linkPtr).second) // Insert only if unique
+            {
+                linkToSerialize.push_back(linkPtr);
+            }
+        }
+    }
+
+    // Serialize links
+    LinkManager::Serialize(serializer, linkToSerialize);
+}
+
+
+void NodeManager::Deserialize(CppSer::Parser& parser)
+{
+    auto nodeTemplateHandler = NodeTemplateHandler::GetInstance();
+    uint32_t nodeCount = parser["Node Count"].As<uint32_t>();
+    for (uint32_t i = 0; i < nodeCount; i++)
+    {
+        parser.PushDepth();
+        uint32_t templateID = parser["TemplateID"].As<uint32_t>();
+        NodeRef node = nodeTemplateHandler->CreateFromTemplate(templateID);
+        node->p_nodeManager = this;
+        node->Deserialize(parser);
+        AddNode(node);
+    }
+
+    m_linkManager->Deserialize(parser);
+}
+
+SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
+{
+    SerializedData data;
+    auto nodeTemplateHandler = NodeTemplateHandler::GetInstance();
+    uint32_t nodeCount = parser["Node Count"].As<uint32_t>();
+    data.nodes.resize(nodeCount);
+    for (uint32_t i = 0; i < nodeCount; i++)
+    {
+        parser.PushDepth();
+        uint32_t templateID = parser["TemplateID"].As<uint32_t>();
+        NodeRef node = nodeTemplateHandler->CreateFromTemplate(templateID);
+        node->Deserialize(parser);
+        data.nodes[i] = node;
+    }
+
+    LinkManager::Deserialize(parser, data.links);
+
+    return data;
+}
+
+void NodeManager::Clean()
+{
+    m_linkManager->Clean();
+    m_selectedNodes.clear();
+    m_nodes.clear();
+    m_currentLink = Link();
+    m_userInputState = UserInputState::None;
+    m_selectionSquare = SelectionSquare();
 }

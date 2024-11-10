@@ -29,14 +29,17 @@ enum class UserInputState
     SelectingSquare,
 };
 
+struct SerializedData
+{
+    std::vector<NodeRef> nodes;
+    std::vector<LinkRef> links;
+};
+
 class NodeManager
 {
 public:
     NodeManager();
     ~NodeManager();
-
-    static NodeManager* Get() { return m_instance.get(); }
-    static void Create() { m_instance = std::make_unique<NodeManager>(); }
     
     void AddNode(const NodeRef& node);
     void RemoveNode(const UUID& uuid);
@@ -51,6 +54,8 @@ public:
     void UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node);
     void UpdateCurrentLink();
     void UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, bool ctrlDown, bool& wasNodeClicked);
+    void UpdateDragging(float zoom, const Vec2f& origin, const Vec2f& mousePos);
+    void UpdateSelectionSquare(float zoom, const Vec2f& origin, const Vec2f& mousePos);
     void UpdateDelete();
 
     void DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
@@ -75,6 +80,17 @@ public:
     UserInputState GetUserInputState() const { return m_userInputState; }
 
     SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
+
+    void SaveToFile(const std::string& path) const;
+    void LoadFromFile(const std::string& path);
+    
+    void Serialize(CppSer::Serializer& serializer) const;
+    void SerializeSelectedNodes(CppSer::Serializer& serializer) const;
+
+    void Deserialize(CppSer::Parser& parser);
+    static SerializedData DeserializeData(CppSer::Parser& parser);
+    
+    void Clean();
 
     Utils::EventWithID<> EOnDrawEvent;
 private:

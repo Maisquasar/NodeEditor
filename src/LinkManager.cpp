@@ -1,5 +1,6 @@
 ﻿#include "LinkManager.h"
 
+#include <CppSerializer.h>
 #include <utility>
 
 #include "NodeManager.h"
@@ -67,9 +68,7 @@ namespace Utils
 
 void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
 {
-    NodeManager* nodeManager = NodeManager::Get();
-
-    UserInputState userInputState = nodeManager->GetUserInputState();
+    UserInputState userInputState = m_nodeManager->GetUserInputState();
     if (userInputState == UserInputState::None && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
     {
         if (auto clickedLink = GetLinkClicked(zoom, origin, ImGui::GetMousePos()).lock())
@@ -78,7 +77,7 @@ void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
         }
     }
     
-    SelectionSquare selectionSquare = nodeManager->GetSelectionSquare();
+    SelectionSquare selectionSquare = m_nodeManager->GetSelectionSquare();
 
     if (!selectionSquare.shouldDraw)
         return;
@@ -88,8 +87,8 @@ void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
     for (const LinkRef& link : m_links)
     {
         // check if the link is inside the selection square
-        Vec2f positionIn = nodeManager->GetNode(link->fromNodeIndex).lock()->GetOutputPosition(link->fromOutputIndex, origin, zoom);
-        Vec2f positionOut = nodeManager->GetNode(link->toNodeIndex).lock()->GetInputPosition(link->toInputIndex, origin, zoom);
+        Vec2f positionIn = m_nodeManager->GetNode(link->fromNodeIndex).lock()->GetOutputPosition(link->fromOutputIndex, origin, zoom);
+        Vec2f positionOut = m_nodeManager->GetNode(link->toNodeIndex).lock()->GetInputPosition(link->toInputIndex, origin, zoom);
         if (BezierIntersectSquare(positionIn, positionIn + Vec2f(m_controlDistanceX, 0.0f) * zoom,
                                   positionOut - Vec2f(m_controlDistanceX, 0.0f) * zoom, positionOut,
                                   selectionSquare.min, selectionSquare.max))
@@ -99,16 +98,21 @@ void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
     }
 }
 
-void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
+void LinkManager::DrawLinks(float zoom, const Vec2f& origin)
 {
     auto drawList = ImGui::GetWindowDrawList();
-    NodeManager* nodeManager = NodeManager::Get();
 
-    for (const LinkWeakRef& link : m_selectedLinks)
+    for (uint32_t i = 0; i < m_selectedLinks.size(); i++)
     {
-        LinkRef selectedLink = link.lock();
-        NodeRef fromNode = nodeManager->GetNode(selectedLink->fromNodeIndex).lock();
-        NodeRef toNode = nodeManager->GetNode(selectedLink->toNodeIndex).lock();
+        LinkRef selectedLink = m_selectedLinks[i].lock();
+        NodeRef fromNode = m_nodeManager->GetNode(selectedLink->fromNodeIndex).lock();
+        NodeRef toNode = m_nodeManager->GetNode(selectedLink->toNodeIndex).lock();
+
+        if (!fromNode || !toNode)
+        {
+            m_selectedLinks.erase(m_selectedLinks.begin() + i);
+            continue;
+        }
         
         assert(toNode != nullptr && fromNode != nullptr && "Node not found");
         
@@ -121,10 +125,18 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
         drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 0, 255), 3 * zoom, m_bezierSegmentCount);
     }
     
-    for (const LinkRef& link : m_links)
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
-        NodeRef fromNode = nodeManager->GetNode(link->fromNodeIndex).lock();
-        NodeRef toNode = nodeManager->GetNode(link->toNodeIndex).lock();
+        LinkRef link = m_links[i];
+        NodeRef fromNode = m_nodeManager->GetNode(link->fromNodeIndex).lock();
+        NodeRef toNode = m_nodeManager->GetNode(link->toNodeIndex).lock();
+        
+        if (!fromNode || !toNode)
+        {
+            RemoveLink(i);
+            i--;
+            continue;
+        }
         
         assert(toNode != nullptr && fromNode != nullptr && "Node not found");
         
@@ -133,6 +145,9 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin) const
         
         Vec2f controlPoint1 = inputPosition + Vec2f(m_controlDistanceX, 0.0f) * zoom;
         Vec2f controlPoint2 = outputPosition - Vec2f(m_controlDistanceX, 0.0f) * zoom;
+
+        drawList->AddCircleFilled(inputPosition, 4.f * zoom, IM_COL32(200, 200, 200, 255));
+        drawList->AddCircleFilled(outputPosition, 4.f * zoom, IM_COL32(200, 200, 200, 255));
         
         drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom, m_bezierSegmentCount);
     }
@@ -145,12 +160,22 @@ void LinkManager::CreateLink(const NodeRef& fromNode, const uint32_t fromOutput,
 
 void LinkManager::CreateLink(UUID fromNodeIndex, const uint32_t fromOutputIndex, UUID toNodeIndex, const uint32_t toOutputIndex)
 {
-    m_links.push_back(std::make_shared<Link>(std::move(fromNodeIndex), fromOutputIndex, std::move(toNodeIndex), toOutputIndex));
+    AddLink(std::make_shared<Link>(std::move(fromNodeIndex), fromOutputIndex, std::move(toNodeIndex), toOutputIndex));
 }
 
 void LinkManager::AddLink(Link link)
 {
-    m_links.push_back(std::make_shared<Link>(std::move(link)));
+    AddLink(std::make_shared<Link>(std::move(link)));
+}
+
+void LinkManager::AddLink(const LinkRef& link)
+{
+    m_links.push_back(link);
+}
+
+void LinkManager::RemoveLink(uint32_t index)
+{
+    m_links.erase(m_links.begin() + index);
 }
 
 void LinkManager::RemoveLink(const NodeRef& fromNode, const uint32_t fromOutput, const NodeRef& toNode, const uint32_t toOutput)
@@ -167,7 +192,7 @@ void LinkManager::RemoveLink(const UUID& fromNodeIndex, const uint32_t fromOutpu
             m_links[i]->toNodeIndex == toNodeIndex &&
             m_links[i]->toInputIndex == toOutputIndex)
         {
-            m_links.erase(m_links.begin() + i);
+            RemoveLink(i);
             break;
         }
     }
@@ -175,15 +200,8 @@ void LinkManager::RemoveLink(const UUID& fromNodeIndex, const uint32_t fromOutpu
 
 void LinkManager::RemoveLink(const LinkWeakRef& link)
 {
-    LinkRef linkRef = link.lock();
-    for (uint32_t i = 0; i < m_links.size(); i++)
-    {
-        if (m_links[i] == linkRef)
-        {
-            m_links.erase(m_links.begin() + i);
-            break;
-        }
-    }
+    LinkRef sharedPtr = link.lock();
+    RemoveLink(sharedPtr->fromNodeIndex, sharedPtr->fromOutputIndex, sharedPtr->toNodeIndex, sharedPtr->toInputIndex);
 }
 
 void LinkManager::RemoveLink(const InputRef& input)
@@ -192,7 +210,7 @@ void LinkManager::RemoveLink(const InputRef& input)
     {
         if (m_links[i]->toNodeIndex == input->parentUUID && m_links[i]->toInputIndex == input->index)
         {
-            m_links.erase(m_links.begin() + i);
+            RemoveLink(i);
             break;
         }
     }
@@ -204,7 +222,7 @@ void LinkManager::RemoveLinks(const OutputRef& output)
     {
         if (m_links[i]->fromNodeIndex == output->parentUUID && m_links[i]->fromOutputIndex == output->index)
         {
-            m_links.erase(m_links.begin() + i);
+            RemoveLink(i);
             i--;
         }
     }
@@ -216,7 +234,7 @@ void LinkManager::RemoveLinks(const NodeRef& node)
     {
         if (m_links[i]->fromNodeIndex == node->GetUUID() || m_links[i]->toNodeIndex == node->GetUUID())
         {
-            m_links.erase(m_links.begin() + i);
+            RemoveLink(i);
             i--;
         }
     }
@@ -225,16 +243,14 @@ void LinkManager::RemoveLinks(const NodeRef& node)
 bool LinkManager::CanCreateLink(const Link& link) const
 {
     if (link.fromNodeIndex == UUID_NULL || link.toNodeIndex == UUID_NULL)
-        return false;
-    NodeManager* nodeManager = NodeManager::Get();
-    
-    NodeRef fromNode = nodeManager->GetNode(link.fromNodeIndex).lock();
+        return false;    
+    NodeRef fromNode = m_nodeManager->GetNode(link.fromNodeIndex).lock();
     if (!fromNode)
         return false;
     OutputRef fromOutput = fromNode->GetOutput(link.fromOutputIndex);
 
     
-    NodeRef toNode = nodeManager->GetNode(link.toNodeIndex).lock();
+    NodeRef toNode = m_nodeManager->GetNode(link.toNodeIndex).lock();
     if (!toNode)
         return false;
     InputRef toInput = toNode->GetInput(link.toInputIndex);
@@ -361,22 +377,17 @@ bool LinkManager::HasLink(const OutputRef& output) const
 
 bool LinkManager::HasLink(const InputRef& input) const
 {
-    for (const LinkRef& link : m_links)
-    {
-        if (link->toNodeIndex == input->parentUUID && link->toInputIndex == input->index)
-        {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(m_links.begin(), m_links.end(), [&](const LinkRef& link) {
+        return link->toNodeIndex == input->parentUUID && link->toInputIndex == input->index;
+    });
 }
 
 LinkWeakRef LinkManager::GetLinkClicked(float zoom, const Vec2f& origin, const Vec2f& mousePos) const
 {
     for (const LinkRef& link : m_links)
     {
-        NodeRef fromNode = NodeManager::Get()->GetNode(link->fromNodeIndex).lock();
-        NodeRef toNode = NodeManager::Get()->GetNode(link->toNodeIndex).lock();
+        NodeRef fromNode = m_nodeManager->GetNode(link->fromNodeIndex).lock();
+        NodeRef toNode = m_nodeManager->GetNode(link->toNodeIndex).lock();
         
         Vec2f inputPosition = fromNode->GetOutputPosition(link->fromOutputIndex, origin, zoom);
         Vec2f outputPosition = toNode->GetInputPosition(link->toInputIndex, origin, zoom);
@@ -408,5 +419,60 @@ void LinkManager::DeleteSelectedLinks()
 
 void LinkManager::ClearSelectedLinks()
 {
+    m_selectedLinks.clear();
+}
+
+void LinkManager::Serialize(CppSer::Serializer& serializer) const
+{
+    Serialize(serializer, m_links);
+}
+
+void LinkManager::Serialize(CppSer::Serializer& serializer, const std::vector<LinkRef>& links)
+{
+    serializer << CppSer::Pair::BeginMap << "Links";
+    serializer << CppSer::Pair::Key << "Link Count" << CppSer::Pair::Value << links.size();
+    serializer << CppSer::Pair::BeginTab;
+    for (const LinkRef& link : links)
+    {
+        serializer << CppSer::Pair::BeginMap << "Link";
+        serializer << CppSer::Pair::Key << "From Node Index" << CppSer::Pair::Value << link->fromNodeIndex;
+        serializer << CppSer::Pair::Key << "From Output Index" << CppSer::Pair::Value << link->fromOutputIndex;
+        serializer << CppSer::Pair::Key << "To Node Index" << CppSer::Pair::Value << link->toNodeIndex;
+        serializer << CppSer::Pair::Key << "To Input Index" << CppSer::Pair::Value << link->toInputIndex;
+        serializer << CppSer::Pair::EndMap << "Link";
+    }
+    serializer << CppSer::Pair::EndTab;
+    serializer << CppSer::Pair::EndMap << "Links";
+}
+
+void LinkManager::Deserialize(CppSer::Parser& parser)
+{
+    Deserialize(parser, m_links);
+}
+
+void LinkManager::Deserialize(CppSer::Parser& parser, std::vector<LinkRef>& links)
+{
+    parser.PushDepth();
+    uint32_t linkCount = parser["Link Count"].As<uint32_t>();
+    links.resize(linkCount);
+    for (uint32_t i = 0; i < linkCount; i++)
+    {
+        parser.PushDepth();
+        LinkRef link = std::make_shared<Link>();
+        link->fromNodeIndex = parser["From Node Index"].As<uint64_t>();
+        link->fromOutputIndex = parser["From Output Index"].As<uint32_t>();
+        link->toNodeIndex = parser["To Node Index"].As<uint64_t>();
+        link->toInputIndex = parser["To Input Index"].As<uint32_t>();
+        links[i] = link;
+    }
+}
+
+void LinkManager::Clean()
+{
+    for (int i = 0; i < m_links.size(); i++)
+    {
+        RemoveLink(i--);
+    }
+    
     m_selectedLinks.clear();
 }

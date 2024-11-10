@@ -1,24 +1,36 @@
 #pragma once
 #include "NodeManager.h"
 
-class LinkManager;
+#define SAVE_FOLDER "/save/"
 
-struct GridWindow
+#pragma region Dialog
+struct Filter
 {
-    Vec2f origin;
-    float zoom = 1.f;
+    Filter(std::string _name, std::string _spec) : name(std::move(_name)), spec(std::move(_spec)) {}
+			
+    std::string name;
+    // ex : "Text file"
+    std::string spec;
+    // ex : "txt"
 };
 
+std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath = nullptr);
+
+std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath = nullptr);
+#pragma endregion
+
+class LinkManager;
 class MainWindow
 {
 public:
     void Initialize();
+    void PasteNode() const;
 
     void Update() const;
     
     void Draw();
     
-    void Delete();
+    void Delete() const;
 
 private:
     
@@ -27,5 +39,10 @@ private:
 private:
     NodeManager* m_nodeManager = nullptr;
     
-    GridWindow m_gridWindow;
+
+    struct GridWindow
+    {
+        Vec2f origin;
+        float zoom = 1.f;
+    } m_gridWindow;
 };
