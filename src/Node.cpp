@@ -4,6 +4,25 @@
 
 #include "NodeManager.h"
 
+std::string TypeEnumToString(Type type)
+{
+    switch (type) {
+    case Type::Float:
+        return "Float";
+    case Type::Int:
+        return "Int";
+    case Type::Bool:
+        return "Bool";
+    case Type::String:
+        return "String";
+    case Type::Vector2:
+        return "Vector2";
+    case Type::Vector3:
+        return "Vector3";
+    }
+    return "";
+}
+
 uint32_t GetColor(const Type type)
 {
     switch (type) {

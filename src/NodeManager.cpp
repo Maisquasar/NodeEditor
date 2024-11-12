@@ -8,10 +8,31 @@
 #include "Node.h"
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
+#include "Actions/Action.h"
+#include "Actions/ActionCreateLink.h"
+#include "Actions/ActionDeleteNodesAndLinks.h"
+#include "Actions/ActionMoveNodes.h"
 
-std::unique_ptr<NodeManager> NodeManager::m_instance;
+std::string UserInputEnumToString(UserInputState userInputState)
+{
+    switch (userInputState)
+    {
+    case UserInputState::None:
+        return "None";
+    case UserInputState::DragNode:
+        return "DragNode";
+    case UserInputState::SelectingSquare:
+        return "SelectingSquare";
+    case UserInputState::CreateLink:
+        return "CreateLink";
+    case UserInputState::ClickNode:
+        return "ClickNode";
+    default:
+        return "Unknown";
+    }
+}
 
-NodeManager::NodeManager()
+NodeManager::NodeManager(MainWindow* window)
 {
     m_linkManager = new LinkManager(this);
 
@@ -53,20 +74,28 @@ void NodeManager::UpdateDelete()
     const bool deleteClicked = ImGui::IsKeyPressed(ImGuiKey_Delete);
     if (!deleteClicked)
         return;
+    ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, m_selectedNodes, m_linkManager->GetSelectedLinks());
     m_linkManager->DeleteSelectedLinks();
     
-    for (auto& selectedNode : m_selectedNodes)
+    for (int i = 0; i < m_selectedNodes.size(); i++)
     {
-        if (!selectedNode.lock()->p_allowInteraction)
+        if (!m_selectedNodes[i].lock()->p_allowInteraction)
             continue;
-        RemoveNode(selectedNode);
+        RemoveNode(m_selectedNodes[i]);
+        m_selectedNodes.erase(m_selectedNodes.begin() + i--);
     }
+    ActionManager::AddAction(action);
 }
 
 void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uint32_t i)
 {
     if (altClicked)
     {
+        std::vector<LinkWeakRef> linkWithInput = m_linkManager->GetLinksWithInput(node->GetUUID(), i);
+        
+        ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, {}, linkWithInput);
+        ActionManager::AddAction(action);
+        
         m_linkManager->RemoveLink(node->GetInput(i));
     }
     else
@@ -86,6 +115,11 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 {
     if (altClicked)
     {
+        LinkWeakRef linkWithOutput = m_linkManager->GetLinkWithOutput(node->GetUUID(), i);
+        
+        ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, {}, {linkWithOutput});
+        ActionManager::AddAction(action);
+        
         m_linkManager->RemoveLinks(node->GetOutput(i));
     }
     else
@@ -138,7 +172,10 @@ void NodeManager::UpdateCurrentLink()
 {
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
-        m_linkManager->AddLink(m_currentLink);
+        auto link = m_linkManager->AddLink(m_currentLink);
+        ActionCreateLink* action = new ActionCreateLink(this, link.lock());
+        ActionManager::AddAction(action);
+        m_userInputState = UserInputState::None;
         m_currentLink = Link();
     }
 }
@@ -156,7 +193,7 @@ void NodeManager::UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& ori
             }
         }
     }
-    else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom))
+    else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom) && m_userInputState == UserInputState::None)
     {
         SetUserInputState(UserInputState::ClickNode);
         if (ctrlDown)
@@ -235,6 +272,7 @@ void NodeManager::UpdateSelectionSquare(float zoom, const Vec2f& origin, const V
 
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
+    UserInputState prevUserInputState = m_userInputState;
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
@@ -242,6 +280,10 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
     {
+        if (m_userInputState == UserInputState::DragNode)
+        {
+            ActionManager::UpdateLastAction();
+        }
         SetUserInputState(UserInputState::None);
     }
     else if (m_userInputState == UserInputState::SelectingSquare)
@@ -281,6 +323,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     if (mouseClicked && !wasNodeClicked)
     {
         SelectNode(nullptr);
+        m_linkManager->ClearSelectedLinks();
     }
     
     if (mouseClicked)
@@ -295,6 +338,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         && !CurrentLinkIsAlmostLinked())
     {
         SetUserInputState(UserInputState::DragNode);
+        ActionMoveNodes* action = new ActionMoveNodes(m_selectedNodes);
+        ActionManager::AddAction(action);
     }
     else if (m_userInputState == UserInputState::None
         && ImGui::IsMouseDown(ImGuiMouseButton_Left)
@@ -345,6 +390,7 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
         drawList->AddRectFilled(m_selectionSquare.min, m_selectionSquare.max, IM_COL32(36, 91, 130, 155));
         drawList->AddRect(m_selectionSquare.min, m_selectionSquare.max, IM_COL32(255, 255, 255, 255));
     }
+
 }
 
 void NodeManager::SelectNode(const NodeRef& node)
@@ -534,6 +580,7 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
 
     return data;
 }
+
 
 void NodeManager::Clean()
 {

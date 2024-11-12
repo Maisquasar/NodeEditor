@@ -21,6 +21,8 @@ void Application::Initialize()
         return;
     }
 
+    std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
+
     // Create a windowed mode window and its OpenGL context
     m_window = glfwCreateWindow(1280, 720, "Hello ImGui", NULL, NULL);
     if (!m_window) {
@@ -90,6 +92,7 @@ void Application::Run()
         }
         // Swap buffers
         glfwSwapBuffers(m_window);
+        m_frameCount++;
     }
         
 }

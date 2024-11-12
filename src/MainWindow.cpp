@@ -6,6 +6,8 @@
 
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
+#include "Actions/ActionCreateNode.h"
+#include "Actions/ActionPaste.h"
 using namespace GALAXY;
 
 #include "Application.h"
@@ -95,64 +97,13 @@ void MainWindow::Initialize()
 
     templateHandler->Initialize();
     
-    m_nodeManager = new NodeManager();
+    m_nodeManager = new NodeManager(this);
 }
 
 void MainWindow::PasteNode() const
 {
-    std::string clipboardText = ImGui::GetClipboardText();
-    CppSer::Parser parser = CppSer::Parser(clipboardText);
-        
-    SerializedData data = NodeManager::DeserializeData(parser);
-
-    // Calculate the bounding box of copied nodes
-    Vec2f minPos(FLT_MAX, FLT_MAX);
-    Vec2f maxPos(-FLT_MAX, -FLT_MAX);
-    for (const auto& node : data.nodes)
-    {
-        // Adjust for zoom and origin when calculating node bounds
-        Vec2f min = node->GetMin(m_gridWindow.zoom, m_gridWindow.origin);
-        Vec2f max = node->GetMax(min, m_gridWindow.zoom);
-        minPos.x = std::min(minPos.x, min.x);
-        minPos.y = std::min(minPos.y, min.y);
-        maxPos.x = std::max(maxPos.x, max.x);
-        maxPos.y = std::max(maxPos.y, max.y);
-    }
-        
-    // Calculate the local center of the copied nodes
-    Vec2f localCenter = (minPos + maxPos) * 0.5f;
-        
-    // Get the mouse position as the paste position, adjusted for zoom and origin
-    Vec2f mousePos = ImGui::GetMousePos();
-    Vec2f pastePosition = NodeManager::ToGrid(mousePos, m_gridWindow.zoom, m_gridWindow.origin);
-        
-    // Map old UUIDs to new UUIDs after resetting them
-    std::map<UUID, UUID> uuidMap;
-    for (auto& node : data.nodes)
-    {
-        UUID oldUUID = node->GetUUID();
-        node->ResetUUID();
-        uuidMap[oldUUID] = node->GetUUID();
-            
-        // Adjust node position relative to the local center and paste position, taking zoom and origin into account
-        Vec2f offset = (node->GetPosition() - NodeManager::ToGrid(localCenter, m_gridWindow.zoom, m_gridWindow.origin));
-        node->SetPosition(pastePosition + offset);
-            
-        // Add node to node manager
-        m_nodeManager->AddNode(node);
-    }
-
-    // Adjust link references to new node UUIDs
-    for (auto& link : data.links)
-    {
-        if (uuidMap.contains(link->fromNodeIndex))
-            link->fromNodeIndex = uuidMap[link->fromNodeIndex];
-        if (uuidMap.contains(link->toNodeIndex))
-            link->toNodeIndex = uuidMap[link->toNodeIndex];
-            
-        // Add link to link manager
-        m_nodeManager->GetLinkManager()->AddLink(link);
-    }
+    ActionPaste* action = new ActionPaste(m_nodeManager, m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos(), ImGui::GetClipboardText());
+    ActionManager::DoAction(action);
 }
 
 
@@ -171,6 +122,15 @@ void MainWindow::Update() const
     {
         PasteNode();
     }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_Z) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+    {
+        ActionManager::UndoLastAction();
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_Y) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+    {
+        ActionManager::RedoLastAction();
+    }
 }
 
 void MainWindow::Draw()
@@ -183,7 +143,8 @@ void MainWindow::Draw()
             {
                 m_nodeManager->Clean();
                 delete m_nodeManager;
-                m_nodeManager = new NodeManager();
+                m_nodeManager = new NodeManager(this);
+                m_actionManager = ActionManager();
             }
             if (ImGui::MenuItem("Open", "CTRL+O"))
             {
@@ -191,6 +152,7 @@ void MainWindow::Draw()
                 if (const std::string path = OpenDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
                     m_nodeManager->LoadFromFile(path);
+                    m_actionManager = ActionManager();
                 }
             }
             if (ImGui::MenuItem("Save", "CTRL+S"))
@@ -219,6 +181,36 @@ void MainWindow::Draw()
         std::string fpsString = std::to_string(static_cast<int>(ImGui::GetIO().Framerate)) + " FPS";
         if (ImGui::BeginMenu(fpsString.c_str()))
         {
+            ImGui::EndMenu();
+        }
+        
+        std::string stateString = "Current State :" + UserInputEnumToString(m_nodeManager->GetUserInputState());
+        if (ImGui::BeginMenu(stateString.c_str()))
+        {
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Debug"))
+        {
+            auto current = ActionManager::GetCurrent();
+            if (current != nullptr)
+            {
+                auto actions = current->GetUndoneActions();
+                for (uint32_t i = 0; i < actions.size(); i++)
+                {
+                    if (ImGui::MenuItem(actions[i]->ToString().c_str()))
+                    {
+                        
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("%p", (void*)actions[i].get());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+            ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
@@ -231,8 +223,49 @@ void MainWindow::Delete() const
     delete m_nodeManager;
 }
 
+void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos) const
+{
+    constexpr uint32_t displayCount = 10;
+    // Context menu
+    if (ImGui::BeginPopup("context"))
+    {
+        static ImGuiTextFilter filter;
+
+        filter.Draw("", ImGui::GetContentRegionAvail().x);
+        auto nodeTemplate = NodeTemplateHandler::GetInstance();
+        auto templates = nodeTemplate->GetTemplates();
+        uint32_t j = 0;
+        for (uint32_t i = 0; i < templates.size() && j < displayCount; i++)
+        {
+            std::string name = templates[i]->GetName();
+            if (!filter.PassFilter(name.c_str()) || !templates[i]->GetAllowInteraction())
+                continue;
+            if (ImGui::MenuItem(name.c_str()))
+            {
+                const uint32_t templateId = templates[i]->GetTemplateID();
+                
+                NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
+                ActionCreateNode* action = new ActionCreateNode(m_nodeManager, node);
+                
+                ActionManager::AddAction(action);
+                
+                node->SetPosition((mousePos - origin) / zoom);
+                m_nodeManager->AddNode(node);
+                break;
+            }
+            j++;
+        }
+        ImGui::EndPopup();
+    }
+}
+
 void MainWindow::DrawGrid()
 {
+    if (ImGui::IsWindowFocused())
+    {
+        ActionManager::SetCurrent(&m_actionManager);
+    }
+    
     static ImVec2 scrolling(ImGui::GetContentRegionAvail().x / 2.0f, ImGui::GetContentRegionAvail().y / 2.0f);
     // static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
@@ -302,25 +335,7 @@ void MainWindow::DrawGrid()
     if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
-    // Context menu
-    if (ImGui::BeginPopup("context"))
-    {
-        auto nodeTemplate = NodeTemplateHandler::GetInstance();
-        auto templates = nodeTemplate->GetTemplates();
-        for (int i = 0; i < templates.size(); i++)
-        {
-            if (!templates[i]->GetAllowInteraction())
-                continue;
-            if (ImGui::MenuItem(templates[i]->GetName().c_str()))
-            {
-                uint32_t templateId = templates[i]->GetTemplateID();
-                NodeRef node = nodeTemplate->CreateFromTemplate(templateId);
-                node->SetPosition((mousePos - origin) / zoom);
-                m_nodeManager->AddNode(node);
-            }
-        }
-        ImGui::EndPopup();
-    }
+    DrawContextMenu(zoom, origin, mousePos);
 
     // Draw grid + all lines in the canvas
     draw_list->PushClipRect(canvas_p0, canvas_p1, true);

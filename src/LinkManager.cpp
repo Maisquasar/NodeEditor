@@ -163,9 +163,11 @@ void LinkManager::CreateLink(UUID fromNodeIndex, const uint32_t fromOutputIndex,
     AddLink(std::make_shared<Link>(std::move(fromNodeIndex), fromOutputIndex, std::move(toNodeIndex), toOutputIndex));
 }
 
-void LinkManager::AddLink(Link link)
+LinkWeakRef LinkManager::AddLink(Link link)
 {
-    AddLink(std::make_shared<Link>(std::move(link)));
+    auto sharedPtr = std::make_shared<Link>(std::move(link));
+    AddLink(sharedPtr);
+    return sharedPtr;
 }
 
 void LinkManager::AddLink(const LinkRef& link)

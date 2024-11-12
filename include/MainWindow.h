@@ -1,5 +1,6 @@
 #pragma once
 #include "NodeManager.h"
+#include "Actions/Action.h"
 
 #define SAVE_FOLDER "/save/"
 
@@ -24,6 +25,7 @@ class MainWindow
 {
 public:
     void Initialize();
+    
     void PasteNode() const;
 
     void Update() const;
@@ -31,6 +33,9 @@ public:
     void Draw();
     
     void Delete() const;
+    void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos) const;
+
+    ActionManager& GetActionManager() { return m_actionManager; }
 
 private:
     
@@ -38,6 +43,8 @@ private:
 
 private:
     NodeManager* m_nodeManager = nullptr;
+
+    ActionManager m_actionManager;
     
 
     struct GridWindow

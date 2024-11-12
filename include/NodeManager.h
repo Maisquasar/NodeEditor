@@ -11,6 +11,7 @@
 #include "Node.h"
 
 
+class MainWindow;
 class LinkManager;
 using NodeList = std::pmr::unordered_map<UUID, NodeRef>;
 struct SelectionSquare
@@ -28,6 +29,7 @@ enum class UserInputState
     DragNode,
     SelectingSquare,
 };
+std::string UserInputEnumToString(UserInputState userInputState);
 
 struct SerializedData
 {
@@ -38,7 +40,7 @@ struct SerializedData
 class NodeManager
 {
 public:
-    NodeManager();
+    NodeManager(MainWindow* window);
     ~NodeManager();
     
     void AddNode(const NodeRef& node);
@@ -89,12 +91,14 @@ public:
 
     void Deserialize(CppSer::Parser& parser);
     static SerializedData DeserializeData(CppSer::Parser& parser);
+
+    void Paste();
     
     void Clean();
 
     Utils::EventWithID<> EOnDrawEvent;
 private:
-    static std::unique_ptr<NodeManager> m_instance;
+    MainWindow* m_parent;
     
     LinkManager* m_linkManager = nullptr;
     

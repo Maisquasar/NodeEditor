@@ -16,7 +16,7 @@ public:
 
     void AddTemplateNode(std::shared_ptr<Node> node);
 
-    std::shared_ptr<Node> CreateFromTemplate(uint32_t templateID) const;
+    static std::shared_ptr<Node> CreateFromTemplate(uint32_t templateID);
 
     std::vector<std::shared_ptr<Node>>& GetTemplates() { return m_templateNodes; }
 

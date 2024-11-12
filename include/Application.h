@@ -21,11 +21,15 @@ public:
 
     static void Exit();
 
+    static uint64_t GetFrameCount() { return s_instance->m_frameCount; }
+
 private:
     static Application* s_instance;
     
     GLFWwindow* m_window = nullptr;
 
     MainWindow m_mainWindow;
+
+    uint64_t m_frameCount = 0;
     
 };

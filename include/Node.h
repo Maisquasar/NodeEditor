@@ -21,6 +21,8 @@ enum class Type
     Vector3,
 };
 
+std::string TypeEnumToString(Type type);
+
 struct Input
 {
     UUID parentUUID;

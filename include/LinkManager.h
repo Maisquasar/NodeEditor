@@ -30,7 +30,7 @@ public:
     void CreateLink(const NodeRef& fromNode, uint32_t fromOutput, const NodeRef& toNode, uint32_t toOutput);
     void CreateLink(UUID fromNodeIndex, uint32_t fromOutputIndex, UUID toNodeIndex, uint32_t toOutputIndex);
 
-    void AddLink(Link link);
+    LinkWeakRef AddLink(Link link);
     void AddLink(const LinkRef& link);
 
     void RemoveLink(uint32_t index);
@@ -47,6 +47,7 @@ public:
     bool CanCreateLink(const Link& link) const;
     
 
+
     static bool IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold = 1);
     static bool IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, float threshold = 1, int numSamples = 10);
     static bool BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, Vec2f rectMin, Vec2f rectMax);
@@ -54,6 +55,7 @@ public:
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
     std::vector<LinkWeakRef> GetLinksWithInput(const UUID& uuid, uint32_t index) const;
     const std::vector<LinkRef>& GetLinks() const { return m_links; }
+    const std::vector<LinkWeakRef>& GetSelectedLinks() { return m_selectedLinks;}
 
     bool HasLink(const OutputRef& output) const;
     bool HasLink(const InputRef& input) const;
