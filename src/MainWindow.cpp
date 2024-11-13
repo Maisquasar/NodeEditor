@@ -6,6 +6,7 @@
 
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
+#include "ShaderMaker.h"
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionPaste.h"
 using namespace GALAXY;
@@ -13,6 +14,7 @@ using namespace GALAXY;
 #include "Application.h"
 #include "LinkManager.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include "Node.h"
 
@@ -98,6 +100,8 @@ void MainWindow::Initialize()
     templateHandler->Initialize();
     
     m_nodeManager = new NodeManager(this);
+    
+    m_nodeManager->LoadFromFile(std::filesystem::current_path().generic_string() + "/saves/test.node");
 }
 
 void MainWindow::PasteNode() const
@@ -106,7 +110,16 @@ void MainWindow::PasteNode() const
     ActionManager::DoAction(action);
 }
 
-
+bool Splitter(const bool split_vertically, const float thickness, float* size1, float* size2, const float min_size1, const float min_size2, const float splitter_long_axis_size /*= -1.0f*/)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    const ImGuiID id = window->GetID("##Splitter");
+    ImRect bb;
+    bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+    bb.Max = bb.Min + ImGui::CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
+    return ImGui::SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
+}
 
 void MainWindow::Update() const
 {
@@ -132,6 +145,8 @@ void MainWindow::Update() const
         ActionManager::RedoLastAction();
     }
 }
+
+
 
 void MainWindow::Draw()
 {
@@ -181,6 +196,7 @@ void MainWindow::Draw()
         std::string fpsString = std::to_string(static_cast<int>(ImGui::GetIO().Framerate)) + " FPS";
         if (ImGui::BeginMenu(fpsString.c_str()))
         {
+            
             ImGui::EndMenu();
         }
         
@@ -192,6 +208,11 @@ void MainWindow::Draw()
 
         if (ImGui::BeginMenu("Debug"))
         {
+            if (ImGui::MenuItem("Create shader"))
+            {
+                ShaderMaker shaderMaker;
+                shaderMaker.CreateFragmentShader(m_nodeManager);
+            }
             auto current = ActionManager::GetCurrent();
             if (current != nullptr)
             {
@@ -214,7 +235,29 @@ void MainWindow::Draw()
         }
         ImGui::EndMainMenuBar();
     }
-    DrawGrid();
+
+    if (ImGui::Begin("Node Editor"))
+    {
+        ImGui::SetWindowPos({ 0, 0 });
+        Vec2f windowSize = Application::GetInstance()->GetWindowSize();
+        ImGui::SetWindowSize({ windowSize.x, windowSize.y });
+        ImGui::SetWindowCollapsed(false);
+
+        ImGui::BeginGroup();
+        static float size1 = 100.f;
+        static float size2 = ImGui::GetContentRegionAvail().y;
+        Splitter(true, 5.f, &size1, &size2, 100.f, 0.f, ImGui::GetContentRegionAvail().y);
+
+        ImGui::Text("Inspector");
+        
+
+        ImGui::Dummy(Vec2f(size1, ImGui::GetContentRegionAvail().y));
+        ImGui::EndGroup();
+        
+        ImGui::SameLine();
+        
+        DrawGrid();
+    }
 }
 
 void MainWindow::Delete() const
@@ -237,12 +280,12 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         uint32_t j = 0;
         for (uint32_t i = 0; i < templates.size() && j < displayCount; i++)
         {
-            std::string name = templates[i]->GetName();
-            if (!filter.PassFilter(name.c_str()) || !templates[i]->GetAllowInteraction())
+            std::string name = templates[i].node->GetName();
+            if (!filter.PassFilter(name.c_str()) || !templates[i].node->GetAllowInteraction())
                 continue;
             if (ImGui::MenuItem(name.c_str()))
             {
-                const uint32_t templateId = templates[i]->GetTemplateID();
+                const uint32_t templateId = templates[i].node->GetTemplateID();
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
                 ActionCreateNode* action = new ActionCreateNode(m_nodeManager, node);
@@ -285,7 +328,7 @@ void MainWindow::DrawGrid()
     ImGuiIO& io = ImGui::GetIO();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
-    draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+    // draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
     // This will catch our interactions
     ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);

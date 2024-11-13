@@ -70,9 +70,12 @@ public:
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
     NodeWeakRef GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
+    NodeWeakRef GetNodeWithTemplate(uint32_t templateID);
+    std::vector<NodeWeakRef> GetNodeConnectedTo(const UUID& uuid) const;
     InputWeakRef GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
+    
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;
@@ -98,6 +101,7 @@ public:
 
     Utils::EventWithID<> EOnDrawEvent;
 private:
+    friend class ShaderMaker;
     MainWindow* m_parent;
     
     LinkManager* m_linkManager = nullptr;

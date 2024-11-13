@@ -94,6 +94,8 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     if (p_selected)
     {
         drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.000000, 240, 2);
+
+        ImGui::SetTooltip(("UUID: " + std::to_string(p_uuid)).c_str());
     }
 
     for (uint32_t i = 0; i < p_inputs.size(); i++)
@@ -242,6 +244,11 @@ void Node::SetPosition(const Vec2f& position)
     p_position = position;
 }
 
+void Node::ResetUUID()
+{
+    SetUUID(UUID());
+}
+
 void Node::Serialize(CppSer::Serializer& serializer) const
 {
     serializer << CppSer::Pair::BeginMap << "Node";
@@ -254,6 +261,7 @@ void Node::Serialize(CppSer::Serializer& serializer) const
 void Node::Deserialize(CppSer::Parser& parser)
 {
     p_uuid = parser["UUID"].As<uint64_t>();
+    SetUUID(p_uuid);
     p_position = parser["Position"].As<Vec2f>();
 }
 
@@ -276,4 +284,17 @@ Node* Node::Clone()
     node->p_topColor = p_topColor;
     node->p_allowInteraction = p_allowInteraction;
     return node;
+}
+
+void Node::SetUUID(const UUID& uuid)
+{
+    p_uuid = uuid;
+    for (auto& input : p_inputs)
+    {
+        input->parentUUID = p_uuid;
+    }
+    for (auto& output : p_outputs)
+    {
+        output->parentUUID = p_uuid;
+    }
 }

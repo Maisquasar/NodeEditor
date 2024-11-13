@@ -1,5 +1,7 @@
 ﻿#include "NodeTemplateHandler.h"
 
+#include <ranges>
+
 #include "Node.h"
 
 std::unique_ptr<NodeTemplateHandler> NodeTemplateHandler::s_instance;
@@ -8,6 +10,7 @@ void NodeTemplateHandler::Initialize()
 {
     constexpr ImU32 endColor = IM_COL32(156, 122, 72, 255);
     constexpr ImU32 functionColor = IM_COL32(72, 122, 156, 255);
+    constexpr ImU32 makeColor = IM_COL32(122, 156, 72, 255);
     {
         NodeRef node = std::make_shared<Node>("Material");
         node->SetTopColor(endColor);
@@ -17,7 +20,8 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("Metallic", Type::Float);
         node->AddInput("Specular", Type::Float);
         node->AddInput("Roughness", Type::Float);
-        AddTemplateNode(node);
+        NodeMethodInfo info = node;
+        AddTemplateNode(info);
     }
     
     {
@@ -27,7 +31,8 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("A", Type::Float);
         node->AddInput("B", Type::Float);
         node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "%s + %s"};
+        AddTemplateNode(info);
     }
     
     {
@@ -37,7 +42,8 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("A", Type::Float);
         node->AddInput("B", Type::Float);
         node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "%s * %s"};
+        AddTemplateNode(info);
     }
     
     {
@@ -47,9 +53,21 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("A", Type::Float);
         node->AddInput("B", Type::Float);
         node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "%s - %s"};
+        AddTemplateNode(info);
     }
-    
+
+    {
+        NodeRef node = std::make_shared<Node>("Make float");
+        node->SetTopColor(makeColor);
+        node->AddInput("Value", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "%f", true};
+
+        AddTemplateNode(info);
+    }
+
+    /*
     {
         NodeRef node = std::make_shared<Node>("Divide");
         node->SetTopColor(functionColor);
@@ -179,30 +197,32 @@ void NodeTemplateHandler::Initialize()
         node->AddOutput("Result", Type::Float);
         AddTemplateNode(node);
     }
+    */
 
     // Check if there is duplicate name
     for (uint32_t i = 0; i < m_templateNodes.size(); i++)
     {
         for (uint32_t j = i + 1; j < m_templateNodes.size(); j++)
         {
-            if (m_templateNodes[i]->GetName() == m_templateNodes[j]->GetName())
+            if (m_templateNodes[i].node->GetName() == m_templateNodes[j].node->GetName())
             {
-                std::string type1 = TypeEnumToString(m_templateNodes[i]->GetOutput(0)->type);
-                std::string type2 = TypeEnumToString(m_templateNodes[j]->GetOutput(0)->type);
-                m_templateNodes[i]->SetName(m_templateNodes[i]->GetName() + " (" + type1 + ")");
-                m_templateNodes[j]->SetName(m_templateNodes[j]->GetName() + " (" + type2 + ")");
+                std::string type1 = TypeEnumToString(m_templateNodes[i].node->GetOutput(0)->type);
+                std::string type2 = TypeEnumToString(m_templateNodes[j].node->GetOutput(0)->type);
+                m_templateNodes[i].node->SetName(m_templateNodes[i].node->GetName() + " (" + type1 + ")");
+                m_templateNodes[j].node->SetName(m_templateNodes[j].node->GetName() + " (" + type2 + ")");
             }
         }
     }
 }
 
-void NodeTemplateHandler::AddTemplateNode(std::shared_ptr<Node> node)
+void NodeTemplateHandler::AddTemplateNode(const NodeMethodInfo& info)
 {
-    node->p_templateID = m_templateNodes.size();
-    m_templateNodes.push_back(node);
+    info.node->p_templateID = m_templateNodes.size();
+    m_templateNodes.push_back(info);
 }
 
 std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplate(uint32_t templateID)
 {
-    return std::shared_ptr<Node>(s_instance->m_templateNodes[templateID]->Clone());
+    NodeRef nodeRef = s_instance->m_templateNodes[templateID].node;
+    return std::shared_ptr<Node>(nodeRef->Clone());
 }

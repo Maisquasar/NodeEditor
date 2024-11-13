@@ -35,10 +35,16 @@ std::string UserInputEnumToString(UserInputState userInputState)
 NodeManager::NodeManager(MainWindow* window)
 {
     m_linkManager = new LinkManager(this);
-
-    auto node = NodeTemplateHandler::GetInstance()->CreateFromTemplate(0);
     
+    NodeRef node = NodeTemplateHandler::CreateFromTemplate(0);
+
     AddNode(node);
+    
+    NodeRef addNode = NodeTemplateHandler::CreateFromTemplate(1);
+
+    AddNode(addNode);
+
+    m_linkManager->AddLink(Link(addNode->p_uuid, 0, node->p_uuid, 1));
 }
 
 NodeManager::~NodeManager()
@@ -427,6 +433,39 @@ void NodeManager::ClearSelectedNodes()
         node->p_selected = false;
     }
     m_selectedNodes.clear();
+}
+
+NodeWeakRef NodeManager::GetNodeWithTemplate(uint32_t templateID)
+{
+    for (auto& val : m_nodes | std::views::values)
+    {
+        if (val->p_templateID == templateID)
+        {
+            return val;
+        }
+    }
+    return {};
+}
+
+std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
+{
+    std::vector<NodeWeakRef> outputs;
+    NodeRef node = GetNode(uuid).lock();
+
+    auto linkManager = GetLinkManager();
+
+    for (int i = 0; i < node->p_inputs.size(); i++)
+    {
+        LinkRef val = linkManager->GetLinkLinkedToInput(uuid, i).lock();
+        if (!val)
+            continue;
+        auto connectedNode = GetNode(val->fromNodeIndex);
+        outputs.push_back(connectedNode);
+        std::vector<NodeWeakRef> nodeConnectedTo = GetNodeConnectedTo(connectedNode.lock()->GetUUID());
+        outputs.insert(outputs.begin(), nodeConnectedTo.begin(), nodeConnectedTo.end());
+    }
+
+    return outputs;
 }
 
 LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const

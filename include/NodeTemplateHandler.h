@@ -1,9 +1,28 @@
 ﻿#pragma once
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
+
+#include "Node.h"
 
 class Node;
 
+struct NodeMethodInfo
+{
+    NodeMethodInfo() = default;
+    NodeMethodInfo(NodeRef ref) : node(ref) {}
+    NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), formatString(std::move(_formatString)) {}
+    NodeMethodInfo(NodeRef ref, std::string _formatString, bool isMaker) : node(ref), formatString(std::move(_formatString)), isMaker(isMaker) {}
+    NodeMethodInfo(std::string _formatString) : formatString(std::move(_formatString)) {}
+    
+
+    NodeRef node;
+    std::string formatString;
+    bool isMaker = false;
+};
+
+using TemplateList = std::vector<NodeMethodInfo>;
 class NodeTemplateHandler
 {
 public:
@@ -14,14 +33,14 @@ public:
 
     void Initialize();
 
-    void AddTemplateNode(std::shared_ptr<Node> node);
+    void AddTemplateNode(const NodeMethodInfo& info);
 
     static std::shared_ptr<Node> CreateFromTemplate(uint32_t templateID);
 
-    std::vector<std::shared_ptr<Node>>& GetTemplates() { return m_templateNodes; }
+    TemplateList& GetTemplates() { return m_templateNodes; }
 
 private:
     static std::unique_ptr<NodeTemplateHandler> s_instance;
 
-    std::vector<std::shared_ptr<Node>> m_templateNodes;
+    TemplateList m_templateNodes;
 };

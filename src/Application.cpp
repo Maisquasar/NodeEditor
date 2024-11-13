@@ -115,3 +115,10 @@ void Application::Exit()
     auto instance = GetInstance();
     glfwSetWindowShouldClose(instance->m_window, true);
 }
+
+Vec2f Application::GetWindowSize() const
+{
+    Vec2i windowSize;
+    glfwGetWindowSize(m_window, &windowSize.x, &windowSize.y);
+    return windowSize;
+}

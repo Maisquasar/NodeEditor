@@ -16,6 +16,8 @@ add_requires("galaxymath")
 add_requires("cpp_serializer")
 add_requires("nativefiledialog-extended")
 
+set_rundir("$(projectdir)")
+
 target("NodeEditor")
     set_kind("binary")
     add_files("src/**.cpp")

@@ -114,8 +114,8 @@ public:
     void SetPosition(const Vec2f& position);
     void SetName(std::string name) { p_name = std::move(name); }
     void SetTopColor(uint32_t color) { p_topColor = color; }
-    void ResetUUID() { p_uuid = UUID(); }
-    
+    void ResetUUID();
+
     UUID GetUUID() const { return p_uuid; }
     std::string GetName() const { return p_name; }
     Vec2f GetPosition() const { return p_position; }
@@ -127,8 +127,11 @@ public:
     virtual void Deserialize(CppSer::Parser& parser);
 
     virtual Node* Clone();
+private:
+    void SetUUID(const UUID& uuid);
 
 protected:
+    friend class ShaderMaker;
     friend class NodeTemplateHandler;
     friend class NodeManager;
 

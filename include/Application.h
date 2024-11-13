@@ -12,7 +12,6 @@ public:
 
     static void Destroy() { delete s_instance; }
     
-    
     void Initialize();
 
     void Run();
@@ -22,6 +21,8 @@ public:
     static void Exit();
 
     static uint64_t GetFrameCount() { return s_instance->m_frameCount; }
+
+    Vec2f GetWindowSize() const;
 
 private:
     static Application* s_instance;

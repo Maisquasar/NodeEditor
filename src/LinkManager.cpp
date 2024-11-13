@@ -352,6 +352,18 @@ LinkWeakRef LinkManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) con
     return {};
 }
 
+LinkWeakRef LinkManager::GetLinkLinkedToInput(const UUID& uuid, uint32_t index) const
+{
+    for (const LinkRef& link : m_links)
+    {
+        if (link->toNodeIndex == uuid && link->toInputIndex == index)
+        {
+            return link;
+        }
+    }
+    return {};
+}
+
 std::vector<LinkWeakRef> LinkManager::GetLinksWithInput(const UUID& uuid, uint32_t index) const
 {
     std::vector<LinkWeakRef> links;
