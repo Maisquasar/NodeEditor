@@ -75,7 +75,7 @@ public:
     InputWeakRef GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
-    
+    NodeWeakRef GetSelectedNode() const;
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;
@@ -100,21 +100,20 @@ public:
     void Clean();
 
     Utils::EventWithID<> EOnDrawEvent;
+
 private:
+    friend class MainWindow;
     friend class ShaderMaker;
     MainWindow* m_parent;
-    
     LinkManager* m_linkManager = nullptr;
-    
     NodeList m_nodes;
-
+    
     Link m_currentLink; // The link when creating a new link
-
     std::vector<NodeWeakRef> m_selectedNodes;
 
-    Vec2f m_onClickPos;
-
-    SelectionSquare m_selectionSquare;
-
     UserInputState m_userInputState = UserInputState::None;
+    
+    bool m_isGridHovered = true;
+    Vec2f m_onClickPos;
+    SelectionSquare m_selectionSquare;
 };

@@ -13,13 +13,11 @@ struct NodeMethodInfo
     NodeMethodInfo() = default;
     NodeMethodInfo(NodeRef ref) : node(ref) {}
     NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), formatString(std::move(_formatString)) {}
-    NodeMethodInfo(NodeRef ref, std::string _formatString, bool isMaker) : node(ref), formatString(std::move(_formatString)), isMaker(isMaker) {}
     NodeMethodInfo(std::string _formatString) : formatString(std::move(_formatString)) {}
     
 
     NodeRef node;
     std::string formatString;
-    bool isMaker = false;
 };
 
 using TemplateList = std::vector<NodeMethodInfo>;

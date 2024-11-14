@@ -25,6 +25,7 @@ public:
     LinkManager(NodeManager* nodeManager) : m_nodeManager(nodeManager) {}
 
     void UpdateLinkSelection(const Vec2f& origin, float zoom);
+    void UpdateInputOutputLinks();
     void DrawLinks(float zoom, const Vec2f& origin);
 
     void CreateLink(const NodeRef& fromNode, uint32_t fromOutput, const NodeRef& toNode, uint32_t toOutput);

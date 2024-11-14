@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "LinkManager.h"
+#include "MainWindow.h"
 #include "Node.h"
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
@@ -278,6 +279,8 @@ void NodeManager::UpdateSelectionSquare(float zoom, const Vec2f& origin, const V
 
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
+    if (!m_isGridHovered)
+        return;
     UserInputState prevUserInputState = m_userInputState;
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
@@ -471,6 +474,13 @@ std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
 LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
     return m_linkManager->GetLinkWithOutput(uuid, index);
+}
+
+NodeWeakRef NodeManager::GetSelectedNode() const
+{
+    if (m_selectedNodes.empty())
+        return {};
+    return m_selectedNodes[0];
 }
 
 bool NodeManager::CurrentLinkIsAlmostLinked() const

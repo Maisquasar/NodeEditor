@@ -23,6 +23,45 @@ std::string TypeEnumToString(Type type)
     return "";
 }
 
+Input::Input(Type type): index(0)
+{
+    this->type = type;
+    switch (type)
+    {
+    case Type::Float:
+        value = new float();
+        break;
+    case Type::Int:
+        value = new int();
+        break;
+    case Type::Bool:
+        value = new bool();
+        break;
+    case Type::String:
+        value = new std::string();
+        break;
+    case Type::Vector2:
+        value = new Vec2f();
+        break;
+    case Type::Vector3:
+        value = new Vec3f();
+        break;
+    }
+}
+
+Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) : Input(_type)
+{
+    parentUUID = _parentUUID;
+    index = _index;
+    name = _name;
+    type = _type;
+}
+
+Input::~Input()
+{
+    delete value;
+}
+
 uint32_t GetColor(const Type type)
 {
     switch (type) {
@@ -255,6 +294,35 @@ void Node::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "TemplateID" << CppSer::Pair::Value << p_templateID;
     serializer << CppSer::Pair::Key << "UUID" << CppSer::Pair::Value << p_uuid;
     serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
+    
+    for (uint32_t i = 0; i < p_inputs.size(); i++)
+    {
+        auto& input = p_inputs[i];
+        if (input->isLinked)
+            continue;
+
+        switch (input->type) {
+        case Type::Float:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<float>();
+            break;
+        case Type::Int:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<int>();
+            break;
+        case Type::Bool:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<bool>();
+            break;
+        case Type::String:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<std::string>();
+            break;
+        case Type::Vector2:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<Vec2f>();
+            break;
+        case Type::Vector3:
+            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<Vec3f>();
+            break;
+        }
+    }
+    
     serializer << CppSer::Pair::EndMap << "Node";
 }
 
@@ -263,6 +331,35 @@ void Node::Deserialize(CppSer::Parser& parser)
     p_uuid = parser["UUID"].As<uint64_t>();
     SetUUID(p_uuid);
     p_position = parser["Position"].As<Vec2f>();
+
+    for (uint32_t i = 0; i < p_inputs.size(); i++)
+    {
+        auto& input = p_inputs[i];
+        if (input->isLinked)
+            continue;
+
+        std::string key = "Value " + std::to_string(i);
+        switch (input->type) {
+        case Type::Float:
+            input->SetValue(parser[key].As<float>());
+            break;
+        case Type::Int:
+            input->SetValue(parser[key].As<int>());
+            break;
+        case Type::Bool:
+            input->SetValue(parser[key].As<bool>());
+            break;
+        case Type::String:
+            input->SetValue(parser[key].As<std::string>());
+            break;
+        case Type::Vector2:
+            input->SetValue(parser[key].As<Vec2f>());
+            break;
+        case Type::Vector3:
+            input->SetValue(parser[key].As<Vec3f>());
+            break;
+        }
+    }
 }
 
 Node* Node::Clone()

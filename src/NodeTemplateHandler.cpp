@@ -62,7 +62,7 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(makeColor);
         node->AddInput("Value", Type::Float);
         node->AddOutput("Result", Type::Float);
-        NodeMethodInfo info = {node, "%f", true};
+        NodeMethodInfo info = {node, "%s"};
 
         AddTemplateNode(info);
     }

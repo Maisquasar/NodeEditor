@@ -13,8 +13,55 @@ std::string FormatString( const std::string& format, Args ... args )
     return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
 }
 
+void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf)
+{
+    switch (input->type)
+    {
+    case Type::Float:
+        {
+            float value = *input->GetValue<float>();
+            toFormat += FormatString(firstHalf, value);
+            break;
+        }
+    case Type::Int:
+        {
+            int valueInt = *input->GetValue<int>();
+            toFormat += FormatString(firstHalf, valueInt);
+            break;
+        }
+    case Type::Bool:
+        {
+            bool valueBool = *input->GetValue<bool>();
+            toFormat += FormatString(firstHalf, valueBool);
+            break;
+        }
+    case Type::String:
+        {
+            std::string valueString = *input->GetValue<std::string>();
+            toFormat += FormatString(firstHalf, valueString.c_str());
+            break;
+        }
+    case Type::Vector2:
+        {
+            Vec2f valueVec2 = *input->GetValue<Vec2f>();
+            toFormat += FormatString(firstHalf, valueVec2.x, valueVec2.y);
+            break;
+        }
+    case Type::Vector3:
+        {
+            Vec3f valueVec3 = *input->GetValue<Vec3f>();
+            toFormat += FormatString(firstHalf, valueVec3.x, valueVec3.y, valueVec3.z);
+            break;
+        }
+    default:
+        {
+            break;
+        }
+    }
+}
+
 void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, TemplateList& templateList, std::string& content,
-                         LinkManager* linkManager)
+                                 LinkManager* linkManager)
 {
     for (int i = endNode->p_inputs.size() - 1; i >= 0; i--)
     {
@@ -27,27 +74,31 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
         RecurrenceWork(manager, node, templateList, content, linkManager);
         NodeMethodInfo templateNode = templateList[node->p_templateID];
         std::string variableName = "_" + std::to_string(node->p_uuid);
-        content += FormatString("float %s = ", variableName.c_str());
+
+        std::string glslType = TypeToGLSLType(node->p_inputs[i]->type);
+        
+        content += glslType + " " + variableName + " = ";
         std::string toFormat = templateNode.formatString;
         std::string secondHalf = toFormat;
         toFormat.clear();
         for (int j = 0; j < node->p_inputs.size(); j++)
         {
+            InputRef input = node->p_inputs[j];
             size_t index = secondHalf.find_first_of("%") + 2;
             if (index == std::string::npos)
                 break;
             std::string firstHalf = secondHalf.substr(0, index);
             secondHalf = secondHalf.substr(index);
-            if (!templateNode.isMaker && !m_variablesNames.empty())
+            if (!input->isLinked)
+            {
+                m_variablesNames.push_back(GetValueAsString(input));
+            }
+            if (!m_variablesNames.empty())
             {
                 toFormat += FormatString(firstHalf, m_variablesNames.back().c_str());
                 m_variablesNames.erase(m_variablesNames.end() - 1);
             }
-            else if (templateNode.isMaker)
-            {
-                float value = 0.f;
-                toFormat += FormatString(firstHalf, value);
-            }
+            
         }
         content += toFormat + "\n";
         m_variablesNames.push_back(variableName);
@@ -69,4 +120,53 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
     ImGui::SetClipboardText(content.c_str());
 
     std::cout << content;
+}
+
+std::string ShaderMaker::GetValueAsString(InputRef input)
+{
+    switch (input->type)
+    {
+    case Type::Float:
+        return std::to_string(*input->GetValue<float>());
+    case Type::Int:
+        return std::to_string(*input->GetValue<int>());
+    case Type::Bool:
+        return std::to_string(*input->GetValue<bool>());
+    case Type::String:
+        return *input->GetValue<std::string>();
+    case Type::Vector2:
+        {
+            auto value = input->GetValue<Vec2f>();
+            return "vec2(" + std::to_string(value->x) + ", " + std::to_string(value->y) + ")";
+        }
+    case Type::Vector3:
+        {
+            auto value = input->GetValue<Vec3f>();
+            return "vec3(" + std::to_string(value->x) + ", " + std::to_string(value->y) + ", " + std::to_string(value->z) + ")";
+        }
+    default:
+        return "";
+    }
+}
+
+std::string ShaderMaker::TypeToGLSLType(Type type)
+{
+    switch (type)
+    {
+    case Type::Float:
+        return "float";
+    case Type::Int:
+        return "int";
+    case Type::Bool:
+        return "bool";
+    case Type::String:
+        assert(false);
+        return "";
+    case Type::Vector2:
+        return "vec2";
+    case Type::Vector3:
+        return "vec3";
+    default:
+        return "";
+    }
 }

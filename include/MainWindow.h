@@ -29,7 +29,7 @@ public:
     void PasteNode() const;
 
     void Update() const;
-    
+
     void Draw();
     
     void Delete() const;
@@ -40,6 +40,8 @@ public:
 private:
     
     void DrawGrid();
+    void DrawInspector() const;
+    void DrawMainBar();
 
 private:
     NodeManager* m_nodeManager = nullptr;

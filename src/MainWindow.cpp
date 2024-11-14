@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <map>
+#include <set>
 #include <galaxymath/Maths.h>
 
 #include "NodeTemplateHandler.h"
@@ -146,9 +147,30 @@ void MainWindow::Update() const
     }
 }
 
-
+void MainWindow::Delete() const
+{
+    m_nodeManager->Clean();
+    delete m_nodeManager;
+}
 
 void MainWindow::Draw()
+{
+    DrawMainBar();
+
+    if (ImGui::Begin("Node Editor", nullptr))
+    {
+        // ImGui::SetWindowPos({ 0, 0 });
+        // Vec2f windowSize = Application::GetInstance()->GetWindowSize();
+        // ImGui::SetWindowSize({ windowSize.x, windowSize.y });
+        // ImGui::SetWindowCollapsed(false);
+
+        DrawInspector();
+        ImGui::SameLine();
+        DrawGrid();
+    }
+}
+
+void MainWindow::DrawMainBar()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -235,35 +257,84 @@ void MainWindow::Draw()
         }
         ImGui::EndMainMenuBar();
     }
-
-    if (ImGui::Begin("Node Editor"))
-    {
-        ImGui::SetWindowPos({ 0, 0 });
-        Vec2f windowSize = Application::GetInstance()->GetWindowSize();
-        ImGui::SetWindowSize({ windowSize.x, windowSize.y });
-        ImGui::SetWindowCollapsed(false);
-
-        ImGui::BeginGroup();
-        static float size1 = 100.f;
-        static float size2 = ImGui::GetContentRegionAvail().y;
-        Splitter(true, 5.f, &size1, &size2, 100.f, 0.f, ImGui::GetContentRegionAvail().y);
-
-        ImGui::Text("Inspector");
-        
-
-        ImGui::Dummy(Vec2f(size1, ImGui::GetContentRegionAvail().y));
-        ImGui::EndGroup();
-        
-        ImGui::SameLine();
-        
-        DrawGrid();
-    }
 }
 
-void MainWindow::Delete() const
+void MainWindow::DrawInspector() const
 {
-    m_nodeManager->Clean();
-    delete m_nodeManager;
+    static float size1 = 100.f;
+    static float size2 = ImGui::GetContentRegionAvail().y;
+    Splitter(true, 5.f, &size1, &size2, 100.f, 0.f, ImGui::GetContentRegionAvail().y);
+
+    ImGui::BeginChild("##inspector", ImVec2(size1, 0), true);
+    
+    ImGui::Text("Inspector");
+
+    ImGui::Separator();
+
+    if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())
+    {
+        ImGui::Text("Inputs:");
+        for (uint32_t i = 0; i < selectedNode->p_inputs.size(); ++i)
+        {
+            ImGui::PushID(i);
+            InputRef input = selectedNode->GetInput(i);
+            if (input->isLinked)
+                continue;
+            ImGui::Text("%s: ", input->name.c_str());
+            ImGui::SameLine();
+            
+            switch (input->type)
+            {
+            case Type::Float:
+                {
+                    float* value = input->GetValue<float>();
+                    ImGui::DragFloat("##float", value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
+                    break;
+                }
+            case Type::Int:
+                {
+                    int* value = input->GetValue<int>();
+                    ImGui::InputInt("##int", value);
+                    break;
+                }
+            case Type::Bool:
+                {
+                    bool* value = input->GetValue<bool>();
+                    ImGui::Checkbox("##bool", value);
+                    break;
+                }
+            case Type::String:
+                {
+                    std::string* value = input->GetValue<std::string>();
+                    char buffer[256];
+                    strncpy(buffer, value->c_str(), sizeof(buffer));
+                    if (ImGui::InputText("##string", buffer, sizeof(buffer)))
+                    {
+                        *value = buffer;
+                    }
+                    break;
+                }
+            case Type::Vector2:
+                {
+                    Vec2f* value = input->GetValue<Vec2f>();
+                    ImGui::InputFloat2("##vec2", &value->x);
+                    break;
+                }
+            case Type::Vector3:
+                {
+                    Vec3f* value = input->GetValue<Vec3f>();
+                    ImGui::InputFloat3("##vec3", &value->x);
+                    break;
+                }
+            default:
+                ImGui::Text("Unknown type");
+                break;
+            }
+            ImGui::PopID();
+        }
+    }
+    
+    ImGui::EndChild();   
 }
 
 void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos) const
@@ -308,7 +379,7 @@ void MainWindow::DrawGrid()
     {
         ActionManager::SetCurrent(&m_actionManager);
     }
-    
+
     static ImVec2 scrolling(ImGui::GetContentRegionAvail().x / 2.0f, ImGui::GetContentRegionAvail().y / 2.0f);
     // static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
@@ -382,6 +453,7 @@ void MainWindow::DrawGrid()
 
     // Draw grid + all lines in the canvas
     draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+    m_nodeManager->m_isGridHovered = ImGui::IsMouseHoveringRect(canvas_p0, canvas_p1);
     if (opt_enable_grid)
     {
         const float GRID_STEP = 64.0f * zoom; // Adjust the grid step based on zoom
@@ -395,4 +467,6 @@ void MainWindow::DrawGrid()
     m_nodeManager->EOnDrawEvent.Invoke();
     
     draw_list->PopClipRect();
+
+
 }

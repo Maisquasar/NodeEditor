@@ -25,11 +25,33 @@ std::string TypeEnumToString(Type type);
 
 struct Input
 {
+    Input(Type type);
+    Input(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
+    ~Input();
+    
     UUID parentUUID;
     uint32_t index;
     
     std::string name;
     Type type;
+    
+    void* value = nullptr;
+    bool isLinked = false;
+
+    template<typename T>
+    T* GetValue() const
+    {
+        return reinterpret_cast<T*>(value);
+    }
+
+    template<typename T>
+    void SetValue(T _value)
+    {
+        if (value != nullptr)
+            delete value;
+        this->value = new T(_value);
+    }
+
 };
 
 struct Output
@@ -39,6 +61,8 @@ struct Output
     
     std::string name;
     Type type;
+    
+    bool isLinked;
 };
 
 constexpr int c_pointSize = 25;
@@ -131,6 +155,7 @@ private:
     void SetUUID(const UUID& uuid);
 
 protected:
+    friend class MainWindow;
     friend class ShaderMaker;
     friend class NodeTemplateHandler;
     friend class NodeManager;
