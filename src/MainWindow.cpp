@@ -107,7 +107,7 @@ void MainWindow::Initialize()
 
 void MainWindow::PasteNode() const
 {
-    ActionPaste* action = new ActionPaste(m_nodeManager, m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos(), ImGui::GetClipboardText());
+    auto action = std::make_shared<ActionPaste>(m_nodeManager, m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos(), ImGui::GetClipboardText());
     ActionManager::DoAction(action);
 }
 
@@ -153,8 +153,56 @@ void MainWindow::Delete() const
     delete m_nodeManager;
 }
 
+void MainWindow::DrawMainDock()
+{
+    static bool opt_fullscreen = true;
+    static bool opt_padding = false;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+    if (opt_fullscreen)
+    {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    }
+    else
+    {
+        dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+    }
+
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        window_flags |= ImGuiWindowFlags_NoBackground;
+    ImGui::GetWindowDockID();
+
+    if (!opt_padding)
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red
+    ImGui::Begin("DockSpace", nullptr, window_flags);
+    ImGui::PopStyleColor();
+    if (!opt_padding)
+        ImGui::PopStyleVar();
+
+    if (opt_fullscreen)
+        ImGui::PopStyleVar(2);
+
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    {
+        const ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    }
+    ImGui::End();
+}
+
 void MainWindow::Draw()
 {
+    DrawMainDock();
     DrawMainBar();
 
     if (ImGui::Begin("Node Editor", nullptr))
@@ -359,7 +407,7 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 const uint32_t templateId = templates[i].node->GetTemplateID();
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
-                ActionCreateNode* action = new ActionCreateNode(m_nodeManager, node);
+                auto action = std::make_shared<ActionCreateNode>(m_nodeManager, node);
                 
                 ActionManager::AddAction(action);
                 

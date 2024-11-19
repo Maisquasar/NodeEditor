@@ -22,9 +22,9 @@ class ActionManager
 public:
     ~ActionManager();
 
-    static void AddAction(Action* action);
+    static void AddAction(const ActionRef& action);
 
-    static void DoAction(Action* action)
+    static void DoAction(ActionRef action)
     {
         action->Do();
         AddAction(action);
@@ -64,7 +64,7 @@ public:
 private:
     void CleanRedoneActions();
 
-    bool IsInside(Action* action);
+    bool IsInside(const ActionRef& action) const;
 
 private:
     static ActionManager* m_current;

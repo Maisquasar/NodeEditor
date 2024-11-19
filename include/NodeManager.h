@@ -112,6 +112,8 @@ private:
     std::vector<NodeWeakRef> m_selectedNodes;
 
     UserInputState m_userInputState = UserInputState::None;
+
+    bool m_firstFrame = true;
     
     bool m_isGridHovered = true;
     Vec2f m_onClickPos;

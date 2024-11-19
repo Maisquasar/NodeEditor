@@ -33,6 +33,7 @@ public:
     void Draw();
     
     void Delete() const;
+    void DrawMainDock();
     void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos) const;
 
     ActionManager& GetActionManager() { return m_actionManager; }

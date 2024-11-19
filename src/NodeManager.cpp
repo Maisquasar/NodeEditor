@@ -5,7 +5,6 @@
 #include <unordered_set>
 
 #include "LinkManager.h"
-#include "MainWindow.h"
 #include "Node.h"
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
@@ -45,7 +44,7 @@ NodeManager::NodeManager(MainWindow* window)
 
     AddNode(addNode);
 
-    m_linkManager->AddLink(Link(addNode->p_uuid, 0, node->p_uuid, 1));
+    m_linkManager->AddLink({addNode->p_uuid, 0, node->p_uuid, 1});
 }
 
 NodeManager::~NodeManager()
@@ -81,7 +80,7 @@ void NodeManager::UpdateDelete()
     const bool deleteClicked = ImGui::IsKeyPressed(ImGuiKey_Delete);
     if (!deleteClicked)
         return;
-    ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, m_selectedNodes, m_linkManager->GetSelectedLinks());
+    auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, m_selectedNodes, m_linkManager->GetSelectedLinks());
     m_linkManager->DeleteSelectedLinks();
     
     for (int i = 0; i < m_selectedNodes.size(); i++)
@@ -99,8 +98,9 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
     if (altClicked)
     {
         std::vector<LinkWeakRef> linkWithInput = m_linkManager->GetLinksWithInput(node->GetUUID(), i);
-        
-        ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, {}, linkWithInput);
+
+        std::vector<NodeWeakRef> nodes = {};
+        auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, linkWithInput);
         ActionManager::AddAction(action);
         
         m_linkManager->RemoveLink(node->GetInput(i));
@@ -123,8 +123,10 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
     if (altClicked)
     {
         LinkWeakRef linkWithOutput = m_linkManager->GetLinkWithOutput(node->GetUUID(), i);
-        
-        ActionDeleteNodesAndLinks* action = new ActionDeleteNodesAndLinks(this, {}, {linkWithOutput});
+
+        std::vector<NodeWeakRef> nodes = {};
+        std::vector<LinkWeakRef> links = {linkWithOutput};
+        auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
         ActionManager::AddAction(action);
         
         m_linkManager->RemoveLinks(node->GetOutput(i));
@@ -180,7 +182,7 @@ void NodeManager::UpdateCurrentLink()
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
         auto link = m_linkManager->AddLink(m_currentLink);
-        ActionCreateLink* action = new ActionCreateLink(this, link.lock());
+        auto action =std::make_shared<ActionCreateLink>(this, link.lock());
         ActionManager::AddAction(action);
         m_userInputState = UserInputState::None;
         m_currentLink = Link();
@@ -279,8 +281,9 @@ void NodeManager::UpdateSelectionSquare(float zoom, const Vec2f& origin, const V
 
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
-    if (!m_isGridHovered)
+    if (!m_isGridHovered && !m_firstFrame)
         return;
+    m_firstFrame = false;
     UserInputState prevUserInputState = m_userInputState;
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
@@ -347,7 +350,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         && !CurrentLinkIsAlmostLinked())
     {
         SetUserInputState(UserInputState::DragNode);
-        ActionMoveNodes* action = new ActionMoveNodes(m_selectedNodes);
+        auto action = std::make_shared<ActionMoveNodes>(m_selectedNodes);
         ActionManager::AddAction(action);
     }
     else if (m_userInputState == UserInputState::None
@@ -520,6 +523,7 @@ void NodeManager::LoadFromFile(const std::string& filePath)
     Clean();
     
     Deserialize(parser);
+    m_firstFrame = true;
 }
 
 void NodeManager::Serialize(CppSer::Serializer& serializer) const
@@ -595,13 +599,12 @@ void NodeManager::SerializeSelectedNodes(CppSer::Serializer& serializer) const
 
 void NodeManager::Deserialize(CppSer::Parser& parser)
 {
-    auto nodeTemplateHandler = NodeTemplateHandler::GetInstance();
     uint32_t nodeCount = parser["Node Count"].As<uint32_t>();
     for (uint32_t i = 0; i < nodeCount; i++)
     {
         parser.PushDepth();
         uint32_t templateID = parser["TemplateID"].As<uint32_t>();
-        NodeRef node = nodeTemplateHandler->CreateFromTemplate(templateID);
+        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
         node->p_nodeManager = this;
         node->Deserialize(parser);
         AddNode(node);
@@ -613,14 +616,13 @@ void NodeManager::Deserialize(CppSer::Parser& parser)
 SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
 {
     SerializedData data;
-    auto nodeTemplateHandler = NodeTemplateHandler::GetInstance();
     uint32_t nodeCount = parser["Node Count"].As<uint32_t>();
     data.nodes.resize(nodeCount);
     for (uint32_t i = 0; i < nodeCount; i++)
     {
         parser.PushDepth();
         uint32_t templateID = parser["TemplateID"].As<uint32_t>();
-        NodeRef node = nodeTemplateHandler->CreateFromTemplate(templateID);
+        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
         node->Deserialize(parser);
         data.nodes[i] = node;
     }

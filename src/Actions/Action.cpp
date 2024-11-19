@@ -16,20 +16,14 @@ ActionManager::~ActionManager()
     }
 }
 
-void ActionManager::AddAction(Action* action)
+void ActionManager::AddAction(const ActionRef& action)
 {
-    if (m_current->IsInside(action))
-    {
-        return;
-    }
     if (m_current->m_undoneActions.size() >= MAX_ACTION_COUNT)
     {
-        Action* lastAction = m_current->m_undoneActions.back().get();
-        delete lastAction;
         m_current->m_undoneActions.erase(m_current->m_undoneActions.begin());
     }
     m_current->CleanRedoneActions();
-    m_current->m_undoneActions.push_back(std::shared_ptr<Action>(action));
+    m_current->m_undoneActions.push_back(action);
 }
 
 void ActionManager::SetCurrent(ActionManager* manager)
@@ -42,11 +36,11 @@ void ActionManager::CleanRedoneActions()
     m_redoneActions.clear();
 }
 
-bool ActionManager::IsInside(Action* action)
+bool ActionManager::IsInside(const ActionRef& action) const
 {
-    for (uint32_t i = 0; i < m_undoneActions.size(); i++)
+    for (const auto& m_undoneAction : m_undoneActions)
     {
-        if (m_undoneActions[i].get() == action)
+        if (m_undoneAction == action)
         {
             return true;
         }
