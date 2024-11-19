@@ -34,7 +34,7 @@ public:
     
     void Delete() const;
     void DrawMainDock();
-    void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos) const;
+    void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos);
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
@@ -48,7 +48,9 @@ private:
     NodeManager* m_nodeManager = nullptr;
 
     ActionManager m_actionManager;
-    
+
+    Vec2f m_mousePosOnContext;
+    bool m_focusInput = false;
 
     struct GridWindow
     {

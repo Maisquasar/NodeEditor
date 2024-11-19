@@ -256,6 +256,11 @@ void MainWindow::DrawMainBar()
                     m_nodeManager->SaveToFile(path);
                 }
             }
+            if (ImGui::MenuItem("Create shader"))
+            {
+                ShaderMaker shaderMaker;
+                shaderMaker.CreateFragmentShader(m_nodeManager);
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "ALT+F4"))
             {
@@ -278,11 +283,6 @@ void MainWindow::DrawMainBar()
 
         if (ImGui::BeginMenu("Debug"))
         {
-            if (ImGui::MenuItem("Create shader"))
-            {
-                ShaderMaker shaderMaker;
-                shaderMaker.CreateFragmentShader(m_nodeManager);
-            }
             auto current = ActionManager::GetCurrent();
             if (current != nullptr)
             {
@@ -321,6 +321,7 @@ void MainWindow::DrawInspector() const
 
     if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())
     {
+        ImGui::PushID(selectedNode->GetUUID());
         ImGui::Text("Inputs:");
         for (uint32_t i = 0; i < selectedNode->p_inputs.size(); ++i)
         {
@@ -380,43 +381,80 @@ void MainWindow::DrawInspector() const
             }
             ImGui::PopID();
         }
+        ImGui::PopID();
     }
     
     ImGui::EndChild();   
 }
 
-void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos) const
+void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos)
 {
     constexpr uint32_t displayCount = 10;
+
     // Context menu
     if (ImGui::BeginPopup("context"))
     {
         static ImGuiTextFilter filter;
 
+        if (m_focusInput)
+        {
+            ImGui::SetKeyboardFocusHere();
+            m_focusInput = false;
+        }
         filter.Draw("", ImGui::GetContentRegionAvail().x);
         auto nodeTemplate = NodeTemplateHandler::GetInstance();
         auto templates = nodeTemplate->GetTemplates();
+
+        // If is linking
+        bool isLinking = m_nodeManager->CurrentLinkIsAlmostLinked();
+
+        OutputRef outputLinking;
+        if (isLinking)
+        {
+            Link currentLink = m_nodeManager->GetCurrentLink();
+            if (currentLink.fromNodeIndex != UUID_NULL && currentLink.fromOutputIndex != UUID_NULL)
+            {
+                outputLinking = m_nodeManager->GetOutput(currentLink.fromNodeIndex, currentLink.fromOutputIndex).lock();
+            }
+            else
+            {
+                isLinking = false;
+            }
+        }
+
+        ImGui::BeginChild("##context", ImVec2(0, 350));
         uint32_t j = 0;
-        for (uint32_t i = 0; i < templates.size() && j < displayCount; i++)
+        for (uint32_t i = 0; i < templates.size()/* && j < displayCount*/; i++)
         {
             std::string name = templates[i].node->GetName();
             if (!filter.PassFilter(name.c_str()) || !templates[i].node->GetAllowInteraction())
                 continue;
-            if (ImGui::MenuItem(name.c_str()))
+            if (isLinking && templates[i].node->p_inputs[0]->type != outputLinking->type)
+                continue;
+            if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
-                const uint32_t templateId = templates[i].node->GetTemplateID();
+                const TemplateID templateId = templates[i].node->GetTemplateID();
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
                 auto action = std::make_shared<ActionCreateNode>(m_nodeManager, node);
                 
                 ActionManager::AddAction(action);
                 
-                node->SetPosition((mousePos - origin) / zoom);
+                node->SetPosition((m_mousePosOnContext - origin) / zoom);
                 m_nodeManager->AddNode(node);
+
+                if (isLinking)
+                {
+                    Link& link = m_nodeManager->GetCurrentLink();
+                    link.toInputIndex = 0;
+                    link.toNodeIndex = node->GetUUID();
+                }
+                ImGui::CloseCurrentPopup();
                 break;
             }
             j++;
         }
+        ImGui::EndChild();
         ImGui::EndPopup();
     }
 }
@@ -495,7 +533,14 @@ void MainWindow::DrawGrid()
     // Context menu (under default mouse threshold)
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+    {
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            m_mousePosOnContext = mousePos;
+            m_focusInput = true;
+        }
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+    }
 
     DrawContextMenu(zoom, origin, mousePos);
 

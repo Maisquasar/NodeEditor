@@ -52,6 +52,15 @@ struct Input
         this->value = new T(_value);
     }
 
+    template <typename T>
+    Input* Clone()
+    {
+        Input* input = new Input(parentUUID, index, name, type);
+        input->isLinked = isLinked;
+        input->value = new T(*GetValue<T>());
+        return input;
+    }
+
 };
 
 struct Output
@@ -144,7 +153,7 @@ public:
     std::string GetName() const { return p_name; }
     Vec2f GetPosition() const { return p_position; }
     Vec2f GetSize() const { return p_size; }
-    uint32_t GetTemplateID() const { return p_templateID; }
+    TemplateID GetTemplateID() const { return p_templateID; }
     bool GetAllowInteraction() const { return p_allowInteraction; }
 
     virtual void Serialize(CppSer::Serializer& serializer) const;
@@ -160,7 +169,7 @@ protected:
     friend class NodeTemplateHandler;
     friend class NodeManager;
 
-    uint32_t p_templateID = -1;
+    TemplateID p_templateID = -1;
 
     NodeManager* p_nodeManager;
 

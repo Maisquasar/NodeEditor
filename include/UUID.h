@@ -2,6 +2,8 @@
 #include <iostream>
 #define UUID_NULL -1ull
 
+using TemplateID = uint64_t;
+
 class UUID
 {
 public:

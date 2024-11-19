@@ -70,12 +70,13 @@ public:
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
     NodeWeakRef GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
-    NodeWeakRef GetNodeWithTemplate(uint32_t templateID);
+    NodeWeakRef GetNodeWithTemplate(TemplateID templateID);
     std::vector<NodeWeakRef> GetNodeConnectedTo(const UUID& uuid) const;
     InputWeakRef GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
     NodeWeakRef GetSelectedNode() const;
+    Link& GetCurrentLink() {return m_currentLink;}
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;

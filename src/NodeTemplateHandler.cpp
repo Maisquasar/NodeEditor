@@ -11,6 +11,8 @@ void NodeTemplateHandler::Initialize()
     constexpr ImU32 endColor = IM_COL32(156, 122, 72, 255);
     constexpr ImU32 functionColor = IM_COL32(72, 122, 156, 255);
     constexpr ImU32 makeColor = IM_COL32(122, 156, 72, 255);
+    constexpr ImU32 breakColor = IM_COL32(156, 72, 122, 255);
+    
     {
         NodeRef node = std::make_shared<Node>("Material");
         node->SetTopColor(endColor);
@@ -23,6 +25,21 @@ void NodeTemplateHandler::Initialize()
         NodeMethodInfo info = node;
         AddTemplateNode(info);
     }
+
+    // TODO : Reed the file with all the templates nodes
+
+
+#pragma region Float
+    {
+        NodeRef node = std::make_shared<Node>("Make float");
+        node->SetTopColor(makeColor);
+        node->AddInput("Value", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "%s"};
+
+        AddTemplateNode(info);
+    }
+
     
     {
         NodeRef node = std::make_shared<Node>("Add");
@@ -58,34 +75,173 @@ void NodeTemplateHandler::Initialize()
     }
 
     {
-        NodeRef node = std::make_shared<Node>("Make float");
-        node->SetTopColor(makeColor);
-        node->AddInput("Value", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        NodeMethodInfo info = {node, "%s"};
-
-        AddTemplateNode(info);
-    }
-
-    /*
-    {
         NodeRef node = std::make_shared<Node>("Divide");
         node->SetTopColor(functionColor);
         
         node->AddInput("A", Type::Float);
         node->AddInput("B", Type::Float);
         node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "%s / %s"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("1 - x");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("X", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "1 - %s"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Frac");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "fract(%s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Power");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("Base", Type::Float);
+        node->AddInput("Exp", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "pow(%s, %s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Saturate");
+        node->SetTopColor(makeColor);
+        node->AddInput("Value", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "clamp(%s, 0, 1)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Arc tangent 2");
+        node->SetTopColor(makeColor);
+        node->AddInput("Y", Type::Float);
+        node->AddInput("X", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "atan2(%s, %s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Sin");
+        node->SetTopColor(makeColor);
+        node->AddInput("A", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "sin(%s)"};
+        AddTemplateNode(info);
+    }
+#pragma endregion
+
+#pragma region Int
+    {
+        NodeRef node = std::make_shared<Node>("Make int");
+        node->SetTopColor(makeColor);
+        node->AddInput("Value", Type::Int);
+        node->AddOutput("Result", Type::Int);
+        NodeMethodInfo info = {node, "%s"};
+        AddTemplateNode(info);
+    }
+#pragma endregion
+
+#pragma region Vector2
+    {
+        NodeRef node = std::make_shared<Node>("Make Vector2");
+        node->SetTopColor(makeColor);
+        node->AddInput("X", Type::Float);
+        node->AddInput("Y", Type::Float);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "vec2(%s, %s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Break Vector2");
+        node->SetTopColor(breakColor);
+        node->AddInput("Value", Type::Vector2);
+        node->AddOutput("X", Type::Float);
+        node->AddOutput("Y", Type::Float);
+        NodeMethodInfo info = {node, "%s.x", "%s.y"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Multiply");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddInput("B", Type::Float);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "%s * %s"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Frac");
+        node->SetTopColor(functionColor);
+
+        node->AddInput("A", Type::Vector2);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "fract(%s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Subtract");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddInput("B", Type::Vector2);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "%s - %s"};
+        AddTemplateNode(info);
     }
 
     {
         NodeRef node = std::make_shared<Node>("Add");
         node->SetTopColor(functionColor);
         
-        node->AddInput("A", Type::Vector3);
-        node->AddInput("B", Type::Vector3);
+        node->AddInput("A", Type::Vector2);
+        node->AddInput("B", Type::Vector2);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "%s + %s"};
+        AddTemplateNode(info);
+    }
+#pragma endregion
+
+#pragma region Vector3
+    {
+        NodeRef node = std::make_shared<Node>("Make Vector3");
+        node->SetTopColor(makeColor);
+        node->AddInput("X", Type::Float);
+        node->AddInput("Y", Type::Float);
+        node->AddInput("Z", Type::Float);
         node->AddOutput("Result", Type::Vector3);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "vec3(%s, %s, %s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Break Vector3");
+        node->SetTopColor(breakColor);
+        node->AddInput("Value", Type::Vector3);
+        node->AddOutput("X", Type::Float);
+        node->AddOutput("Y", Type::Float);
+        node->AddOutput("Z", Type::Float);
+        NodeMethodInfo info = {node, "%s.x", "%s.y", "%s.z"};
+        AddTemplateNode(info);
     }
 
     {
@@ -93,112 +249,24 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(functionColor);
         
         node->AddInput("A", Type::Vector3);
-        node->AddInput("B", Type::Vector3);
+        node->AddInput("B", Type::Float);
         node->AddOutput("Result", Type::Vector3);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "%s * %s"};
+        AddTemplateNode(info);
     }
 
     {
-        NodeRef node = std::make_shared<Node>("Subtract");
+        NodeRef node = std::make_shared<Node>("Saturate");
         node->SetTopColor(functionColor);
         
         node->AddInput("A", Type::Vector3);
-        node->AddInput("B", Type::Vector3);
         node->AddOutput("Result", Type::Vector3);
-        AddTemplateNode(node);
+        NodeMethodInfo info = {node, "clamp(%s, 0.0, 1.0)"};
+        AddTemplateNode(info);
     }
-
-    {
-        NodeRef node = std::make_shared<Node>("Dot");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Vector3);
-        node->AddInput("B", Type::Vector3);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Cross");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Vector3);
-        node->AddInput("B", Type::Vector3);
-        node->AddOutput("Result", Type::Vector3);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Length");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Vector3);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
+#pragma endregion
     
-    {
-        NodeRef node = std::make_shared<Node>("Normalize");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Vector3);
-        node->AddOutput("Result", Type::Vector3);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Max");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Float);
-        node->AddInput("B", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Min");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Float);
-        node->AddInput("B", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Pow");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Float);
-        node->AddInput("B", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Clamp");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Float);
-        node->AddInput("Min", Type::Float);
-        node->AddInput("Max", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-
-    {
-        NodeRef node = std::make_shared<Node>("Lerp");
-        node->SetTopColor(functionColor);
-        
-        node->AddInput("A", Type::Float);
-        node->AddInput("B", Type::Float);
-        node->AddInput("T", Type::Float);
-        node->AddOutput("Result", Type::Float);
-        AddTemplateNode(node);
-    }
-    */
-
+    
     // Check if there is duplicate name
     for (uint32_t i = 0; i < m_templateNodes.size(); i++)
     {
@@ -209,20 +277,50 @@ void NodeTemplateHandler::Initialize()
                 std::string type1 = TypeEnumToString(m_templateNodes[i].node->GetOutput(0)->type);
                 std::string type2 = TypeEnumToString(m_templateNodes[j].node->GetOutput(0)->type);
                 m_templateNodes[i].node->SetName(m_templateNodes[i].node->GetName() + " (" + type1 + ")");
+                m_templateNodes[i].node->p_templateID = TemplateIDFromString(m_templateNodes[i].node->GetName());
                 m_templateNodes[j].node->SetName(m_templateNodes[j].node->GetName() + " (" + type2 + ")");
+                m_templateNodes[j].node->p_templateID = TemplateIDFromString(m_templateNodes[j].node->GetName());
             }
         }
     }
+
+    // Sort the list by name
+    // std::ranges::sort(m_templateNodes, [](const NodeMethodInfo& a, const NodeMethodInfo& b) { return a.node->GetName() < b.node->GetName(); });
 }
 
 void NodeTemplateHandler::AddTemplateNode(const NodeMethodInfo& info)
 {
-    info.node->p_templateID = m_templateNodes.size();
+    info.node->p_templateID = TemplateIDFromString(info.node->GetName()); 
     m_templateNodes.push_back(info);
 }
 
-std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplate(uint32_t templateID)
+TemplateID NodeTemplateHandler::TemplateIDFromString(const std::string& name)
 {
-    NodeRef nodeRef = s_instance->m_templateNodes[templateID].node;
-    return std::shared_ptr<Node>(nodeRef->Clone());
+    return std::hash<std::string>{}(name);
 }
+
+std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplate(size_t templateID)
+{
+    for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
+    {
+        auto hash = s_instance->m_templateNodes[i].node->GetTemplateID();
+        if (hash == templateID)
+        {
+            return std::shared_ptr<Node>(s_instance->m_templateNodes[i].node->Clone());
+        }   
+    }
+    return nullptr;
+}
+
+std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplateName(const std::string& name)
+{
+    for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
+    {
+        if (s_instance->m_templateNodes[i].node->GetName() == name)
+        {
+            return std::shared_ptr<Node>(s_instance->m_templateNodes[i].node->Clone());
+        }
+    }
+    return nullptr;
+}
+

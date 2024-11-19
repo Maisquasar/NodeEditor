@@ -60,6 +60,18 @@ void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::str
     }
 }
 
+void cleanString(std::string& name) {
+    for (char& c : name) {
+        if (c == ' ') {
+            c = '_'; // Replace space with underscore
+        } else if (c == '(' || c == ')') {
+            c = '\0'; // Mark parentheses for removal
+        }
+    }
+    // Remove marked characters ('\0')
+    name.erase(std::remove(name.begin(), name.end(), '\0'), name.end());
+}
+
 void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, TemplateList& templateList, std::string& content,
                                  LinkManager* linkManager)
 {
@@ -71,44 +83,60 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
         NodeRef node = manager->GetNode(link->fromNodeIndex).lock();
         if (node == nullptr)
             continue;
-        RecurrenceWork(manager, node, templateList, content, linkManager);
-        NodeMethodInfo templateNode = templateList[node->p_templateID];
-        std::string variableName = "_" + std::to_string(node->p_uuid);
-
-        std::string glslType = TypeToGLSLType(node->p_inputs[i]->type);
         
-        content += glslType + " " + variableName + " = ";
-        std::string toFormat = templateNode.formatString;
-        std::string secondHalf = toFormat;
-        toFormat.clear();
-        for (int j = 0; j < node->p_inputs.size(); j++)
+        RecurrenceWork(manager, node, templateList, content, linkManager);
+
+        auto it = std::find_if(templateList.begin(), templateList.end(), [node](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == node->GetTemplateID(); });
+        NodeMethodInfo templateNode = *it;
+
+        std::vector<std::string> variableNames = {};
+        for (int k = 0; k < node->p_outputs.size(); k++)
         {
-            InputRef input = node->p_inputs[j];
-            size_t index = secondHalf.find_first_of("%") + 2;
-            if (index == std::string::npos)
-                break;
-            std::string firstHalf = secondHalf.substr(0, index);
-            secondHalf = secondHalf.substr(index);
-            if (!input->isLinked)
+            auto name = node->GetName();
+            cleanString(name);
+            std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(k);
+            std::string glslType = TypeToGLSLType(node->p_outputs[k]->type);
+        
+            std::string thisContent = glslType + " " + variableName + " = ";
+            std::string toFormat = templateNode.outputFormatStrings[k];
+            std::string secondHalf = toFormat;
+            toFormat.clear();
+            for (int j = 0; j < node->p_inputs.size(); j++)
             {
-                m_variablesNames.push_back(GetValueAsString(input));
-            }
-            if (!m_variablesNames.empty())
-            {
-                toFormat += FormatString(firstHalf, m_variablesNames.back().c_str());
-                m_variablesNames.erase(m_variablesNames.end() - 1);
-            }
+                InputRef input = node->p_inputs[j];
+                size_t index = secondHalf.find_first_of("%") + 2;
+                if (index == std::string::npos)
+                    break;
+                std::string firstHalf = secondHalf.substr(0, index);
+                if (index != std::string::npos)
+                    secondHalf = secondHalf.substr(index);
+                if (!input->isLinked)
+                {
+                    m_variablesNames.push_back(GetValueAsString(input));
+                }
+                if (!m_variablesNames.empty())
+                {
+                    toFormat += FormatString(firstHalf, m_variablesNames.back().c_str());
+                    if (k == node->p_outputs.size() - 1)
+                        m_variablesNames.erase(m_variablesNames.end() - 1);
+                }
             
+            }
+            thisContent += toFormat + secondHalf + ";\n";
+            variableNames.push_back(variableName);
+
+            content += thisContent;
         }
-        content += toFormat + "\n";
-        m_variablesNames.push_back(variableName);
+
+        m_variablesNames.insert(m_variablesNames.begin(), variableNames.begin(), variableNames.end());
     }
 }
 
 void ShaderMaker::CreateFragmentShader(NodeManager* manager)
 {
+    uint64_t templateIdFromString = NodeTemplateHandler::TemplateIDFromString("Material");
     // Get all nodes connected to the end node
-    NodeRef endNode = manager->GetNodeWithTemplate(0).lock();
+    NodeRef endNode = manager->GetNodeWithTemplate(templateIdFromString).lock();
 
     TemplateList& templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
     

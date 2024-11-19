@@ -12,12 +12,22 @@ struct NodeMethodInfo
 {
     NodeMethodInfo() = default;
     NodeMethodInfo(NodeRef ref) : node(ref) {}
-    NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), formatString(std::move(_formatString)) {}
-    NodeMethodInfo(std::string _formatString) : formatString(std::move(_formatString)) {}
+    NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), outputFormatStrings({std::move(_formatString)}) {}
+
+    template<typename ... Args>
+    NodeMethodInfo(NodeRef ref, std::string _formatString, Args ... args) : node(ref)
+    {
+        outputFormatStrings.push_back(_formatString);
+
+        for (auto& arg : {args...})
+        {
+            outputFormatStrings.push_back(arg);
+        }
+    }
     
 
     NodeRef node;
-    std::string formatString;
+    std::vector<std::string> outputFormatStrings;
 };
 
 using TemplateList = std::vector<NodeMethodInfo>;
@@ -32,8 +42,11 @@ public:
     void Initialize();
 
     void AddTemplateNode(const NodeMethodInfo& info);
+    static TemplateID TemplateIDFromString(const std::string& name);
 
-    static std::shared_ptr<Node> CreateFromTemplate(uint32_t templateID);
+    static std::shared_ptr<Node> CreateFromTemplate(TemplateID templateID);
+
+    static std::shared_ptr<Node> CreateFromTemplateName(const std::string& name);
 
     TemplateList& GetTemplates() { return m_templateNodes; }
 

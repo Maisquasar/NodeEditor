@@ -231,7 +231,7 @@ bool Node::DoesInputHaveLink(uint32_t index) const
 void Node::AddInput(const std::string& name, Type type)
 {
     p_inputs.push_back(std::make_shared<Input>(p_uuid, static_cast<uint32_t>(p_inputs.size()), name, type));
-    int size = 10 + p_inputs.size() * (10 + c_pointSize);
+    int size = 10 + p_inputs.size() * (10 + c_pointSize) + 10;
 
     if (size > p_size.y)
         p_size.y = static_cast<float>(size);
@@ -240,7 +240,7 @@ void Node::AddInput(const std::string& name, Type type)
 auto Node::AddOutput(const std::string& name, Type type) -> void
 {
     p_outputs.push_back(std::make_shared<Output>(p_uuid, static_cast<uint32_t>(p_outputs.size()), name, type));
-    int size = p_outputs.size() * (25 + c_pointSize);
+    int size = 10 + p_outputs.size() * (10 + c_pointSize) + 10;
 
     if (size > p_size.y)
         p_size.y = static_cast<float>(size);
@@ -367,8 +367,31 @@ Node* Node::Clone()
     auto node = new Node(p_name);
     node->p_inputs = p_inputs;
     node->p_templateID = p_templateID;
-    for (auto& input : node->p_inputs)
+    for (size_t i = 0; i < node->p_inputs.size(); i++)
     {
+        auto& input = node->p_inputs[i];
+        Input* out = nullptr;
+        switch (p_inputs[i]->type) {
+        case Type::Float:
+            out = p_inputs[i]->Clone<float>();
+            break;
+        case Type::Int:
+            out = p_inputs[i]->Clone<int>();
+            break;
+        case Type::Bool:
+            out = p_inputs[i]->Clone<bool>();
+            break;
+        case Type::String:
+            out = p_inputs[i]->Clone<std::string>();
+            break;
+        case Type::Vector2:
+            out = p_inputs[i]->Clone<Vec2f>();
+            break;
+        case Type::Vector3:
+            out = p_inputs[i]->Clone<Vec3f>();
+            break;
+        }
+        input = std::shared_ptr<Input>(out);
         input->parentUUID = node->p_uuid;
     }
     node->p_outputs = p_outputs;

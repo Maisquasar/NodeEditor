@@ -32,19 +32,11 @@ std::string UserInputEnumToString(UserInputState userInputState)
     }
 }
 
-NodeManager::NodeManager(MainWindow* window)
+NodeManager::NodeManager(MainWindow* window) : m_parent(window)
 {
     m_linkManager = new LinkManager(this);
-    
-    NodeRef node = NodeTemplateHandler::CreateFromTemplate(0);
 
-    AddNode(node);
-    
-    NodeRef addNode = NodeTemplateHandler::CreateFromTemplate(1);
-
-    AddNode(addNode);
-
-    m_linkManager->AddLink({addNode->p_uuid, 0, node->p_uuid, 1});
+    AddNode(NodeTemplateHandler::CreateFromTemplateName("Material"));
 }
 
 NodeManager::~NodeManager()
@@ -441,7 +433,7 @@ void NodeManager::ClearSelectedNodes()
     m_selectedNodes.clear();
 }
 
-NodeWeakRef NodeManager::GetNodeWithTemplate(uint32_t templateID)
+NodeWeakRef NodeManager::GetNodeWithTemplate(TemplateID templateID)
 {
     for (auto& val : m_nodes | std::views::values)
     {
@@ -603,8 +595,13 @@ void NodeManager::Deserialize(CppSer::Parser& parser)
     for (uint32_t i = 0; i < nodeCount; i++)
     {
         parser.PushDepth();
-        uint32_t templateID = parser["TemplateID"].As<uint32_t>();
+        TemplateID templateID = parser["TemplateID"].As<uint64_t>();
         NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
+        if (!node)
+        {
+            std::cout << "Failed to create node\n";
+            continue;
+        }
         node->p_nodeManager = this;
         node->Deserialize(parser);
         AddNode(node);
@@ -621,7 +618,7 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
     for (uint32_t i = 0; i < nodeCount; i++)
     {
         parser.PushDepth();
-        uint32_t templateID = parser["TemplateID"].As<uint32_t>();
+        TemplateID templateID = parser["TemplateID"].As<uint64_t>();
         NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
         node->Deserialize(parser);
         data.nodes[i] = node;
