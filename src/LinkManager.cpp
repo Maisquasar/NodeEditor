@@ -100,11 +100,24 @@ void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
 
 void LinkManager::UpdateInputOutputLinks()
 {
-    for (LinkRef& link : m_links)
+    for (int i = 0; i < m_links.size(); i++)
     {
+        auto& link = m_links[i];
+        if (!m_nodeManager->NodeExists(link->toNodeIndex) || !m_nodeManager->NodeExists(link->fromNodeIndex))
+        {
+            RemoveLink(i--, false);
+            continue;
+        }
         InputRef input = m_nodeManager->GetInput(link->toNodeIndex, link->toInputIndex).lock();
+        if (!input)
+            continue;
         input->isLinked = true;
         OutputRef output = m_nodeManager->GetOutput(link->fromNodeIndex, link->fromOutputIndex).lock();
+        if (!output)
+        {
+            input->isLinked = false;
+            continue;
+        }
         output->isLinked = true;
     }
 }
@@ -192,14 +205,16 @@ void LinkManager::AddLink(const LinkRef& link)
     m_links.push_back(link);
 }
 
-void LinkManager::RemoveLink(uint32_t index)
+void LinkManager::RemoveLink(uint32_t index, bool removeOnLink /*= true*/)
 {
-    auto input = m_nodeManager->GetInput(m_links[index]->toNodeIndex, m_links[index]->toInputIndex);
-    auto output = m_nodeManager->GetOutput(m_links[index]->fromNodeIndex, m_links[index]->fromOutputIndex);
+    if (removeOnLink)
+    {
+        auto input = m_nodeManager->GetInput(m_links[index]->toNodeIndex, m_links[index]->toInputIndex);
+        auto output = m_nodeManager->GetOutput(m_links[index]->fromNodeIndex, m_links[index]->fromOutputIndex);
 
-    input.lock()->isLinked = false;
-    output.lock()->isLinked = false;
-    
+        input.lock()->isLinked = false;
+        output.lock()->isLinked = false;
+    }
     m_links.erase(m_links.begin() + index);
 }
 
@@ -363,16 +378,17 @@ bool LinkManager::BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1
     return false;
 }
 
-LinkWeakRef LinkManager::GetLinkWithOutput(const UUID& uuid, uint32_t index) const
+std::vector<LinkWeakRef> LinkManager::GetLinkWithOutput(const OutputRef& output) const
 {
-    for (const LinkRef& link : m_links)
+    std::vector<LinkWeakRef> links;
+    for (uint32_t i = 0; i < m_links.size(); i++)
     {
-        if (link->fromNodeIndex == uuid && link->fromOutputIndex == index)
+        if (m_links[i]->fromNodeIndex == output->parentUUID && m_links[i]->fromOutputIndex == output->index)
         {
-            return link;
+            links.push_back(m_links[i]);
         }
     }
-    return {};
+    return links;
 }
 
 LinkWeakRef LinkManager::GetLinkLinkedToInput(const UUID& uuid, uint32_t index) const

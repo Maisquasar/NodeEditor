@@ -16,7 +16,6 @@ enum class Type
     Float,
     Int,
     Bool,
-    String,
     Vector2,
     Vector3,
 };
@@ -27,7 +26,7 @@ struct Input
 {
     Input(Type type);
     Input(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
-    ~Input();
+    ~Input() = default;
     
     UUID parentUUID;
     uint32_t index;
@@ -35,33 +34,20 @@ struct Input
     std::string name;
     Type type;
     
-    void* value = nullptr;
+    Vec4f value;
     bool isLinked = false;
 
     template<typename T>
-    T* GetValue() const
-    {
-        return reinterpret_cast<T*>(value);
-    }
+    T GetValue() const;
+
+    Vec4f GetValue() const { return value; }
 
     template<typename T>
-    void SetValue(T _value)
-    {
-        if (value != nullptr)
-            delete value;
-        this->value = new T(_value);
-    }
+    void SetValue(const T& _value);
 
-    template <typename T>
-    Input* Clone()
-    {
-        Input* input = new Input(parentUUID, index, name, type);
-        input->isLinked = isLinked;
-        input->value = new T(*GetValue<T>());
-        return input;
-    }
-
+    Input* Clone() const;
 };
+
 
 struct Output
 {
@@ -141,8 +127,6 @@ public:
 
     using LinkWeakRef = std::weak_ptr<struct Link>;
     std::vector<LinkWeakRef> GetLinks() const;
-    LinkWeakRef GetLinkWithOutput(uint32_t index) const;
-    std::vector<LinkWeakRef> GetLinksWithInput(uint32_t index) const;
 
     void SetPosition(const Vec2f& position);
     void SetName(std::string name) { p_name = std::move(name); }

@@ -3,6 +3,7 @@
 #include "Actions/Action.h"
 
 #define SAVE_FOLDER "/save/"
+#define EDITOR_FILE_NAME "editor.settings"
 
 #pragma region Dialog
 struct Filter
@@ -33,7 +34,7 @@ public:
     void Draw();
     
     void Delete() const;
-    void DrawMainDock();
+    static void DrawMainDock();
     void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos);
 
     ActionManager& GetActionManager() { return m_actionManager; }
@@ -43,6 +44,9 @@ private:
     void DrawGrid();
     void DrawInspector() const;
     void DrawMainBar();
+
+    void WriteEditorFile(const std::string& path) const;
+    void LoadEditorFile(const std::string& path) const;
 
 private:
     NodeManager* m_nodeManager = nullptr;

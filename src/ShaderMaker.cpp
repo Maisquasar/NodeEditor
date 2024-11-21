@@ -19,37 +19,31 @@ void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::str
     {
     case Type::Float:
         {
-            float value = *input->GetValue<float>();
+            float value = input->GetValue<float>();
             toFormat += FormatString(firstHalf, value);
             break;
         }
     case Type::Int:
         {
-            int valueInt = *input->GetValue<int>();
+            int valueInt = input->GetValue<int>();
             toFormat += FormatString(firstHalf, valueInt);
             break;
         }
     case Type::Bool:
         {
-            bool valueBool = *input->GetValue<bool>();
+            bool valueBool = input->GetValue<bool>();
             toFormat += FormatString(firstHalf, valueBool);
-            break;
-        }
-    case Type::String:
-        {
-            std::string valueString = *input->GetValue<std::string>();
-            toFormat += FormatString(firstHalf, valueString.c_str());
             break;
         }
     case Type::Vector2:
         {
-            Vec2f valueVec2 = *input->GetValue<Vec2f>();
+            Vec2f valueVec2 = input->GetValue<Vec2f>();
             toFormat += FormatString(firstHalf, valueVec2.x, valueVec2.y);
             break;
         }
     case Type::Vector3:
         {
-            Vec3f valueVec3 = *input->GetValue<Vec3f>();
+            Vec3f valueVec3 = input->GetValue<Vec3f>();
             toFormat += FormatString(firstHalf, valueVec3.x, valueVec3.y, valueVec3.z);
             break;
         }
@@ -73,9 +67,9 @@ void cleanString(std::string& name) {
 }
 
 void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, TemplateList& templateList, std::string& content,
-                                 LinkManager* linkManager)
+                                 LinkManager* linkManager, bool insert)
 {
-    for (int i = endNode->p_inputs.size() - 1; i >= 0; i--)
+    for (int i = 0; i < endNode->p_inputs.size(); i++)
     {
         LinkRef link = linkManager->GetLinkLinkedToInput(endNode->GetUUID(), i).lock();
         if (link == nullptr)
@@ -84,10 +78,18 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
         if (node == nullptr)
             continue;
         
-        RecurrenceWork(manager, node, templateList, content, linkManager);
+        {
+            auto name = node->GetName();
+            cleanString(name);
+            std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(0);
+            if (m_allVariableNames.contains(variableName))
+                insert = false;
+        }
+        
+        RecurrenceWork(manager, node, templateList, content, linkManager, insert);
 
-        auto it = std::find_if(templateList.begin(), templateList.end(), [node](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == node->GetTemplateID(); });
-        NodeMethodInfo templateNode = *it;
+        auto it = std::ranges::find_if(templateList, [node](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == node->GetTemplateID(); });
+        const NodeMethodInfo& templateNode = *it;
 
         std::vector<std::string> variableNames = {};
         for (int k = 0; k < node->p_outputs.size(); k++)
@@ -96,8 +98,15 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
             cleanString(name);
             std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(k);
             std::string glslType = TypeToGLSLType(node->p_outputs[k]->type);
-        
+            
             std::string thisContent = glslType + " " + variableName + " = ";
+            if (m_allVariableNames.contains(variableName))
+            {
+                thisContent = variableName + " = ";
+            }
+            if (insert)
+                m_allVariableNames.insert(variableName);
+            
             std::string toFormat = templateNode.outputFormatStrings[k];
             std::string secondHalf = toFormat;
             toFormat.clear();
@@ -125,7 +134,10 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
             thisContent += toFormat + secondHalf + ";\n";
             variableNames.push_back(variableName);
 
-            content += thisContent;
+            if (insert)
+                content += thisContent;
+
+            std::cout << thisContent << '\n';
         }
 
         m_variablesNames.insert(m_variablesNames.begin(), variableNames.begin(), variableNames.end());
@@ -134,9 +146,8 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
 
 void ShaderMaker::CreateFragmentShader(NodeManager* manager)
 {
-    uint64_t templateIdFromString = NodeTemplateHandler::TemplateIDFromString("Material");
     // Get all nodes connected to the end node
-    NodeRef endNode = manager->GetNodeWithTemplate(templateIdFromString).lock();
+    NodeRef endNode = manager->GetNodeWithName("Material").lock();
 
     TemplateList& templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
     
@@ -155,22 +166,20 @@ std::string ShaderMaker::GetValueAsString(InputRef input)
     switch (input->type)
     {
     case Type::Float:
-        return std::to_string(*input->GetValue<float>());
+        return std::to_string(input->GetValue<float>());
     case Type::Int:
-        return std::to_string(*input->GetValue<int>());
+        return std::to_string(input->GetValue<int>());
     case Type::Bool:
-        return std::to_string(*input->GetValue<bool>());
-    case Type::String:
-        return *input->GetValue<std::string>();
+        return std::to_string(input->GetValue<bool>());
     case Type::Vector2:
         {
-            auto value = input->GetValue<Vec2f>();
-            return "vec2(" + std::to_string(value->x) + ", " + std::to_string(value->y) + ")";
+            Vec2f value = input->GetValue<Vec2f>();
+            return "vec2(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ")";
         }
     case Type::Vector3:
         {
-            auto value = input->GetValue<Vec3f>();
-            return "vec3(" + std::to_string(value->x) + ", " + std::to_string(value->y) + ", " + std::to_string(value->z) + ")";
+            Vec3f value = input->GetValue<Vec3f>();
+            return "vec3(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ")";
         }
     default:
         return "";
@@ -187,9 +196,6 @@ std::string ShaderMaker::TypeToGLSLType(Type type)
         return "int";
     case Type::Bool:
         return "bool";
-    case Type::String:
-        assert(false);
-        return "";
     case Type::Vector2:
         return "vec2";
     case Type::Vector3:

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <filesystem>
 #include <functional>
 #include <galaxymath/Maths.h>
 #include <memory>
@@ -71,12 +72,15 @@ public:
     LinkManager* GetLinkManager() const { return m_linkManager; }
     NodeWeakRef GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
     NodeWeakRef GetNodeWithTemplate(TemplateID templateID);
+    NodeWeakRef GetNodeWithName(const std::string& name);
     std::vector<NodeWeakRef> GetNodeConnectedTo(const UUID& uuid) const;
+    bool NodeExists(const UUID& uuid) const { return m_nodes.find(uuid) != m_nodes.end(); }
     InputWeakRef GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
-    LinkWeakRef GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
+    std::vector<LinkWeakRef> GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
     NodeWeakRef GetSelectedNode() const;
     Link& GetCurrentLink() {return m_currentLink;}
+    std::filesystem::path GetFilePath() const {return m_savePath;}
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;
@@ -87,7 +91,7 @@ public:
 
     SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
 
-    void SaveToFile(const std::string& path) const;
+    void SaveToFile(const std::string& path);
     void LoadFromFile(const std::string& path);
     
     void Serialize(CppSer::Serializer& serializer) const;
@@ -105,6 +109,9 @@ public:
 private:
     friend class MainWindow;
     friend class ShaderMaker;
+
+    std::filesystem::path m_savePath;
+    
     MainWindow* m_parent;
     LinkManager* m_linkManager = nullptr;
     NodeList m_nodes;

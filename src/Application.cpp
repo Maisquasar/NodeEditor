@@ -1,6 +1,8 @@
 ﻿#include "Application.h"
 
 #include <galaxymath/Maths.h>
+
+#include "NodeTemplateHandler.h"
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -58,6 +60,9 @@ void Application::Initialize()
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 130"); // Adjust version as needed
+
+    uint64_t fromUUID = NodeTemplateHandler::TemplateIDFromString("1 - x");
+    uint64_t toUUID = NodeTemplateHandler::TemplateIDFromString("One Minus");
 
     m_mainWindow.Initialize();
 }

@@ -86,7 +86,7 @@ void NodeTemplateHandler::Initialize()
     }
 
     {
-        NodeRef node = std::make_shared<Node>("1 - x");
+        NodeRef node = std::make_shared<Node>("One Minus");
         node->SetTopColor(functionColor);
         
         node->AddInput("X", Type::Float);
@@ -131,7 +131,7 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("Y", Type::Float);
         node->AddInput("X", Type::Float);
         node->AddOutput("Result", Type::Float);
-        NodeMethodInfo info = {node, "atan2(%s, %s)"};
+        NodeMethodInfo info = {node, "atan(%s, %s)"};
         AddTemplateNode(info);
     }
 
@@ -141,6 +141,26 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("A", Type::Float);
         node->AddOutput("Result", Type::Float);
         NodeMethodInfo info = {node, "sin(%s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Cos");
+        node->SetTopColor(makeColor);
+        node->AddInput("A", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "cos(%s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Smooth Step");
+        node->SetTopColor(makeColor);
+        node->AddInput("A", Type::Float);
+        node->AddInput("B", Type::Float);
+        node->AddInput("X", Type::Float);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "smoothstep(%s, %s, %s)"};
         AddTemplateNode(info);
     }
 #pragma endregion
@@ -189,6 +209,17 @@ void NodeTemplateHandler::Initialize()
     }
 
     {
+        NodeRef node = std::make_shared<Node>("Divide");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddInput("B", Type::Float);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "%s / %s"};
+        AddTemplateNode(info);
+    }
+
+    {
         NodeRef node = std::make_shared<Node>("Frac");
         node->SetTopColor(functionColor);
 
@@ -217,6 +248,37 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("B", Type::Vector2);
         node->AddOutput("Result", Type::Vector2);
         NodeMethodInfo info = {node, "%s + %s"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Add");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddInput("B", Type::Float);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "%s + %s"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Normalize");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddOutput("Result", Type::Vector2);
+        NodeMethodInfo info = {node, "normalize(%s)"};
+        AddTemplateNode(info);
+    }
+
+    {
+        NodeRef node = std::make_shared<Node>("Length");
+        node->SetTopColor(functionColor);
+        
+        node->AddInput("A", Type::Vector2);
+        node->AddOutput("Result", Type::Float);
+        NodeMethodInfo info = {node, "length(%s)"};
         AddTemplateNode(info);
     }
 #pragma endregion
@@ -290,7 +352,16 @@ void NodeTemplateHandler::Initialize()
 
 void NodeTemplateHandler::AddTemplateNode(const NodeMethodInfo& info)
 {
-    info.node->p_templateID = TemplateIDFromString(info.node->GetName()); 
+    std::string name = info.node->GetName();
+    for (size_t i = 0; i < info.node->p_inputs.size(); i++)
+    {
+        name += "_" + info.node->p_inputs[i]->name + "_" + TypeEnumToString(info.node->p_inputs[i]->type);
+    }
+    for (size_t i = 0; i < info.node->p_outputs.size(); i++)
+    {
+        name += "_" + info.node->p_outputs[i]->name + "_" + TypeEnumToString(info.node->p_outputs[i]->type);
+    }
+    info.node->p_templateID = TemplateIDFromString(name); 
     m_templateNodes.push_back(info);
 }
 
@@ -316,7 +387,8 @@ std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplateName(const std::str
 {
     for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
     {
-        if (s_instance->m_templateNodes[i].node->GetName() == name)
+        std::string nodeName = s_instance->m_templateNodes[i].node->GetName();
+        if (nodeName == name)
         {
             return std::shared_ptr<Node>(s_instance->m_templateNodes[i].node->Clone());
         }

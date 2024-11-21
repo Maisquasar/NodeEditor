@@ -114,10 +114,9 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 {
     if (altClicked)
     {
-        LinkWeakRef linkWithOutput = m_linkManager->GetLinkWithOutput(node->GetUUID(), i);
-
+        std::vector<LinkWeakRef> links = m_linkManager->GetLinkWithOutput(node->GetOutput(i));
         std::vector<NodeWeakRef> nodes = {};
-        std::vector<LinkWeakRef> links = {linkWithOutput};
+        
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
         ActionManager::AddAction(action);
         
@@ -445,6 +444,18 @@ NodeWeakRef NodeManager::GetNodeWithTemplate(TemplateID templateID)
     return {};
 }
 
+NodeWeakRef NodeManager::GetNodeWithName(const std::string& name)
+{
+    for (auto& val : m_nodes | std::views::values)
+    {
+        if (val->p_name == name)
+        {
+            return val;
+        }
+    }
+    return {};
+}
+
 std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
 {
     std::vector<NodeWeakRef> outputs;
@@ -466,9 +477,9 @@ std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
     return outputs;
 }
 
-LinkWeakRef NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
+std::vector<LinkWeakRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
-    return m_linkManager->GetLinkWithOutput(uuid, index);
+    return m_linkManager->GetLinkWithOutput(GetNode(uuid).lock()->GetOutput(index));
 }
 
 NodeWeakRef NodeManager::GetSelectedNode() const
@@ -488,8 +499,9 @@ bool NodeManager::CurrentLinkIsNone() const
     return m_currentLink.fromNodeIndex == UUID_NULL && m_currentLink.toNodeIndex == UUID_NULL;
 }
 
-void NodeManager::SaveToFile(const std::string& path) const
+void NodeManager::SaveToFile(const std::string& path)
 {
+    m_savePath = path;
     CppSer::Serializer serializer(path);
     serializer.SetVersion("1.0");
     Serialize(serializer);
@@ -498,6 +510,7 @@ void NodeManager::SaveToFile(const std::string& path) const
 void NodeManager::LoadFromFile(const std::string& filePath)
 {
     std::filesystem::path path(filePath);
+    m_savePath = filePath;
     CppSer::Parser parser(path);
     if (!parser.IsFileOpen())
     {

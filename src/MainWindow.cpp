@@ -102,7 +102,7 @@ void MainWindow::Initialize()
     
     m_nodeManager = new NodeManager(this);
     
-    m_nodeManager->LoadFromFile(std::filesystem::current_path().generic_string() + "/saves/test.node");
+    LoadEditorFile(EDITOR_FILE_NAME);
 }
 
 void MainWindow::PasteNode() const
@@ -149,6 +149,7 @@ void MainWindow::Update() const
 
 void MainWindow::Delete() const
 {
+    WriteEditorFile(EDITOR_FILE_NAME);
     m_nodeManager->Clean();
     delete m_nodeManager;
 }
@@ -307,6 +308,27 @@ void MainWindow::DrawMainBar()
     }
 }
 
+void MainWindow::WriteEditorFile(const std::string& path) const
+{
+    CppSer::Serializer serializer(path);
+    serializer.SetVersion("1.0");
+    serializer << CppSer::Pair::BeginMap << "Editor";
+    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeManager->GetFilePath().string();
+    serializer << CppSer::Pair::EndMap << "Editor";
+}
+
+void MainWindow::LoadEditorFile(const std::string& path) const
+{
+    auto fullPath = std::filesystem::path(path);
+    CppSer::Parser parser(fullPath);
+    if (!parser.IsFileOpen() || parser.GetVersion() != "1.0")
+    {
+        std::cout << "Invalid file" << std::endl;
+        return;
+    }
+    m_nodeManager->LoadFromFile(parser["Node File"].As<std::string>());
+}
+
 void MainWindow::DrawInspector() const
 {
     static float size1 = 100.f;
@@ -336,43 +358,37 @@ void MainWindow::DrawInspector() const
             {
             case Type::Float:
                 {
-                    float* value = input->GetValue<float>();
-                    ImGui::DragFloat("##float", value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
+                    float value = input->GetValue<float>();
+                    ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
+                    input->SetValue<float>(value);
                     break;
                 }
             case Type::Int:
                 {
-                    int* value = input->GetValue<int>();
-                    ImGui::InputInt("##int", value);
+                    int value = input->GetValue<int>();
+                    ImGui::InputInt("##int", &value);
+                    input->SetValue<int>(value);
                     break;
                 }
             case Type::Bool:
                 {
-                    bool* value = input->GetValue<bool>();
-                    ImGui::Checkbox("##bool", value);
-                    break;
-                }
-            case Type::String:
-                {
-                    std::string* value = input->GetValue<std::string>();
-                    char buffer[256];
-                    strncpy(buffer, value->c_str(), sizeof(buffer));
-                    if (ImGui::InputText("##string", buffer, sizeof(buffer)))
-                    {
-                        *value = buffer;
-                    }
+                    bool value = input->GetValue<bool>();
+                    ImGui::Checkbox("##bool", &value);
+                    input->SetValue<bool>(value);
                     break;
                 }
             case Type::Vector2:
                 {
-                    Vec2f* value = input->GetValue<Vec2f>();
-                    ImGui::InputFloat2("##vec2", &value->x);
+                    Vec2f value = input->GetValue<Vec2f>();
+                    ImGui::InputFloat2("##vec2", &value[0]);
+                    input->SetValue<Vec2f>(value);
                     break;
                 }
             case Type::Vector3:
                 {
-                    Vec3f* value = input->GetValue<Vec3f>();
-                    ImGui::InputFloat3("##vec3", &value->x);
+                    Vec3f value = input->GetValue<Vec3f>();
+                    ImGui::InputFloat3("##vec3", &value.x);
+                    input->SetValue<Vec3f>(value);
                     break;
                 }
             default:
@@ -443,6 +459,7 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 node->SetPosition((m_mousePosOnContext - origin) / zoom);
                 m_nodeManager->AddNode(node);
 
+                filter.Clear();
                 if (isLinking)
                 {
                     Link& link = m_nodeManager->GetCurrentLink();

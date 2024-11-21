@@ -13,8 +13,6 @@ std::string TypeEnumToString(Type type)
         return "Int";
     case Type::Bool:
         return "Bool";
-    case Type::String:
-        return "String";
     case Type::Vector2:
         return "Vector2";
     case Type::Vector3:
@@ -26,27 +24,6 @@ std::string TypeEnumToString(Type type)
 Input::Input(Type type): index(0)
 {
     this->type = type;
-    switch (type)
-    {
-    case Type::Float:
-        value = new float();
-        break;
-    case Type::Int:
-        value = new int();
-        break;
-    case Type::Bool:
-        value = new bool();
-        break;
-    case Type::String:
-        value = new std::string();
-        break;
-    case Type::Vector2:
-        value = new Vec2f();
-        break;
-    case Type::Vector3:
-        value = new Vec3f();
-        break;
-    }
 }
 
 Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) : Input(_type)
@@ -57,9 +34,97 @@ Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& 
     type = _type;
 }
 
-Input::~Input()
+#pragma region GetValue
+template <typename T>
+T Input::GetValue() const
 {
-    delete value;
+}
+
+template <>
+int Input::GetValue() const
+{
+   return static_cast<int>(value[0]); 
+}
+
+template <>
+bool Input::GetValue() const
+{
+    return static_cast<bool>(value[0]);
+}
+
+template <>
+float Input::GetValue() const
+{
+    return value[0];
+}
+
+template <>
+Vec2f Input::GetValue() const
+{
+    return {value.x, value.y};
+}
+
+template <>
+Vec3f Input::GetValue() const
+{
+    return value;
+}
+
+template <>
+Vec4f Input::GetValue() const
+{
+    return value;
+}
+#pragma endregion
+#pragma region SetValue
+template <typename T>
+void Input::SetValue(const T& _value)
+{
+}
+
+template <>
+void Input::SetValue(const int& _value)
+{
+    value[0] = static_cast<float>(_value);
+}
+
+template <>
+void Input::SetValue(const bool& _value)
+{
+    value[0] = static_cast<float>(_value);
+}
+
+template <>
+void Input::SetValue(const float& _value)
+{
+    value[0] = _value;
+}
+
+template <>
+void Input::SetValue(const Vec2f& _value)
+{
+    value.x = _value.x;
+    value.y = _value.y;
+}
+
+template <>
+void Input::SetValue(const Vec3f& _value)
+{
+    value = _value;
+}
+
+template <>
+void Input::SetValue(const Vec4f& _value)
+{
+    value = _value;
+}
+
+Input* Input::Clone() const
+{
+    Input* input = new Input(parentUUID, index, name, type);
+    input->isLinked = isLinked;
+    input->value = value;
+    return input;
 }
 
 uint32_t GetColor(const Type type)
@@ -71,8 +136,6 @@ uint32_t GetColor(const Type type)
         return IM_COL32(255, 0, 0, 255);
     case Type::Bool:
         return IM_COL32(0, 255, 0, 255);
-    case Type::String:
-        return IM_COL32(0, 255, 255, 255);
     case Type::Vector2:
         return IM_COL32(255, 0, 255, 255);
     case Type::Vector3:
@@ -268,16 +331,6 @@ std::vector<LinkWeakRef> Node::GetLinks() const
     return {};
 }
 
-LinkWeakRef Node::GetLinkWithOutput(const uint32_t index) const
-{
-    return p_nodeManager->GetLinkWithOutput(p_uuid, index);
-}
-
-std::vector<LinkWeakRef> Node::GetLinksWithInput(uint32_t index) const
-{
-    return p_nodeManager->GetLinkManager()->GetLinksWithInput(p_uuid, index);
-}
-
 void Node::SetPosition(const Vec2f& position)
 {
     p_position = position;
@@ -301,26 +354,7 @@ void Node::Serialize(CppSer::Serializer& serializer) const
         if (input->isLinked)
             continue;
 
-        switch (input->type) {
-        case Type::Float:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<float>();
-            break;
-        case Type::Int:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<int>();
-            break;
-        case Type::Bool:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<bool>();
-            break;
-        case Type::String:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<std::string>();
-            break;
-        case Type::Vector2:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<Vec2f>();
-            break;
-        case Type::Vector3:
-            serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << *input->GetValue<Vec3f>();
-            break;
-        }
+        serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << input->GetValue();
     }
     
     serializer << CppSer::Pair::EndMap << "Node";
@@ -339,26 +373,7 @@ void Node::Deserialize(CppSer::Parser& parser)
             continue;
 
         std::string key = "Value " + std::to_string(i);
-        switch (input->type) {
-        case Type::Float:
-            input->SetValue(parser[key].As<float>());
-            break;
-        case Type::Int:
-            input->SetValue(parser[key].As<int>());
-            break;
-        case Type::Bool:
-            input->SetValue(parser[key].As<bool>());
-            break;
-        case Type::String:
-            input->SetValue(parser[key].As<std::string>());
-            break;
-        case Type::Vector2:
-            input->SetValue(parser[key].As<Vec2f>());
-            break;
-        case Type::Vector3:
-            input->SetValue(parser[key].As<Vec3f>());
-            break;
-        }
+        input->SetValue(parser[key].As<Vec4f>());
     }
 }
 
@@ -371,26 +386,7 @@ Node* Node::Clone()
     {
         auto& input = node->p_inputs[i];
         Input* out = nullptr;
-        switch (p_inputs[i]->type) {
-        case Type::Float:
-            out = p_inputs[i]->Clone<float>();
-            break;
-        case Type::Int:
-            out = p_inputs[i]->Clone<int>();
-            break;
-        case Type::Bool:
-            out = p_inputs[i]->Clone<bool>();
-            break;
-        case Type::String:
-            out = p_inputs[i]->Clone<std::string>();
-            break;
-        case Type::Vector2:
-            out = p_inputs[i]->Clone<Vec2f>();
-            break;
-        case Type::Vector3:
-            out = p_inputs[i]->Clone<Vec3f>();
-            break;
-        }
+        out = input->Clone();
         input = std::shared_ptr<Input>(out);
         input->parentUUID = node->p_uuid;
     }
