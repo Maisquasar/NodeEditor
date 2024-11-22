@@ -531,3 +531,8 @@ void LinkManager::Clean()
     
     m_selectedLinks.clear();
 }
+
+MainWindow* LinkManager::GetMainWindow() const
+{
+    return m_nodeManager->GetMainWindow();
+}

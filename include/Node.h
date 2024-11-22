@@ -22,20 +22,31 @@ enum class Type
 
 std::string TypeEnumToString(Type type);
 
-struct Input
+struct Stream
 {
-    Input(Type type);
-    Input(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
-    ~Input() = default;
-    
+    Stream() = default;
+    Stream(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) :
+        parentUUID(_parentUUID), index(_index), name(_name), type(_type), isLinked(false)
+    {
+    }
+    virtual ~Stream() = default;
+
     UUID parentUUID;
     uint32_t index;
     
     std::string name;
     Type type;
     
+    bool isLinked;
+};
+
+struct Input : Stream
+{
+    Input(Type type);
+    Input(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
+    ~Input() = default;
+    
     Vec4f value;
-    bool isLinked = false;
 
     template<typename T>
     T GetValue() const;
@@ -49,19 +60,17 @@ struct Input
 };
 
 
-struct Output
+struct Output : Stream
 {
-    UUID parentUUID;
-    uint32_t index;
-    
-    std::string name;
-    Type type;
-    
-    bool isLinked;
+    Output() = default;
+    Output(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type) : Stream(_parentUUID, _index, _name, _type) {}
 };
 
 constexpr int c_pointSize = 25;
 constexpr int c_topSize = 25;
+
+typedef std::shared_ptr<Stream> StreamRef;
+typedef std::weak_ptr<Stream> StreamWeakRef;
 
 typedef std::shared_ptr<Input> InputRef;
 typedef std::weak_ptr<Input> InputWeakRef;
@@ -70,6 +79,8 @@ typedef std::shared_ptr<Output> OutputRef;
 typedef std::weak_ptr<Output> OutputWeakRef;
 
 uint32_t GetColor(Type type);
+
+constexpr float streamCircleRadius = 5.0f;
 
 class Node : public Selectable
 {

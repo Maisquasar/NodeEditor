@@ -408,9 +408,15 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
     constexpr uint32_t displayCount = 10;
 
     // Context menu
-    if (ImGui::BeginPopup("context"))
+    if (m_contextOpen = ImGui::BeginPopup("context"); m_contextOpen)
     {
         static ImGuiTextFilter filter;
+
+        if (m_shouldOpenContextMenu == 0)
+        {
+            m_shouldOpenContextMenu = -1;
+            ImGui::CloseCurrentPopup();
+        }
 
         if (m_focusInput)
         {
@@ -551,12 +557,17 @@ void MainWindow::DrawGrid()
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     {
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        // if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        // {
+        //     m_shouldOpenContextMenu = true;
+        // }
+        if (m_shouldOpenContextMenu == 1)
         {
+            m_shouldOpenContextMenu = -1;
             m_mousePosOnContext = mousePos;
             m_focusInput = true;
+            ImGui::OpenPopup("context");
         }
-        ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
     }
 
     DrawContextMenu(zoom, origin, mousePos);

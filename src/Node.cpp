@@ -21,8 +21,9 @@ std::string TypeEnumToString(Type type)
     return "";
 }
 
-Input::Input(Type type): index(0)
+Input::Input(Type type)
 {
+    this->index = 0;
     this->type = type;
 }
 
@@ -161,7 +162,7 @@ void Node::DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const
     Vec2f position = GetOutputPosition(i, origin, zoom);
     
     uint32_t color = GetColor(output->type);
-    drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
+    drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
     Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, output->name.c_str());
     drawList->AddText(font, 14 * zoom, position + Vec2f(-5, -7.5f) * zoom - Vec2f(textSize.x, 0),
                                   IM_COL32(255, 255, 255, 255), output->name.c_str());
@@ -175,7 +176,7 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
     Vec2f position = GetInputPosition(i, origin, zoom);
         
     const uint32_t color = GetColor(input->type);
-    drawList->AddCircle(position, 5 * zoom, color, 0, 2 * zoom);
+    drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
     drawList->AddText(font, 14 * zoom, position + Vec2f(10, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
                                   input->name.c_str());
 }
@@ -214,7 +215,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
 bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index)
 {
     Vec2f position = circlePos;
-    float radius = 5 * zoom;
+    float radius = (streamCircleRadius + 1.f) * zoom;
     if (point.x > position.x - radius && point.x < position.x + radius && point.y > position.y - radius && point.y <
         position.y + radius)
     {

@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "LinkManager.h"
+#include "MainWindow.h"
 #include "Node.h"
 #include "NodeTemplateHandler.h"
 #include "Serializer.h"
@@ -91,6 +92,8 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
     {
         std::vector<LinkWeakRef> linkWithInput = m_linkManager->GetLinksWithInput(node->GetUUID(), i);
 
+        SetUserInputState(UserInputState::Busy);
+
         std::vector<NodeWeakRef> nodes = {};
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, linkWithInput);
         ActionManager::AddAction(action);
@@ -137,9 +140,6 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 
 void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
 {
-    if (!mouseClicked)
-        return;
-    
     bool altClicked = ImGui::IsKeyDown(ImGuiKey_LeftAlt);
     if (m_currentLink.toNodeIndex == UUID_NULL || altClicked)
     {
@@ -148,7 +148,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
             Vec2f circlePos = node->GetInputPosition(i, origin, zoom);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                OnInputClicked(node, altClicked, i);
+                if (GetUserInputState() == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                    SetHoveredStream(node->p_inputs[i]);
+                if (GetUserInputState() == UserInputState::None && mouseClicked)
+                    OnInputClicked(node, altClicked, i);
                 return;
             }
         }
@@ -161,7 +164,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
             Vec2f circlePos = node->GetOutputPosition(i, origin, zoom);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                OnOutputClicked(node, altClicked, i);
+                if (GetUserInputState() == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                    SetHoveredStream(node->p_outputs[i]);
+                if (GetUserInputState() == UserInputState::None && mouseClicked)
+                    OnOutputClicked(node, altClicked, i);
                 return;
             }
         }
@@ -274,14 +280,16 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 {
     if (!m_isGridHovered && !m_firstFrame)
         return;
+    m_hoveredStream.reset();
     m_firstFrame = false;
     UserInputState prevUserInputState = m_userInputState;
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
 
-    if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
-        && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    if ((m_userInputState == UserInputState::DragNode ||
+        m_userInputState == UserInputState::SelectingSquare) && ImGui::IsMouseReleased(ImGuiMouseButton_Left)
+        || m_userInputState == UserInputState::Busy)
     {
         if (m_userInputState == UserInputState::DragNode)
         {
@@ -307,6 +315,41 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     }
 
     m_linkManager->UpdateLinkSelection(origin, zoom);
+
+    if (m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    {
+        if (m_hoveredStream.lock())
+        {
+            if (auto input = std::dynamic_pointer_cast<Input>( m_hoveredStream.lock()))
+            {
+                m_currentLink.toNodeIndex = input->parentUUID;
+                m_currentLink.toInputIndex = input->index;
+        
+                if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
+                {
+                    m_currentLink.toNodeIndex = UUID_NULL;
+                    m_currentLink.toInputIndex = UUID_NULL;
+                }
+            }
+            else if (auto output = std::dynamic_pointer_cast<Output>( m_hoveredStream.lock()))
+            {
+                m_currentLink.fromNodeIndex = output->parentUUID;
+                m_currentLink.fromOutputIndex = output->index;
+        
+                if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
+                {
+                    m_currentLink.fromNodeIndex = UUID_NULL;
+                    m_currentLink.fromOutputIndex = UUID_NULL;
+                }
+            }
+        }
+        else
+        {
+            m_parent->SetOpenContextMenu(true);
+        }
+        // SetUserInputState(UserInputState::None);
+        // m_currentLink = Link();
+    }
     
     UpdateCurrentLink();
 
@@ -317,10 +360,12 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     }
 
     // Cancel when escape pressed
-    if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape))
+    if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape)
+        || m_userInputState == UserInputState::CreateLink && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && m_parent->IsContextMenuOpen())
     {
         SetUserInputState(UserInputState::None);
         m_currentLink = Link();
+        m_parent->SetOpenContextMenu(false);
     }
     
     if (mouseClicked && !wasNodeClicked)
@@ -373,6 +418,12 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
     {
         Vec2f inPosition = mousePos;
         Vec2f outPosition = mousePos;
+
+        if (GetMainWindow()->IsContextMenuOpen())
+        {
+            inPosition = GetMainWindow()->GetMousePosOnContext();
+            outPosition = GetMainWindow()->GetMousePosOnContext();
+        }
 
         if (m_currentLink.fromNodeIndex != UUID_NULL)
         {
@@ -651,4 +702,9 @@ void NodeManager::Clean()
     m_currentLink = Link();
     m_userInputState = UserInputState::None;
     m_selectionSquare = SelectionSquare();
+}
+
+void NodeManager::SetHoveredStream(const StreamWeakRef& stream)
+{
+    m_hoveredStream = stream;
 }

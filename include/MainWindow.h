@@ -39,6 +39,11 @@ public:
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
+    void SetOpenContextMenu(bool shouldOpen) { m_shouldOpenContextMenu = shouldOpen; }
+    
+    bool IsContextMenuOpen() const { return m_contextOpen; }
+
+    Vec2f GetMousePosOnContext() const { return m_mousePosOnContext; }
 private:
     
     void DrawGrid();
@@ -55,6 +60,8 @@ private:
 
     Vec2f m_mousePosOnContext;
     bool m_focusInput = false;
+    int m_shouldOpenContextMenu = -1;
+    bool m_contextOpen = false;
 
     struct GridWindow
     {

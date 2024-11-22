@@ -29,6 +29,7 @@ enum class UserInputState
     ClickNode,
     DragNode,
     SelectingSquare,
+    Busy,
 };
 std::string UserInputEnumToString(UserInputState userInputState);
 
@@ -81,6 +82,7 @@ public:
     NodeWeakRef GetSelectedNode() const;
     Link& GetCurrentLink() {return m_currentLink;}
     std::filesystem::path GetFilePath() const {return m_savePath;}
+    MainWindow* GetMainWindow() const { return m_parent; }
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;
@@ -107,6 +109,9 @@ public:
     Utils::EventWithID<> EOnDrawEvent;
 
 private:
+    void SetHoveredStream(const StreamWeakRef& stream);
+
+private:
     friend class MainWindow;
     friend class ShaderMaker;
 
@@ -118,6 +123,9 @@ private:
     
     Link m_currentLink; // The link when creating a new link
     std::vector<NodeWeakRef> m_selectedNodes;
+    StreamWeakRef m_hoveredStream;
+
+    InputWeakRef m_currentInput;
 
     UserInputState m_userInputState = UserInputState::None;
 

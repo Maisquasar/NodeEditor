@@ -75,6 +75,9 @@ public:
     static void Deserialize(CppSer::Parser& parser, std::vector<LinkRef>& links);
 
     void Clean();
+
+    MainWindow* GetMainWindow() const;
+
 private:
     NodeManager* m_nodeManager = nullptr;
     
