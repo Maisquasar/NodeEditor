@@ -430,13 +430,20 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         // If is linking
         bool isLinking = m_nodeManager->CurrentLinkIsAlmostLinked();
 
-        OutputRef outputLinking;
+        StreamRef streamLinking = nullptr;
+        bool isOutput = false;
         if (isLinking)
         {
             Link currentLink = m_nodeManager->GetCurrentLink();
             if (currentLink.fromNodeIndex != UUID_NULL && currentLink.fromOutputIndex != UUID_NULL)
             {
-                outputLinking = m_nodeManager->GetOutput(currentLink.fromNodeIndex, currentLink.fromOutputIndex).lock();
+                streamLinking = m_nodeManager->GetOutput(currentLink.fromNodeIndex, currentLink.fromOutputIndex).lock();
+                isOutput = true;
+            }
+            else if (currentLink.toNodeIndex != UUID_NULL && currentLink.toInputIndex != UUID_NULL)
+            {
+                streamLinking = m_nodeManager->GetInput(currentLink.toNodeIndex, currentLink.toInputIndex).lock();
+                isOutput = false;
             }
             else
             {
@@ -451,8 +458,13 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
             std::string name = templates[i].node->GetName();
             if (!filter.PassFilter(name.c_str()) || !templates[i].node->GetAllowInteraction())
                 continue;
-            if (isLinking && templates[i].node->p_inputs[0]->type != outputLinking->type)
-                continue;
+            if (isLinking && templates[i].node->p_inputs[0]->type != streamLinking->type)
+            {
+                if (isOutput && templates[i].node->p_inputs[0]->type != streamLinking->type)
+                    continue;
+                if (!isOutput && templates[i].node->p_outputs[0]->type != streamLinking->type)
+                    continue;
+            }
             if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
                 const TemplateID templateId = templates[i].node->GetTemplateID();
@@ -469,8 +481,16 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 if (isLinking)
                 {
                     Link& link = m_nodeManager->GetCurrentLink();
-                    link.toInputIndex = 0;
-                    link.toNodeIndex = node->GetUUID();
+                    if (std::dynamic_pointer_cast<Output>(streamLinking))
+                    {
+                        link.toInputIndex = 0;
+                        link.toNodeIndex = node->GetUUID();
+                    }
+                    else if (std::dynamic_pointer_cast<Input>(streamLinking))
+                    {
+                        link.fromOutputIndex = 0;
+                        link.fromNodeIndex = node->GetUUID();
+                    }
                 }
                 ImGui::CloseCurrentPopup();
                 break;
@@ -480,6 +500,11 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         ImGui::EndChild();
         ImGui::EndPopup();
     }
+}
+
+void MainWindow::SetOpenContextMenu(bool shouldOpen)
+{
+    m_shouldOpenContextMenu = shouldOpen;
 }
 
 void MainWindow::DrawGrid()
@@ -557,11 +582,14 @@ void MainWindow::DrawGrid()
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     {
-        // if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-        // {
-        //     m_shouldOpenContextMenu = true;
-        // }
-        if (m_shouldOpenContextMenu == 1)
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            // m_shouldOpenContextMenu = true;
+            m_mousePosOnContext = mousePos;
+        }
+        ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+        bool open = ImGui::IsItemClicked(ImGuiPopupFlags_MouseButtonRight);
+        if (m_shouldOpenContextMenu == 1 && !open)
         {
             m_shouldOpenContextMenu = -1;
             m_mousePosOnContext = mousePos;

@@ -39,8 +39,8 @@ public:
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
-    void SetOpenContextMenu(bool shouldOpen) { m_shouldOpenContextMenu = shouldOpen; }
-    
+    void SetOpenContextMenu(bool shouldOpen);
+
     bool IsContextMenuOpen() const { return m_contextOpen; }
 
     Vec2f GetMousePosOnContext() const { return m_mousePosOnContext; }

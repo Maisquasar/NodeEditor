@@ -316,7 +316,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
     m_linkManager->UpdateLinkSelection(origin, zoom);
 
-    if (m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    if (m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !m_parent->IsContextMenuOpen())
     {
         if (m_hoveredStream.lock())
         {
@@ -347,8 +347,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         {
             m_parent->SetOpenContextMenu(true);
         }
-        // SetUserInputState(UserInputState::None);
-        // m_currentLink = Link();
     }
     
     UpdateCurrentLink();
@@ -361,7 +359,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
     // Cancel when escape pressed
     if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape)
-        || m_userInputState == UserInputState::CreateLink && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && m_parent->IsContextMenuOpen())
+        || m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && m_parent->IsContextMenuOpen())
     {
         SetUserInputState(UserInputState::None);
         m_currentLink = Link();
