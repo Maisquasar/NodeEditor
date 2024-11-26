@@ -2,7 +2,7 @@
 
 #include "NodeSystem/Node.h"
 
-ActionMoveNodes::ActionMoveNodes(const std::vector<NodeWeakRef>& nodes)
+ActionMoveNodes::ActionMoveNodes(const std::vector<NodeWeak>& nodes)
 {
     for (auto& node : nodes)
     {

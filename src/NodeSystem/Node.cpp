@@ -3,6 +3,12 @@
 #include <CppSerializer.h>
 
 #include "NodeSystem/NodeManager.h"
+#include "NodeSystem/NodeTemplateHandler.h"
+
+const char* SerializeTypeEnum()
+{
+    return "Float\0Int\0Bool\0Vector2\0Vector3\0";
+}
 
 std::string TypeEnumToString(Type type)
 {
@@ -292,22 +298,64 @@ bool Node::DoesInputHaveLink(uint32_t index) const
     return p_nodeManager->GetLinkManager()->HasLink(p_inputs[index]);
 }
 
+int Node::CalculateSize(int size)
+{
+    return 15 + size * (0 + c_pointSize) + 15;
+}
+
 void Node::AddInput(const std::string& name, Type type)
 {
     p_inputs.push_back(std::make_shared<Input>(p_uuid, static_cast<uint32_t>(p_inputs.size()), name, type));
-    int size = 10 + p_inputs.size() * (10 + c_pointSize) + 10;
+    int size = CalculateSize(p_inputs.size());
 
-    if (size > p_size.y)
-        p_size.y = static_cast<float>(size);
+    p_size.y = std::max(p_size.y, static_cast<float>(size));
 }
 
 auto Node::AddOutput(const std::string& name, Type type) -> void
 {
     p_outputs.push_back(std::make_shared<Output>(p_uuid, static_cast<uint32_t>(p_outputs.size()), name, type));
-    int size = 10 + p_outputs.size() * (10 + c_pointSize) + 10;
+    int size = CalculateSize(p_outputs.size());
 
-    if (size > p_size.y)
-        p_size.y = static_cast<float>(size);
+    p_size.y = std::max(p_size.y, static_cast<float>(size));
+}
+
+void Node::RemoveInput(uint32_t index)
+{
+    p_inputs.erase(p_inputs.begin() + index);
+    int size = CalculateSize(p_inputs.size());
+
+    int size2 = CalculateSize(p_outputs.size());
+
+    auto linkManager = p_nodeManager->GetLinkManager();
+    for (auto& link : linkManager->GetLinks())
+    {
+        if (link->toNodeIndex == p_uuid && link->toInputIndex == index)
+        {
+            linkManager->RemoveLink(link->toInputIndex, false);
+            break;
+        }
+    }
+    
+    p_size.y = static_cast<float>(std::max(size, size2));
+}
+
+void Node::RemoveOutput(uint32_t index)
+{
+    p_outputs.erase(p_outputs.begin() + index);
+    int size = CalculateSize(p_inputs.size());
+
+    int size2 = CalculateSize(p_outputs.size());
+
+    auto linkManager = p_nodeManager->GetLinkManager();
+    for (auto& link : linkManager->GetLinks())
+    {
+        if (link->fromNodeIndex == p_uuid && link->fromOutputIndex == index)
+        {
+            linkManager->RemoveLink(link->fromOutputIndex, false);
+        }
+    } 
+
+    p_size.y = static_cast<float>(std::max(size, size2));
 }
 
 Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
@@ -342,6 +390,70 @@ void Node::ResetUUID()
     SetUUID(UUID());
 }
 
+void Node::ShowInInspector()
+{
+    ImGui::PushID(GetUUID());
+    ImGui::Text("Inputs:");
+    for (uint32_t i = 0; i < p_inputs.size(); ++i)
+    {
+            ImGui::PushID(i);
+        InputRef input = GetInput(i);
+        if (input->isLinked)
+            continue;
+        ImGui::Text("%s: ", input->name.c_str());
+        ImGui::SameLine();
+                
+        switch (input->type)
+        {
+        case Type::Float:
+            {
+                float value = input->GetValue<float>();
+                ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
+                input->SetValue<float>(value);
+                break;
+            }
+        case Type::Int:
+            {
+                int value = input->GetValue<int>();
+                ImGui::InputInt("##int", &value);
+                input->SetValue<int>(value);
+                break;
+            }
+        case Type::Bool:
+            {
+                bool value = input->GetValue<bool>();
+                ImGui::Checkbox("##bool", &value);
+                input->SetValue<bool>(value);
+                break;
+            }
+        case Type::Vector2:
+            {
+                Vec2f value = input->GetValue<Vec2f>();
+                ImGui::InputFloat2("##vec2", &value[0]);
+                input->SetValue<Vec2f>(value);
+                break;
+            }
+        case Type::Vector3:
+            {
+                Vec3f value = input->GetValue<Vec3f>();
+                ImGui::InputFloat3("##vec3", &value.x);
+                input->SetValue<Vec3f>(value);
+                break;
+            }
+        default:
+            ImGui::Text("Unknown type");
+            break;
+        }
+        ImGui::PopID();
+    }
+    ImGui::PopID();
+}
+
+std::vector<std::string> Node::GetFormatStrings()
+{
+    return NodeTemplateHandler::GetTemplateFormatStrings(p_templateID);
+}
+
 void Node::Serialize(CppSer::Serializer& serializer) const
 {
     serializer << CppSer::Pair::BeginMap << "Node";
@@ -357,8 +469,14 @@ void Node::Serialize(CppSer::Serializer& serializer) const
 
         serializer << CppSer::Pair::Key << "Value " + std::to_string(i) << CppSer::Pair::Value << input->GetValue();
     }
+
+    InternalSerialize(serializer);
     
     serializer << CppSer::Pair::EndMap << "Node";
+}
+
+void Node::InternalSerialize(CppSer::Serializer& serializer) const
+{
 }
 
 void Node::Deserialize(CppSer::Parser& parser)
@@ -376,11 +494,37 @@ void Node::Deserialize(CppSer::Parser& parser)
         std::string key = "Value " + std::to_string(i);
         input->SetValue(parser[key].As<Vec4f>());
     }
+
+    InternalDeserialize(parser);
 }
 
-Node* Node::Clone()
+void Node::InternalDeserialize(CppSer::Parser& parser)
+{
+}
+
+Node* Node::Clone() const
 {
     auto node = new Node(p_name);
+    Internal_Clone(node);
+    return node;
+}
+
+void Node::SetUUID(const UUID& uuid)
+{
+    p_uuid = uuid;
+    for (auto& input : p_inputs)
+    {
+        input->parentUUID = p_uuid;
+    }
+    for (auto& output : p_outputs)
+    {
+        output->parentUUID = p_uuid;
+    }
+}
+
+void Node::Internal_Clone(Node* node) const
+{
+    node->p_name = p_name;
     node->p_inputs = p_inputs;
     node->p_templateID = p_templateID;
     for (size_t i = 0; i < node->p_inputs.size(); i++)
@@ -400,18 +544,4 @@ Node* Node::Clone()
     node->p_position = p_position;
     node->p_topColor = p_topColor;
     node->p_allowInteraction = p_allowInteraction;
-    return node;
-}
-
-void Node::SetUUID(const UUID& uuid)
-{
-    p_uuid = uuid;
-    for (auto& input : p_inputs)
-    {
-        input->parentUUID = p_uuid;
-    }
-    for (auto& output : p_outputs)
-    {
-        output->parentUUID = p_uuid;
-    }
 }

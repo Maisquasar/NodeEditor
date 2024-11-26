@@ -21,6 +21,7 @@ enum class Type
     Vector3,
 };
 
+const char* SerializeTypeEnum();
 std::string TypeEnumToString(Type type);
 
 struct Stream
@@ -72,14 +73,19 @@ struct Output : Stream
 constexpr int c_pointSize = 25;
 constexpr int c_topSize = 25;
 
-typedef std::shared_ptr<Stream> StreamRef;
-typedef std::weak_ptr<Stream> StreamWeakRef;
+template <typename T>
+using Ref = std::shared_ptr<T>;
+template <typename T>
+using Weak = std::weak_ptr<T>;
 
-typedef std::shared_ptr<Input> InputRef;
-typedef std::weak_ptr<Input> InputWeakRef;
+typedef Ref<Stream> StreamRef;
+typedef Weak<Stream> StreamWeak;
 
-typedef std::shared_ptr<Output> OutputRef;
-typedef std::weak_ptr<Output> OutputWeakRef;
+typedef Ref<Input> InputRef;
+typedef Weak<Input> InputWeak;
+
+typedef Ref<Output> OutputRef;
+typedef Weak<Output> OutputWeak;
 
 uint32_t GetColor(Type type);
 
@@ -129,9 +135,13 @@ public:
     bool IsOutputClicked(const Vec2f& point, const Vec2f& origin, float zoom, uint32_t& index) const;
     bool DoesOutputHaveLink(uint32_t index) const;
     bool DoesInputHaveLink(uint32_t index) const;
+    static int CalculateSize(int size);
 
     void AddInput(const std::string& name, Type type);
     void AddOutput(const std::string& name, Type type);
+
+    void RemoveInput(uint32_t index);
+    void RemoveOutput(uint32_t index);
 
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
@@ -154,12 +164,20 @@ public:
     TemplateID GetTemplateID() const { return p_templateID; }
     bool GetAllowInteraction() const { return p_allowInteraction; }
 
-    virtual void Serialize(CppSer::Serializer& serializer) const;
-    virtual void Deserialize(CppSer::Parser& parser);
+    virtual void ShowInInspector();
 
-    virtual Node* Clone();
-private:
+    virtual std::vector<std::string> GetFormatStrings();
+
+    virtual void Serialize(CppSer::Serializer& serializer) const;
+    virtual void InternalSerialize(CppSer::Serializer& serializer) const;
+    virtual void Deserialize(CppSer::Parser& parser);
+    virtual void InternalDeserialize(CppSer::Parser& parser);
+
+    virtual Node* Clone() const;
+protected:
     void SetUUID(const UUID& uuid);
+
+    void Internal_Clone(Node* node) const;
 
 protected:
     friend class MainWindow;
@@ -190,4 +208,4 @@ protected:
 };
 
 typedef std::shared_ptr<Node> NodeRef;
-typedef std::weak_ptr<Node> NodeWeakRef;
+typedef std::weak_ptr<Node> NodeWeak;

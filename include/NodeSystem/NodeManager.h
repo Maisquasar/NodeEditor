@@ -47,7 +47,7 @@ public:
     
     void AddNode(const NodeRef& node);
     void RemoveNode(const UUID& uuid);
-    void RemoveNode(const NodeWeakRef& weak);
+    void RemoveNode(const NodeWeak& weak);
 
     static Vec2f ToScreen(const Vec2f& worldPos, float zoom, const Vec2f& origin) { return worldPos * zoom + origin; }
     static Vec2f ToGrid(const Vec2f& screenPos, float zoom, const Vec2f& origin) { return (screenPos - origin) / zoom; }
@@ -67,19 +67,19 @@ public:
 
     void SelectNode(const NodeRef& node);
     void AddSelectedNode(const NodeRef& node);
-    void RemoveSelectedNode(const NodeWeakRef& node);
+    void RemoveSelectedNode(const NodeWeak& node);
     void ClearSelectedNodes();
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
-    NodeWeakRef GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
-    NodeWeakRef GetNodeWithTemplate(TemplateID templateID);
-    NodeWeakRef GetNodeWithName(const std::string& name);
-    std::vector<NodeWeakRef> GetNodeConnectedTo(const UUID& uuid) const;
+    NodeWeak GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
+    NodeWeak GetNodeWithTemplate(TemplateID templateID);
+    NodeWeak GetNodeWithName(const std::string& name);
+    std::vector<NodeWeak> GetNodeConnectedTo(const UUID& uuid) const;
     bool NodeExists(const UUID& uuid) const { return m_nodes.find(uuid) != m_nodes.end(); }
-    InputWeakRef GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
-    OutputWeakRef GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
+    InputWeak GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
+    OutputWeak GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     std::vector<LinkWeakRef> GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
-    NodeWeakRef GetSelectedNode() const;
+    NodeWeak GetSelectedNode() const;
     Link& GetCurrentLink() {return m_currentLink;}
     std::filesystem::path GetFilePath() const {return m_savePath;}
     MainWindow* GetMainWindow() const { return m_parent; }
@@ -109,7 +109,7 @@ public:
     Utils::EventWithID<> EOnDrawEvent;
 
 private:
-    void SetHoveredStream(const StreamWeakRef& stream);
+    void SetHoveredStream(const Weak<Stream>& stream);
 
 private:
     friend class MainWindow;
@@ -122,10 +122,10 @@ private:
     NodeList m_nodes;
     
     Link m_currentLink; // The link when creating a new link
-    std::vector<NodeWeakRef> m_selectedNodes;
-    StreamWeakRef m_hoveredStream;
+    std::vector<NodeWeak> m_selectedNodes;
+    Weak<Stream> m_hoveredStream;
 
-    InputWeakRef m_currentInput;
+    InputWeak m_currentInput;
 
     UserInputState m_userInputState = UserInputState::None;
 

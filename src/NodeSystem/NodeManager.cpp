@@ -61,7 +61,7 @@ void NodeManager::RemoveNode(const UUID& uuid)
     m_nodes.erase(uuid);
 }
 
-void NodeManager::RemoveNode(const NodeWeakRef& weak)
+void NodeManager::RemoveNode(const NodeWeak& weak)
 {
     NodeRef node = weak.lock();
     m_linkManager->RemoveLinks(node);
@@ -94,7 +94,7 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
 
         SetUserInputState(UserInputState::Busy);
 
-        std::vector<NodeWeakRef> nodes = {};
+        std::vector<NodeWeak> nodes = {};
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, linkWithInput);
         ActionManager::AddAction(action);
         
@@ -118,7 +118,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
     if (altClicked)
     {
         std::vector<LinkWeakRef> links = m_linkManager->GetLinkWithOutput(node->GetOutput(i));
-        std::vector<NodeWeakRef> nodes = {};
+        std::vector<NodeWeak> nodes = {};
         
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
         ActionManager::AddAction(action);
@@ -459,7 +459,7 @@ void NodeManager::AddSelectedNode(const NodeRef& node)
     node->p_selected = true;
 }
 
-void NodeManager::RemoveSelectedNode(const NodeWeakRef& node)
+void NodeManager::RemoveSelectedNode(const NodeWeak& node)
 {
     for (auto it = m_selectedNodes.begin(); it != m_selectedNodes.end(); it++)
     {
@@ -481,7 +481,7 @@ void NodeManager::ClearSelectedNodes()
     m_selectedNodes.clear();
 }
 
-NodeWeakRef NodeManager::GetNodeWithTemplate(TemplateID templateID)
+NodeWeak NodeManager::GetNodeWithTemplate(TemplateID templateID)
 {
     for (auto& val : m_nodes | std::views::values)
     {
@@ -493,7 +493,7 @@ NodeWeakRef NodeManager::GetNodeWithTemplate(TemplateID templateID)
     return {};
 }
 
-NodeWeakRef NodeManager::GetNodeWithName(const std::string& name)
+NodeWeak NodeManager::GetNodeWithName(const std::string& name)
 {
     for (auto& val : m_nodes | std::views::values)
     {
@@ -505,9 +505,9 @@ NodeWeakRef NodeManager::GetNodeWithName(const std::string& name)
     return {};
 }
 
-std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
+std::vector<NodeWeak> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
 {
-    std::vector<NodeWeakRef> outputs;
+    std::vector<NodeWeak> outputs;
     NodeRef node = GetNode(uuid).lock();
 
     auto linkManager = GetLinkManager();
@@ -519,7 +519,7 @@ std::vector<NodeWeakRef> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
             continue;
         auto connectedNode = GetNode(val->fromNodeIndex);
         outputs.push_back(connectedNode);
-        std::vector<NodeWeakRef> nodeConnectedTo = GetNodeConnectedTo(connectedNode.lock()->GetUUID());
+        std::vector<NodeWeak> nodeConnectedTo = GetNodeConnectedTo(connectedNode.lock()->GetUUID());
         outputs.insert(outputs.begin(), nodeConnectedTo.begin(), nodeConnectedTo.end());
     }
 
@@ -531,7 +531,7 @@ std::vector<LinkWeakRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const 
     return m_linkManager->GetLinkWithOutput(GetNode(uuid).lock()->GetOutput(index));
 }
 
-NodeWeakRef NodeManager::GetSelectedNode() const
+NodeWeak NodeManager::GetSelectedNode() const
 {
     if (m_selectedNodes.empty())
         return {};
@@ -601,7 +601,7 @@ void NodeManager::SerializeSelectedNodes(CppSer::Serializer& serializer) const
     nodesToSerialize.reserve(m_selectedNodes.size());
     
     // Collect selected nodes with interaction enabled
-    for (const NodeWeakRef& node : m_selectedNodes)
+    for (const NodeWeak& node : m_selectedNodes)
     {
         if (auto ref = node.lock(); ref && ref->p_allowInteraction)
         {
@@ -702,7 +702,7 @@ void NodeManager::Clean()
     m_selectionSquare = SelectionSquare();
 }
 
-void NodeManager::SetHoveredStream(const StreamWeakRef& stream)
+void NodeManager::SetHoveredStream(const Weak<Stream>& stream)
 {
     m_hoveredStream = stream;
 }

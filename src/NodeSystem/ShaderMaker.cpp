@@ -1,5 +1,6 @@
 ﻿#include "NodeSystem/ShaderMaker.h"
 
+#include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 
 template<typename ... Args>
@@ -54,7 +55,7 @@ void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::str
     }
 }
 
-void cleanString(std::string& name) {
+void ShaderMaker::CleanString(std::string& name) {
     for (char& c : name) {
         if (c == ' ') {
             c = '_'; // Replace space with underscore
@@ -80,7 +81,7 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
         
         {
             auto name = node->GetName();
-            cleanString(name);
+            CleanString(name);
             std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(0);
             if (m_allVariableNames.contains(variableName))
                 insert = false;
@@ -92,10 +93,11 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
         const NodeMethodInfo& templateNode = *it;
 
         std::vector<std::string> variableNames = {};
+        auto toFormatList = node->GetFormatStrings();
         for (int k = 0; k < node->p_outputs.size(); k++)
         {
             auto name = node->GetName();
-            cleanString(name);
+            CleanString(name);
             std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(k);
             std::string glslType = TypeToGLSLType(node->p_outputs[k]->type);
             
@@ -107,7 +109,7 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
             if (insert)
                 m_allVariableNames.insert(variableName);
             
-            std::string toFormat = templateNode.outputFormatStrings[k];
+            std::string toFormat = toFormatList[k];
             std::string secondHalf = toFormat;
             toFormat.clear();
             for (int j = 0; j < node->p_inputs.size(); j++)
@@ -188,9 +190,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node, cons
         
         for (int j = 0; j < currentNode->p_outputs.size(); j++)
         {
-            auto name = currentNode->GetName();
-            cleanString(name);
-            std::string variableName = name + "_" + std::to_string(currentNode->p_uuid) + "_" + std::to_string(j);
+            std::string variableName = GetOutputVariableName(currentNode, j);
 
             funcStruct.outputs.push_back(variableName);
         }
@@ -238,6 +238,7 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
 
 void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content)
 {
+#if 0
     auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
     for (int i = 0; i < node->p_inputs.size(); i++)
     {
@@ -247,6 +248,26 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
         NodeRef currentNode = manager->GetNode(link->fromNodeIndex).lock();
         if (currentNode == nullptr)
             continue;
+
+        if (auto customNode = std::dynamic_pointer_cast<CustomNode>(currentNode))
+        {
+            std::string glslType = TypeToGLSLType(customNode->p_outputs.back()->type);
+            content += glslType + " " + customNode->GetFunctionName() + "(";
+            for (int i = 0; i < currentNode->p_inputs.size(); i++)
+            {
+                auto input = currentNode->p_inputs[i];
+                content += "in " + TypeToGLSLType(input->type) + " " + input->name + ", ";
+            }
+            for (int i = 0; i < currentNode->p_outputs.size(); i++)
+            {
+                auto output = currentNode->p_outputs[i];
+                content += "out " + TypeToGLSLType(output->type) + " " + output->name + ", ";
+            }
+            content.erase(content.end() - 2, content.end());
+            content += ")\n{\n";
+            content += customNode->GetContent() + "\n}\n";
+        }
+        
         SerializeFunctions(manager, currentNode, content);
 
         FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
@@ -255,19 +276,31 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
         const NodeMethodInfo& templateNode = *it;
 
         std::vector<std::string> variableNames = {};
+        
+        auto toFormatList = currentNode->GetFormatStrings();
+        bool isCustomNode = std::dynamic_pointer_cast<CustomNode>(currentNode) != nullptr;
         for (int k = 0; k < currentNode->p_outputs.size(); k++)
         {
             std::string variableName = funcStruct.outputs[k];
             std::string glslType = TypeToGLSLType(currentNode->p_outputs[k]->type);
             
             std::string thisContent = glslType + " " + variableName + " = ";
+            if (isCustomNode)
+            {
+                thisContent = "";
+                for (int j = 0; j < currentNode->p_outputs.size(); j++)
+                {
+                    thisContent += TypeToGLSLType(currentNode->p_outputs[k]->type)
+                    + " " + GetOutputVariableName(currentNode, j) + ";\n";
+                }
+            }
             if (m_allVariableNames.contains(variableName))
             {
                 continue;
             }
             m_allVariableNames.insert(variableName);
             
-            std::string toFormat = templateNode.outputFormatStrings[k];
+            std::string toFormat = toFormatList[k];
             std::string secondHalf = toFormat;
             toFormat.clear();
             for (int j = 0; j < currentNode->p_inputs.size(); j++)
@@ -287,7 +320,20 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
                 if (parentVariableName.empty())
                     parentVariableName = m_variablesNames.back();
                 toFormat += FormatString(firstHalf, parentVariableName.c_str());
-            
+            }
+            if (isCustomNode)
+            {
+                for (int j = 0; j < currentNode->p_outputs.size(); j++)
+                {
+                    size_t index = secondHalf.find_first_of("%") + 2;
+                    if (index == std::string::npos)
+                        break;
+                    std::string firstHalf = secondHalf.substr(0, index);
+                    if (index != std::string::npos)
+                        secondHalf = secondHalf.substr(index);
+                    auto outputName = GetOutputVariableName(currentNode, j);
+                    toFormat += FormatString(firstHalf, outputName.c_str());
+                }
             }
             thisContent += toFormat + secondHalf + ";\n";
             variableNames.push_back(variableName);
@@ -298,6 +344,70 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
         }
         
     }
+#else
+    auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
+    for (int i = 0; i < node->p_inputs.size(); i++)
+    {
+        LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+        if (link == nullptr)
+            continue;
+        NodeRef currentNode = manager->GetNode(link->fromNodeIndex).lock();
+        if (currentNode == nullptr)
+            continue;
+        
+        SerializeFunctions(manager, currentNode, content);
+
+        FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
+
+        auto it = std::ranges::find_if(templateList, [currentNode](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == currentNode->GetTemplateID(); });
+        const NodeMethodInfo& templateNode = *it;
+
+        std::vector<std::string> variableNames = {};
+        
+        auto toFormatList = currentNode->GetFormatStrings();
+        for (int k = 0; k < currentNode->p_outputs.size(); k++)
+        {
+            std::string variableName = funcStruct.outputs[k];
+            std::string glslType = TypeToGLSLType(currentNode->p_outputs[k]->type);
+            
+            std::string thisContent = glslType + " " + variableName + " = ";
+            if (m_allVariableNames.contains(variableName))
+            {
+                continue;
+            }
+            m_allVariableNames.insert(variableName);
+            
+            std::string toFormat = toFormatList[k];
+            std::string secondHalf = toFormat;
+            toFormat.clear();
+            for (int j = 0; j < currentNode->p_inputs.size(); j++)
+            {
+                InputRef input = currentNode->p_inputs[j];
+                size_t index = secondHalf.find_first_of("%") + 2;
+                if (index == std::string::npos)
+                    break;
+                std::string firstHalf = secondHalf.substr(0, index);
+                if (index != std::string::npos)
+                    secondHalf = secondHalf.substr(index);
+                if (!input->isLinked)
+                {
+                    m_variablesNames.push_back(GetValueAsString(input));
+                }
+                auto parentVariableName = funcStruct.inputs[j];
+                if (parentVariableName.empty())
+                    parentVariableName = m_variablesNames.back();
+                toFormat += FormatString(firstHalf, parentVariableName.c_str());
+            }
+            thisContent += toFormat + secondHalf + ";\n";
+            variableNames.push_back(variableName);
+
+            content += thisContent;
+
+            std::cout << thisContent << '\n';
+        }
+        
+    }
+#endif
 }
 
 std::string ShaderMaker::GetValueAsString(InputRef input)
@@ -323,6 +433,13 @@ std::string ShaderMaker::GetValueAsString(InputRef input)
     default:
         return "";
     }
+}
+
+std::string ShaderMaker::GetOutputVariableName(NodeRef currentNode, int j)
+{
+    auto name = currentNode->GetName();
+    CleanString(name);
+    return name + "_" + std::to_string(currentNode->p_uuid) + "_" + std::to_string(j);
 }
 
 std::string ShaderMaker::TypeToGLSLType(Type type)

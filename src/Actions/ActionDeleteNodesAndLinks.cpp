@@ -1,6 +1,6 @@
 ﻿#include "Actions/ActionDeleteNodesAndLinks.h"
 
-ActionDeleteNodesAndLinks::ActionDeleteNodesAndLinks(NodeManager* nodeManager, const std::vector<NodeWeakRef>& nodes, const std::vector<LinkWeakRef>& links)
+ActionDeleteNodesAndLinks::ActionDeleteNodesAndLinks(NodeManager* nodeManager, const std::vector<NodeWeak>& nodes, const std::vector<LinkWeakRef>& links)
 : m_nodeManager(nodeManager)
 {
     for (auto& node : nodes)

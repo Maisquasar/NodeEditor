@@ -3,6 +3,8 @@
 
 #include <ranges>
 
+#include "NodeSystem/CustomNode.h"
+
 std::unique_ptr<NodeTemplateHandler> NodeTemplateHandler::s_instance;
 
 void NodeTemplateHandler::Initialize()
@@ -11,6 +13,7 @@ void NodeTemplateHandler::Initialize()
     constexpr ImU32 functionColor = IM_COL32(72, 122, 156, 255);
     constexpr ImU32 makeColor = IM_COL32(122, 156, 72, 255);
     constexpr ImU32 breakColor = IM_COL32(156, 72, 122, 255);
+    constexpr ImU32 customNodeColor = IM_COL32(72, 156, 122, 255);
     
     {
         NodeRef node = std::make_shared<Node>("Material");
@@ -27,6 +30,16 @@ void NodeTemplateHandler::Initialize()
 
     // TODO : Reed the file with all the templates nodes
 
+    {
+        CustomNodeRef node = std::make_shared<CustomNode>("Custom Node");
+        node->SetTopColor(customNodeColor);
+
+        node->AddInput("In", Type::Vector3);
+        node->AddOutput("Out", Type::Vector3);
+        
+        NodeMethodInfo info{node};
+        AddTemplateNode(info);
+    }
 
 #pragma region Float
     {
@@ -347,6 +360,18 @@ void NodeTemplateHandler::Initialize()
 
     // Sort the list by name
     // std::ranges::sort(m_templateNodes, [](const NodeMethodInfo& a, const NodeMethodInfo& b) { return a.node->GetName() < b.node->GetName(); });
+}
+
+std::vector<std::string> NodeTemplateHandler::GetTemplateFormatStrings(TemplateID templateID)
+{
+    for (auto& m_templateNode : s_instance->m_templateNodes)
+    {
+        if (m_templateNode.node->p_templateID == templateID)
+        {
+            return m_templateNode.outputFormatStrings;
+        }
+    }
+    return {};
 }
 
 void NodeTemplateHandler::AddTemplateNode(const NodeMethodInfo& info)

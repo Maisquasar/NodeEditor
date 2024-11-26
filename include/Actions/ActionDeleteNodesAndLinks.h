@@ -5,7 +5,7 @@
 class ActionDeleteNodesAndLinks : public Action
 {
 public:
-    ActionDeleteNodesAndLinks(NodeManager* nodeManager, const std::vector<NodeWeakRef>& nodes, const std::vector<LinkWeakRef>& links);
+    ActionDeleteNodesAndLinks(NodeManager* nodeManager, const std::vector<NodeWeak>& nodes, const std::vector<LinkWeakRef>& links);
 
     void Do() override;
     void Undo() override;

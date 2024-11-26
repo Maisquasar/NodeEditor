@@ -27,6 +27,8 @@ public:
 
     std::string GetValueAsString(InputRef input);
 
+    static void CleanString(std::string& name);
+    static std::string GetOutputVariableName(NodeRef currentNode, int j);
     static std::string TypeToGLSLType(Type type);
 private:
     std::unordered_map<UUID, FuncStruct> m_functions;

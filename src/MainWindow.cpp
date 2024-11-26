@@ -245,7 +245,11 @@ void MainWindow::DrawMainBar()
             if (ImGui::MenuItem("Save", "CTRL+S"))
             {
                 std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
-                if (const std::string path = SaveDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
+                std::string path = m_nodeManager->GetFilePath().generic_string();
+
+                if (path.empty())
+                    path = savePath.string();
+                if (!path.empty())
                 {
                     m_nodeManager->SaveToFile(path);
                 }
@@ -332,7 +336,7 @@ void MainWindow::LoadEditorFile(const std::string& path) const
 
 void MainWindow::DrawInspector() const
 {
-    static float size1 = 100.f;
+    static float size1 = 300.f;
     static float size2 = ImGui::GetContentRegionAvail().y;
     Splitter(true, 5.f, &size1, &size2, 100.f, 0.f, ImGui::GetContentRegionAvail().y);
 
@@ -344,61 +348,7 @@ void MainWindow::DrawInspector() const
 
     if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())
     {
-        ImGui::PushID(selectedNode->GetUUID());
-        ImGui::Text("Inputs:");
-        for (uint32_t i = 0; i < selectedNode->p_inputs.size(); ++i)
-        {
-            ImGui::PushID(i);
-            InputRef input = selectedNode->GetInput(i);
-            if (input->isLinked)
-                continue;
-            ImGui::Text("%s: ", input->name.c_str());
-            ImGui::SameLine();
-            
-            switch (input->type)
-            {
-            case Type::Float:
-                {
-                    float value = input->GetValue<float>();
-                    ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
-                    input->SetValue<float>(value);
-                    break;
-                }
-            case Type::Int:
-                {
-                    int value = input->GetValue<int>();
-                    ImGui::InputInt("##int", &value);
-                    input->SetValue<int>(value);
-                    break;
-                }
-            case Type::Bool:
-                {
-                    bool value = input->GetValue<bool>();
-                    ImGui::Checkbox("##bool", &value);
-                    input->SetValue<bool>(value);
-                    break;
-                }
-            case Type::Vector2:
-                {
-                    Vec2f value = input->GetValue<Vec2f>();
-                    ImGui::InputFloat2("##vec2", &value[0]);
-                    input->SetValue<Vec2f>(value);
-                    break;
-                }
-            case Type::Vector3:
-                {
-                    Vec3f value = input->GetValue<Vec3f>();
-                    ImGui::InputFloat3("##vec3", &value.x);
-                    input->SetValue<Vec3f>(value);
-                    break;
-                }
-            default:
-                ImGui::Text("Unknown type");
-                break;
-            }
-            ImGui::PopID();
-        }
-        ImGui::PopID();
+        selectedNode->ShowInInspector();
     }
     
     ImGui::EndChild();   
@@ -459,7 +409,7 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
             std::string name = templates[i].node->GetName();
             if (!filter.PassFilter(name.c_str()) || !templates[i].node->GetAllowInteraction())
                 continue;
-            if (isLinking && templates[i].node->p_inputs[0]->type != streamLinking->type)
+            if (isLinking)
             {
                 if (isOutput && templates[i].node->p_inputs[0]->type != streamLinking->type)
                     continue;

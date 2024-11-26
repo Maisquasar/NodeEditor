@@ -40,6 +40,8 @@ public:
 
     void Initialize();
 
+    static std::vector<std::string> GetTemplateFormatStrings(TemplateID templateID);
+
     void AddTemplateNode(const NodeMethodInfo& info);
     static TemplateID TemplateIDFromString(const std::string& name);
 

@@ -35,7 +35,7 @@ struct WeakPtrEqual {
 class ActionMoveNodes : public Action
 {
 public:
-    explicit ActionMoveNodes(const std::vector<NodeWeakRef>& nodes);
+    explicit ActionMoveNodes(const std::vector<NodeWeak>& nodes);
     
     void Do() override;
     void Undo() override;
@@ -44,5 +44,5 @@ public:
     std::string ToString() override { return "Move Nodes"; }
 
 private:
-    std::unordered_map<NodeWeakRef, MoveNodeData, WeakPtrHash, WeakPtrEqual> m_positions;
+    std::unordered_map<NodeWeak, MoveNodeData, WeakPtrHash, WeakPtrEqual> m_positions;
 };
