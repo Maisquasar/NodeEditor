@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Action.h"
-#include "Node.h"
+#include "NodeSystem/Node.h"
 
 class ActionCreateNode : public Action
 {

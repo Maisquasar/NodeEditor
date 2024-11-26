@@ -5,19 +5,20 @@
 #include <set>
 #include <galaxymath/Maths.h>
 
-#include "NodeTemplateHandler.h"
+#include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/LinkManager.h"
+#include "NodeSystem/Node.h"
+
+#include "Application.h"
 #include "Serializer.h"
-#include "ShaderMaker.h"
+#include "NodeSystem/ShaderMaker.h"
+
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionPaste.h"
 using namespace GALAXY;
 
-#include "Application.h"
-#include "LinkManager.h"
 #include <imgui.h>
 #include <imgui_internal.h>
-
-#include "Node.h"
 
 #include <nfd.hpp>
 

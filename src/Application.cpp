@@ -2,7 +2,7 @@
 
 #include <galaxymath/Maths.h>
 
-#include "NodeTemplateHandler.h"
+#include "NodeSystem/NodeTemplateHandler.h"
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

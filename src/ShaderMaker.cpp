@@ -1,6 +1,6 @@
-﻿#include "ShaderMaker.h"
+﻿#include "NodeSystem/ShaderMaker.h"
 
-#include "NodeTemplateHandler.h"
+#include "NodeSystem/NodeTemplateHandler.h"
 
 template<typename ... Args>
 std::string FormatString( const std::string& format, Args ... args )

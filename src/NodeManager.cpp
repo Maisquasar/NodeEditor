@@ -1,13 +1,13 @@
-﻿#include "NodeManager.h"
+﻿#include "NodeSystem/NodeManager.h"
+#include "NodeSystem/LinkManager.h"
+#include "NodeSystem/Node.h"
+#include "NodeSystem/NodeTemplateHandler.h"
 
 #include <fstream>
 #include <ranges>
 #include <unordered_set>
 
-#include "LinkManager.h"
 #include "MainWindow.h"
-#include "Node.h"
-#include "NodeTemplateHandler.h"
 #include "Serializer.h"
 #include "Actions/Action.h"
 #include "Actions/ActionCreateLink.h"

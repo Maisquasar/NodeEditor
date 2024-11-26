@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #include "Action.h"
-#include "Node.h"
+#include "NodeSystem/Node.h"
 
 class Node;
 

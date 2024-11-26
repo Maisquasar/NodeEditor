@@ -1,5 +1,5 @@
 #pragma once
-#include "NodeManager.h"
+#include "NodeSystem/NodeManager.h"
 #include "Actions/Action.h"
 
 #define SAVE_FOLDER "/save/"

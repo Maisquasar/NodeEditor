@@ -2,8 +2,8 @@
 #include <deque>
 #include <set>
 
-#include "NodeManager.h"
-#include "NodeTemplateHandler.h"
+#include "NodeSystem/NodeManager.h"
+#include "NodeSystem/NodeTemplateHandler.h"
 
 struct FuncStruct
 {

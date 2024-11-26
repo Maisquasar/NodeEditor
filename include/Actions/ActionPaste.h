@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Action.h"
-#include "NodeManager.h"
+#include "NodeSystem/NodeManager.h"
 
 class NodeManager;
 

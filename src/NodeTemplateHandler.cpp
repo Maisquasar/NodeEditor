@@ -1,8 +1,7 @@
-﻿#include "NodeTemplateHandler.h"
+﻿#include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/Node.h"
 
 #include <ranges>
-
-#include "Node.h"
 
 std::unique_ptr<NodeTemplateHandler> NodeTemplateHandler::s_instance;
 

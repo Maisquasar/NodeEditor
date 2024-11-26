@@ -1,6 +1,6 @@
 ﻿#include "Actions/ActionMoveNodes.h"
 
-#include "Node.h"
+#include "NodeSystem/Node.h"
 
 ActionMoveNodes::ActionMoveNodes(const std::vector<NodeWeakRef>& nodes)
 {

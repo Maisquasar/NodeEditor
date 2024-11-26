@@ -1,8 +1,8 @@
-#include "Node.h"
+#include "NodeSystem/Node.h"
 
 #include <CppSerializer.h>
 
-#include "NodeManager.h"
+#include "NodeSystem/NodeManager.h"
 
 std::string TypeEnumToString(Type type)
 {

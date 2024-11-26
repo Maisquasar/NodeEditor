@@ -1,9 +1,9 @@
-﻿#include "LinkManager.h"
+﻿#include "NodeSystem/LinkManager.h"
 
 #include <CppSerializer.h>
 #include <utility>
 
-#include "NodeManager.h"
+#include "NodeSystem/NodeManager.h"
 namespace Utils
 {
     // Utility function to get a point on a cubic Bezier curve for a given t (0 <= t <= 1)

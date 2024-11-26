@@ -1,7 +1,6 @@
 ﻿#include "Actions/ActionCreateNode.h"
 
-#include "NodeManager.h"
-#include "NodeTemplateHandler.h"
+#include "NodeSystem/NodeManager.h"
 
 ActionCreateNode::ActionCreateNode(NodeManager* nodeManager, NodeRef node) : m_nodeManager(nodeManager), m_node(node)
 {
