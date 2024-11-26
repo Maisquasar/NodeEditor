@@ -682,6 +682,7 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
         parser.PushDepth();
         TemplateID templateID = parser["TemplateID"].As<uint64_t>();
         NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
+        node->p_nodeManager = this;
         node->Deserialize(parser);
         data.nodes[i] = node;
     }

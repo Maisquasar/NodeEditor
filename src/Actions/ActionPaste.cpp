@@ -10,7 +10,7 @@ void ActionPaste::Do()
     std::string clipboardText = m_clipboardText;
     CppSer::Parser parser = CppSer::Parser(clipboardText);
         
-    SerializedData data = NodeManager::DeserializeData(parser);
+    SerializedData data = m_nodeManager->DeserializeData(parser);
 
     // Calculate the bounding box of copied nodes
     Vec2f minPos(FLT_MAX, FLT_MAX);

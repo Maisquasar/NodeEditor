@@ -100,7 +100,7 @@ public:
     void SerializeSelectedNodes(CppSer::Serializer& serializer) const;
 
     void Deserialize(CppSer::Parser& parser);
-    static SerializedData DeserializeData(CppSer::Parser& parser);
+    SerializedData DeserializeData(CppSer::Parser& parser);
 
     void Paste();
     
