@@ -144,6 +144,78 @@ void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, T
     }
 }
 
+void ShaderMaker::FillFunctionList(NodeManager* manager)
+{
+    auto firstNode = manager->GetNodeWithName("Material").lock();
+    FillRecurrence(manager, firstNode, nullptr);
+
+    std::string content;
+    for (auto& it : m_functions)
+    {
+        content += it.second.debugName + " {\n";
+        for (int i = 0; i < it.second.inputs.size(); i++)
+        {
+            if (it.second.inputs[i].empty())
+                continue;
+            content += '\t' + it.second.inputs[i] + ";\n";
+        }
+        content += "}\n{\n";
+        for (int i = 0; i < it.second.outputs.size(); i++)
+        {
+            if (it.second.outputs[i].empty())
+                continue;
+            content +=  '\t' + it.second.outputs[i] + ";\n";
+        }
+        content += "}\n";
+    }
+    std::cout << content;
+}
+
+void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node, const NodeRef& parentNode)
+{
+    auto linkManager = manager->GetLinkManager();
+    for (int i = 0; i < node->p_inputs.size(); i++)
+    {
+        LinkRef link = linkManager->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+        if (link == nullptr)
+            continue;
+        NodeRef currentNode = manager->GetNode(link->fromNodeIndex).lock();
+        if (currentNode == nullptr)
+            continue;
+        
+        FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
+        funcStruct.debugName = currentNode->GetName();
+        
+        for (int j = 0; j < currentNode->p_outputs.size(); j++)
+        {
+            auto name = currentNode->GetName();
+            cleanString(name);
+            std::string variableName = name + "_" + std::to_string(currentNode->p_uuid) + "_" + std::to_string(j);
+
+            funcStruct.outputs.push_back(variableName);
+        }
+
+        FillRecurrence(manager, currentNode, node);
+
+        if (node)
+        {
+            for (int j = 0; j < currentNode->p_inputs.size(); j++)
+            {
+                LinkRef linkRef = linkManager->GetLinkLinkedToInput(currentNode->p_uuid, j).lock();
+                if (linkRef == nullptr)
+                {
+                    funcStruct.inputs.emplace_back("");
+                    continue;
+                }
+                auto fromNode = manager->GetNode(linkRef->fromNodeIndex).lock();
+                FuncStruct parentFuncStruct = m_functions[fromNode->p_uuid];
+                auto inputName = parentFuncStruct.outputs[linkRef->fromOutputIndex];
+                funcStruct.inputs.push_back(inputName);
+            }
+        }
+    }
+}
+
 void ShaderMaker::CreateFragmentShader(NodeManager* manager)
 {
     // Get all nodes connected to the end node
@@ -154,11 +226,78 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
     std::string content;
     auto linkManager = manager->GetLinkManager();
 
-    RecurrenceWork(manager, endNode, templateList, content, linkManager);
+    FillFunctionList(manager);
+
+    // RecurrenceWork(manager, endNode, templateList, content, linkManager);
+    SerializeFunctions(manager, endNode, content);
     // TODO
     ImGui::SetClipboardText(content.c_str());
 
     std::cout << content;
+}
+
+void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content)
+{
+    auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
+    for (int i = 0; i < node->p_inputs.size(); i++)
+    {
+        LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+        if (link == nullptr)
+            continue;
+        NodeRef currentNode = manager->GetNode(link->fromNodeIndex).lock();
+        if (currentNode == nullptr)
+            continue;
+        SerializeFunctions(manager, currentNode, content);
+
+        FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
+
+        auto it = std::ranges::find_if(templateList, [currentNode](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == currentNode->GetTemplateID(); });
+        const NodeMethodInfo& templateNode = *it;
+
+        std::vector<std::string> variableNames = {};
+        for (int k = 0; k < currentNode->p_outputs.size(); k++)
+        {
+            std::string variableName = funcStruct.outputs[k];
+            std::string glslType = TypeToGLSLType(currentNode->p_outputs[k]->type);
+            
+            std::string thisContent = glslType + " " + variableName + " = ";
+            if (m_allVariableNames.contains(variableName))
+            {
+                continue;
+            }
+            m_allVariableNames.insert(variableName);
+            
+            std::string toFormat = templateNode.outputFormatStrings[k];
+            std::string secondHalf = toFormat;
+            toFormat.clear();
+            for (int j = 0; j < currentNode->p_inputs.size(); j++)
+            {
+                InputRef input = currentNode->p_inputs[j];
+                size_t index = secondHalf.find_first_of("%") + 2;
+                if (index == std::string::npos)
+                    break;
+                std::string firstHalf = secondHalf.substr(0, index);
+                if (index != std::string::npos)
+                    secondHalf = secondHalf.substr(index);
+                if (!input->isLinked)
+                {
+                    m_variablesNames.push_back(GetValueAsString(input));
+                }
+                auto parentVariableName = funcStruct.inputs[j];
+                if (parentVariableName.empty())
+                    parentVariableName = m_variablesNames.back();
+                toFormat += FormatString(firstHalf, parentVariableName.c_str());
+            
+            }
+            thisContent += toFormat + secondHalf + ";\n";
+            variableNames.push_back(variableName);
+
+            content += thisContent;
+
+            std::cout << thisContent << '\n';
+        }
+        
+    }
 }
 
 std::string ShaderMaker::GetValueAsString(InputRef input)

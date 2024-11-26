@@ -91,7 +91,7 @@ void NodeTemplateHandler::Initialize()
         
         node->AddInput("X", Type::Float);
         node->AddOutput("Result", Type::Float);
-        NodeMethodInfo info = {node, "1 - %s"};
+        NodeMethodInfo info = {node, "1.0 - %s"};
         AddTemplateNode(info);
     }
 
@@ -121,7 +121,7 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(makeColor);
         node->AddInput("Value", Type::Float);
         node->AddOutput("Result", Type::Float);
-        NodeMethodInfo info = {node, "clamp(%s, 0, 1)"};
+        NodeMethodInfo info = {node, "clamp(%s, 0.0, 1.0)"};
         AddTemplateNode(info);
     }
 

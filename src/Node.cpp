@@ -123,7 +123,7 @@ void Input::SetValue(const Vec4f& _value)
 Input* Input::Clone() const
 {
     Input* input = new Input(parentUUID, index, name, type);
-    input->isLinked = isLinked;
+    input->SetLinked(isLinked);
     input->value = value;
     return input;
 }

@@ -13,6 +13,7 @@ namespace CppSer { class Serializer; class Parser; }
 
 enum class Type
 {
+    None = 0,
     Float,
     Int,
     Bool,
@@ -31,13 +32,15 @@ struct Stream
     }
     virtual ~Stream() = default;
 
-    UUID parentUUID;
-    uint32_t index;
+    void SetLinked(bool value) { isLinked = value; }
+
+    UUID parentUUID = -1;
+    uint32_t index = -1;
     
     std::string name;
-    Type type;
+    Type type = Type::None;
     
-    bool isLinked;
+    bool isLinked = false;
 };
 
 struct Input : Stream

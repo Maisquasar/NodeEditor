@@ -109,16 +109,11 @@ void LinkManager::UpdateInputOutputLinks()
             continue;
         }
         InputRef input = m_nodeManager->GetInput(link->toNodeIndex, link->toInputIndex).lock();
-        if (!input)
-            continue;
-        input->isLinked = true;
         OutputRef output = m_nodeManager->GetOutput(link->fromNodeIndex, link->fromOutputIndex).lock();
-        if (!output)
-        {
-            input->isLinked = false;
-            continue;
-        }
-        output->isLinked = true;
+        if (input)
+            input->SetLinked(output != nullptr);
+        if (output)
+            output->SetLinked(input != nullptr);
     }
 }
 
@@ -199,8 +194,8 @@ void LinkManager::AddLink(const LinkRef& link)
     auto input = m_nodeManager->GetInput(link->toNodeIndex, link->toInputIndex);
     auto output = m_nodeManager->GetOutput(link->fromNodeIndex, link->fromOutputIndex);
 
-    input.lock()->isLinked = true;
-    output.lock()->isLinked = true;
+    input.lock()->SetLinked(true);
+    output.lock()->SetLinked(true);
     
     m_links.push_back(link);
 }
@@ -212,8 +207,8 @@ void LinkManager::RemoveLink(uint32_t index, bool removeOnLink /*= true*/)
         auto input = m_nodeManager->GetInput(m_links[index]->toNodeIndex, m_links[index]->toInputIndex);
         auto output = m_nodeManager->GetOutput(m_links[index]->fromNodeIndex, m_links[index]->fromOutputIndex);
 
-        input.lock()->isLinked = false;
-        output.lock()->isLinked = false;
+        input.lock()->SetLinked(false);
+        output.lock()->SetLinked(false);
     }
     m_links.erase(m_links.begin() + index);
 }

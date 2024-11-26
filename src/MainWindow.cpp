@@ -589,12 +589,13 @@ void MainWindow::DrawGrid()
         }
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
         bool open = ImGui::IsItemClicked(ImGuiPopupFlags_MouseButtonRight);
-        if (m_shouldOpenContextMenu == 1 && !open)
+        if (m_shouldOpenContextMenu == 1 || open)
         {
             m_shouldOpenContextMenu = -1;
             m_mousePosOnContext = mousePos;
             m_focusInput = true;
-            ImGui::OpenPopup("context");
+            if (!open)
+                ImGui::OpenPopup("context");
         }
     }
 
