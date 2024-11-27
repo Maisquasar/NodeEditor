@@ -3,6 +3,8 @@
 #include <CppSerializer.h>
 
 #include "imgui_stdlib.h"
+#include "Actions/ActionChangeInput.h"
+#include "Actions/ActionChangeType.h"
 #include "NodeSystem/ShaderMaker.h"
 
 Node* CustomNode::Clone() const
@@ -14,7 +16,6 @@ Node* CustomNode::Clone() const
 
 void CustomNode::ShowInInspector()
 {
-    //TODO : Add actions to the node
     Node::ShowInInspector();
 
     ImGui::SeparatorText("Inputs");
@@ -37,10 +38,18 @@ void CustomNode::ShowInInspector()
         ImGui::PushID(&i);
         if (ImGui::TreeNode("##", "Input %d", i))
         {
-            ImGui::InputText("Input Name", &p_inputs[i]->name);
+            std::string name = p_inputs[i]->name;
+            if (ImGui::InputText("Input Name", &name))
+            {
+                Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_inputs[i]->name, p_inputs[i]->name, name);
+                ActionManager::DoAction(changeInput);
+            }
             int type = static_cast<int>(p_inputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
             {
+                Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, p_inputs[i], static_cast<Type>(type + 1), p_inputs[i]->type);
+                ActionManager::AddAction(changeType);
+                p_nodeManager->GetLinkManager()->RemoveLink(p_inputs[i]);
                 p_inputs[i]->type = static_cast<Type>(type + 1);
             }
             ImGui::TreePop();
@@ -68,11 +77,20 @@ void CustomNode::ShowInInspector()
         ImGui::PushID(i);
         if (ImGui::TreeNode("##", "Output %d", i))
         {
-            ImGui::InputText("Output Name", &p_outputs[i]->name);
+            std::string name = p_outputs[i]->name;
+            if (ImGui::InputText("Output Name", &name))
+            {
+                Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs[i]->name, p_outputs[i]->name, name);
+                ActionManager::DoAction(changeInput);
+            }
             int type = static_cast<int>(p_outputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
             {
-                p_outputs[i]->type = static_cast<Type>(type + 1);
+                // TODO : Test this
+                Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, p_outputs[i], static_cast<Type>(type + 1), p_outputs[i]->type);
+                ActionManager::AddAction(changeType);
+                p_nodeManager->GetLinkManager()->RemoveLinks(p_outputs[i]);
+                p_inputs[i]->type = static_cast<Type>(type + 1);
             }
             ImGui::TreePop();
         }

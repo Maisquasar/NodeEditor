@@ -15,6 +15,9 @@
 
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionPaste.h"
+#include "NodeSystem/CustomNode.h"
+#include "NodeSystem/ParamNode.h"
+class ParamNode;
 using namespace GALAXY;
 
 #include <imgui.h>
@@ -411,9 +414,11 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 continue;
             if (isLinking)
             {
-                if (isOutput && templates[i].node->p_inputs[0]->type != streamLinking->type)
+                if (isOutput && !templates[i].node->p_inputs.empty() && templates[i].node->p_inputs[0]->type != streamLinking->type && !templates[i].node->p_alwaysVisibleOnContext)
                     continue;
-                if (!isOutput && templates[i].node->p_outputs[0]->type != streamLinking->type)
+                if (!isOutput && !templates[i].node->p_outputs.empty() && templates[i].node->p_outputs[0]->type != streamLinking->type&& !templates[i].node->p_alwaysVisibleOnContext)
+                    continue;
+                if (!isOutput && templates[i].node->p_outputs.empty() || isOutput && templates[i].node->p_inputs.empty())
                     continue;
             }
             if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter))
@@ -421,6 +426,29 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 const TemplateID templateId = templates[i].node->GetTemplateID();
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
+                node->p_nodeManager = m_nodeManager;
+
+                if (isLinking)
+                {
+                    if (auto customNode = std::dynamic_pointer_cast<CustomNode>(node))
+                    {
+                        if (isOutput)
+                        {
+                            customNode->ClearInputs();
+                            customNode->AddInput("In", streamLinking->type);
+                        }
+                        else
+                        {
+                            customNode->ClearOutputs();
+                            customNode->AddOutput("Out", streamLinking->type);
+                        }
+                    }
+                    else if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node))
+                    {
+                        paramNode->SetType(streamLinking->type);
+                    }
+                }
+                
                 auto action = std::make_shared<ActionCreateNode>(m_nodeManager, node);
                 
                 ActionManager::AddAction(action);

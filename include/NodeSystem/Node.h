@@ -212,6 +212,7 @@ protected:
     Vec2f p_positionOnClick = {0, 0};
 
     bool p_allowInteraction = true; // Used for nodes that are not supposed to be delted or copied
+    bool p_alwaysVisibleOnContext = false;
     bool p_isVisible = true;
 };
 

@@ -23,7 +23,6 @@ public:
 
     std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const override;
 
-private:
     void ClearInputs();
     void ClearOutputs();
 private:

@@ -33,7 +33,7 @@ void NodeTemplateHandler::Initialize()
         Ref<ParamNode> node = std::make_shared<ParamNode>("Param");
         node->SetTopColor(endColor);
         node->SetType(Type::Float);
-        
+        node->p_alwaysVisibleOnContext = true;
         NodeMethodInfo info{node};
         AddTemplateNode(info);
     }
@@ -46,6 +46,8 @@ void NodeTemplateHandler::Initialize()
 
         node->AddInput("In", Type::Vector3);
         node->AddOutput("Out", Type::Vector3);
+
+        node->p_alwaysVisibleOnContext = true;
         
         NodeMethodInfo info{node};
         AddTemplateNode(info);
