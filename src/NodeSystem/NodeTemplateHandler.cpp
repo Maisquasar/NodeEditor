@@ -4,6 +4,7 @@
 #include <ranges>
 
 #include "NodeSystem/CustomNode.h"
+#include "NodeSystem/ParamNode.h"
 
 std::unique_ptr<NodeTemplateHandler> NodeTemplateHandler::s_instance;
 
@@ -25,6 +26,15 @@ void NodeTemplateHandler::Initialize()
         node->AddInput("Specular", Type::Float);
         node->AddInput("Roughness", Type::Float);
         NodeMethodInfo info = node;
+        AddTemplateNode(info);
+    }
+
+    {
+        Ref<ParamNode> node = std::make_shared<ParamNode>("Param");
+        node->SetTopColor(endColor);
+        node->SetType(Type::Float);
+        
+        NodeMethodInfo info{node};
         AddTemplateNode(info);
     }
 

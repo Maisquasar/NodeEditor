@@ -21,10 +21,12 @@ enum class Type
     Bool,
     Vector2,
     Vector3,
+    Vector4
 };
 
 const char* SerializeTypeEnum();
 std::string TypeEnumToString(Type type);
+uint32_t GetColorFromType(Type type);
 
 struct Stream
 {

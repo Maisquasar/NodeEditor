@@ -8,7 +8,7 @@
 
 const char* SerializeTypeEnum()
 {
-    return "Float\0Int\0Bool\0Vector2\0Vector3\0";
+    return "Float\0Int\0Bool\0Vector2\0Vector3\0Vector4";
 }
 
 std::string TypeEnumToString(Type type)
@@ -24,8 +24,29 @@ std::string TypeEnumToString(Type type)
         return "Vector2";
     case Type::Vector3:
         return "Vector3";
+    case Type::Vector4:
+        return "Vector4";
     }
     return "";
+}
+
+uint32_t GetColorFromType(Type type)
+{
+    switch (type) {
+    case Type::Float:
+        return IM_COL32(0, 0, 255, 255);
+    case Type::Int:
+        return IM_COL32(255, 0, 0, 255);
+    case Type::Bool:
+        return IM_COL32(0, 255, 0, 255);
+    case Type::Vector2:
+        return IM_COL32(255, 0, 255, 255);
+    case Type::Vector3:
+        return IM_COL32(255, 255, 0, 255);
+    case Type::Vector4:
+        return IM_COL32(0, 255, 255, 255);
+    }
+    return 0;
 }
 
 Input::Input(Type type)
@@ -135,23 +156,6 @@ Input* Input::Clone() const
     return input;
 }
 
-uint32_t GetColor(const Type type)
-{
-    switch (type) {
-    case Type::Float:
-        return IM_COL32(0, 0, 255, 255);
-    case Type::Int:
-        return IM_COL32(255, 0, 0, 255);
-    case Type::Bool:
-        return IM_COL32(0, 255, 0, 255);
-    case Type::Vector2:
-        return IM_COL32(255, 0, 255, 255);
-    case Type::Vector3:
-        return IM_COL32(255, 255, 0, 255);
-    }
-    return 0;
-}
-
 Node::Node() : p_nodeManager(nullptr)
 {
     
@@ -168,10 +172,10 @@ void Node::DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const
     OutputRef output = p_outputs[i];
     Vec2f position = GetOutputPosition(i, origin, zoom);
     
-    uint32_t color = GetColor(output->type);
+    uint32_t color = GetColorFromType(output->type);
     drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
     Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, output->name.c_str());
-    drawList->AddText(font, 14 * zoom, position + Vec2f(-5, -7.5f) * zoom - Vec2f(textSize.x, 0),
+    drawList->AddText(font, 14 * zoom, position + Vec2f(-10, -7.5f) * zoom - Vec2f(textSize.x, 0),
                                   IM_COL32(255, 255, 255, 255), output->name.c_str());
 }
 
@@ -182,7 +186,7 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
     const InputRef input = p_inputs[i];
     Vec2f position = GetInputPosition(i, origin, zoom);
         
-    const uint32_t color = GetColor(input->type);
+    const uint32_t color = GetColorFromType(input->type);
     drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
     drawList->AddText(font, 14 * zoom, position + Vec2f(10, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
                                   input->name.c_str());
@@ -342,10 +346,12 @@ void Node::RemoveInput(uint32_t index)
 
 void Node::RemoveOutput(uint32_t index)
 {
+    if (!p_nodeManager) // Case when Using with a templateNode
+        return;
     int size = CalculateSize(p_inputs.size());
 
     int size2 = CalculateSize(p_outputs.size());
-
+    
     auto linkManager = p_nodeManager->GetLinkManager();
     linkManager->RemoveLinks(p_outputs[index]);
 
