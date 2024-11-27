@@ -12,12 +12,22 @@ struct FuncStruct
     std::vector<std::string> outputs;
 };
 
+
+template<typename ... Args>
+std::string FormatString( const std::string& format, Args ... args )
+{
+    int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
+    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
+    auto size = static_cast<size_t>( size_s );
+    std::unique_ptr<char[]> buf( new char[ size ] );
+    std::snprintf( buf.get(), size, format.c_str(), args ... );
+    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+}
+
 class ShaderMaker
 {
 public:
     void FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf);
-    void RecurrenceWork(NodeManager* manager, const NodeRef& endNode, TemplateList& templateList, std::string& content,
-                        LinkManager* linkManager, bool insert = true);
     
     void FillFunctionList(NodeManager* manager);
     void FillRecurrence(NodeManager* manager, const NodeRef& node, const NodeRef& parentNode);
@@ -25,14 +35,17 @@ public:
     void CreateFragmentShader(NodeManager* manager);
     void SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content);
 
-    std::string GetValueAsString(InputRef input);
+    static std::string GetValueAsString(InputRef input);
 
     static void CleanString(std::string& name);
     static std::string GetOutputVariableName(NodeRef currentNode, int j);
     static std::string TypeToGLSLType(Type type);
 private:
+    friend class Node;
+    friend class CustomNode;
     std::unordered_map<UUID, FuncStruct> m_functions;
 
     std::deque<std::string> m_variablesNames;
     std::set<std::string> m_allVariableNames;
+    std::vector<NodeWeak> m_nodesToSerialize;
 };

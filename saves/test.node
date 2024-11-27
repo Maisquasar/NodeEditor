@@ -1,34 +1,111 @@
 v1.0
  ------------- Nodes ------------- 
-[Node Count] : 2
+[Node Count] : 7
+   ------------- Node ------------- 
+  [TemplateID] : 8812250387082948371
+  [UUID] : 15349960965377174161
+  [Position] : -234.983459, -101.091690
+  [Input Count] : 1
+  [Input Name 0] : In
+  [Input Type 0] : 1
+  [Output Count] : 1
+  [Output Name 0] : Out
+  [Output Type 0] : 1
+  [Content] : Out = sin(In);
+   ============= Node ============= 
    ------------- Node ------------- 
   [TemplateID] : 17012624183745116830
   [UUID] : 4326960791982663485
-  [Position] : 0.000000, 0.000000
+  [Position] : 481.000000, -62.000000
   [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
    ============= Node ============= 
    ------------- Node ------------- 
-  [TemplateID] : 8812250387082948371
-  [UUID] : 5025394989232227674
-  [Position] : -265.000000, 13.500000
-  [Input Count] : 1
-  [Input Name 0] : Color
-  [Input Type 0] : 5
+  [TemplateID] : 14268128666220430165
+  [UUID] : 10226758398741420547
+  [Position] : -654.000000, -81.500000
   [Value 0] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 15589411689262857270
+  [UUID] : 4246438757948581997
+  [Position] : -465.000000, -86.500000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10594136665465175771
+  [UUID] : 3011884563408881031
+  [Position] : 28.000000, -42.500000
+  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8812250387082948371
+  [UUID] : 9321761857394756168
+  [Position] : 229.000000, -49.500008
+  [Input Count] : 1
+  [Input Name 0] : In
+  [Input Type 0] : 5
   [Output Count] : 1
   [Output Name 0] : Out
   [Output Type 0] : 5
-  [Content] : Color.x = 1.0;\nColor.y = 1.0;\nColor.z = 0.0;\n\nOut = Color;
+  [Content] : Out = vec3(1.0) - In;
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8812250387082948371
+  [UUID] : 6201238049271601472
+  [Position] : -210.236771, 17.527679
+  [Input Count] : 1
+  [Input Name 0] : In
+  [Input Type 0] : 1
+  [Output Count] : 1
+  [Output Name 0] : Out
+  [Output Type 0] : 1
+  [Content] : Out = sin(In);
    ============= Node ============= 
  ============= Nodes ============= 
  ------------- Links ------------- 
-[Link Count] : 1
+[Link Count] : 7
    ------------- Link ------------- 
-  [From Node Index] : 5025394989232227674
+  [From Node Index] : 9321761857394756168
   [From Output Index] : 0
   [To Node Index] : 4326960791982663485
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 10226758398741420547
+  [From Output Index] : 0
+  [To Node Index] : 4246438757948581997
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4246438757948581997
+  [From Output Index] : 0
+  [To Node Index] : 15349960965377174161
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 15349960965377174161
+  [From Output Index] : 0
+  [To Node Index] : 3011884563408881031
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4246438757948581997
+  [From Output Index] : 1
+  [To Node Index] : 6201238049271601472
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 6201238049271601472
+  [From Output Index] : 0
+  [To Node Index] : 3011884563408881031
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 3011884563408881031
+  [From Output Index] : 0
+  [To Node Index] : 9321761857394756168
   [To Input Index] : 0
    ============= Link ============= 
  ============= Links ============= 

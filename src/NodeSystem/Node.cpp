@@ -4,6 +4,7 @@
 
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/ShaderMaker.h"
 
 const char* SerializeTypeEnum()
 {
@@ -341,21 +342,15 @@ void Node::RemoveInput(uint32_t index)
 
 void Node::RemoveOutput(uint32_t index)
 {
-    p_outputs.erase(p_outputs.begin() + index);
     int size = CalculateSize(p_inputs.size());
 
     int size2 = CalculateSize(p_outputs.size());
 
     auto linkManager = p_nodeManager->GetLinkManager();
-    for (auto& link : linkManager->GetLinks())
-    {
-        if (link->fromNodeIndex == p_uuid && link->fromOutputIndex == index)
-        {
-            linkManager->RemoveLink(link->fromOutputIndex, false);
-        }
-    } 
+    linkManager->RemoveLinks(p_outputs[index]);
 
     p_size.y = static_cast<float>(std::max(size, size2));
+    p_outputs.erase(p_outputs.begin() + index);
 }
 
 Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
@@ -449,7 +444,7 @@ void Node::ShowInInspector()
     ImGui::PopID();
 }
 
-std::vector<std::string> Node::GetFormatStrings()
+std::vector<std::string> Node::GetFormatStrings() const
 {
     return NodeTemplateHandler::GetTemplateFormatStrings(p_templateID);
 }
@@ -500,6 +495,53 @@ void Node::Deserialize(CppSer::Parser& parser)
 
 void Node::InternalDeserialize(CppSer::Parser& parser)
 {
+}
+
+
+std::string Node::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const
+{
+    std::string content;
+    auto& variableNames = shaderMaker->m_variablesNames;
+    auto& allVariableNames = shaderMaker->m_allVariableNames;
+    auto toFormatList = GetFormatStrings();
+    for (int k = 0; k < p_outputs.size(); k++)
+    {
+        std::string variableName = funcStruct.outputs[k];
+        std::string glslType = ShaderMaker::TypeToGLSLType(p_outputs[k]->type);
+            
+        std::string thisContent = glslType + " " + variableName + " = ";
+        if (allVariableNames.contains(variableName))
+            continue;
+        allVariableNames.insert(variableName);
+            
+        std::string toFormat = toFormatList[k];
+        std::string secondHalf = toFormat;
+        toFormat.clear();
+        for (int j = 0; j < p_inputs.size(); j++)
+        {
+            InputRef input = p_inputs[j];
+            size_t index = secondHalf.find_first_of("%") + 2;
+            if (index == std::string::npos)
+                break;
+            std::string firstHalf = secondHalf.substr(0, index);
+            if (index != std::string::npos)
+                secondHalf = secondHalf.substr(index);
+            if (!input->isLinked)
+            {
+                variableNames.push_back(ShaderMaker::GetValueAsString(input));
+            }
+            auto parentVariableName = funcStruct.inputs[j];
+            if (parentVariableName.empty())
+                parentVariableName = variableNames.back();
+            toFormat += FormatString(firstHalf, parentVariableName.c_str());
+        }
+        thisContent += toFormat + secondHalf + ";\n";
+
+        content += thisContent;
+
+        std::cout << thisContent << '\n';
+    }
+    return content;
 }
 
 Node* Node::Clone() const

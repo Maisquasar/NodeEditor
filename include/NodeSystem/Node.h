@@ -6,6 +6,8 @@
 
 #include "NodeSystem/Selectable.h"
 #include "UUID.h"
+class ShaderMaker;
+struct FuncStruct;
 using namespace GALAXY;
 #include <imgui.h>
 
@@ -166,12 +168,14 @@ public:
 
     virtual void ShowInInspector();
 
-    virtual std::vector<std::string> GetFormatStrings();
+    virtual std::vector<std::string> GetFormatStrings() const;
 
     virtual void Serialize(CppSer::Serializer& serializer) const;
     virtual void InternalSerialize(CppSer::Serializer& serializer) const;
     virtual void Deserialize(CppSer::Parser& parser);
     virtual void InternalDeserialize(CppSer::Parser& parser);
+
+    virtual std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const;
 
     virtual Node* Clone() const;
 protected:

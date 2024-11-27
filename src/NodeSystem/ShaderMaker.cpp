@@ -3,16 +3,7 @@
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 
-template<typename ... Args>
-std::string FormatString( const std::string& format, Args ... args )
-{
-    int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
-    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
-    auto size = static_cast<size_t>( size_s );
-    std::unique_ptr<char[]> buf( new char[ size ] );
-    std::snprintf( buf.get(), size, format.c_str(), args ... );
-    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
-}
+#define FOR_SHADER_TOY
 
 void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf)
 {
@@ -67,85 +58,6 @@ void ShaderMaker::CleanString(std::string& name) {
     name.erase(std::remove(name.begin(), name.end(), '\0'), name.end());
 }
 
-void ShaderMaker::RecurrenceWork(NodeManager* manager, const NodeRef& endNode, TemplateList& templateList, std::string& content,
-                                 LinkManager* linkManager, bool insert)
-{
-    for (int i = 0; i < endNode->p_inputs.size(); i++)
-    {
-        LinkRef link = linkManager->GetLinkLinkedToInput(endNode->GetUUID(), i).lock();
-        if (link == nullptr)
-            continue;
-        NodeRef node = manager->GetNode(link->fromNodeIndex).lock();
-        if (node == nullptr)
-            continue;
-        
-        {
-            auto name = node->GetName();
-            CleanString(name);
-            std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(0);
-            if (m_allVariableNames.contains(variableName))
-                insert = false;
-        }
-        
-        RecurrenceWork(manager, node, templateList, content, linkManager, insert);
-
-        auto it = std::ranges::find_if(templateList, [node](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == node->GetTemplateID(); });
-        const NodeMethodInfo& templateNode = *it;
-
-        std::vector<std::string> variableNames = {};
-        auto toFormatList = node->GetFormatStrings();
-        for (int k = 0; k < node->p_outputs.size(); k++)
-        {
-            auto name = node->GetName();
-            CleanString(name);
-            std::string variableName = name + "_" + std::to_string(node->p_uuid) + "_" + std::to_string(k);
-            std::string glslType = TypeToGLSLType(node->p_outputs[k]->type);
-            
-            std::string thisContent = glslType + " " + variableName + " = ";
-            if (m_allVariableNames.contains(variableName))
-            {
-                thisContent = variableName + " = ";
-            }
-            if (insert)
-                m_allVariableNames.insert(variableName);
-            
-            std::string toFormat = toFormatList[k];
-            std::string secondHalf = toFormat;
-            toFormat.clear();
-            for (int j = 0; j < node->p_inputs.size(); j++)
-            {
-                InputRef input = node->p_inputs[j];
-                size_t index = secondHalf.find_first_of("%") + 2;
-                if (index == std::string::npos)
-                    break;
-                std::string firstHalf = secondHalf.substr(0, index);
-                if (index != std::string::npos)
-                    secondHalf = secondHalf.substr(index);
-                if (!input->isLinked)
-                {
-                    m_variablesNames.push_back(GetValueAsString(input));
-                }
-                if (!m_variablesNames.empty())
-                {
-                    toFormat += FormatString(firstHalf, m_variablesNames.back().c_str());
-                    if (k == node->p_outputs.size() - 1)
-                        m_variablesNames.erase(m_variablesNames.end() - 1);
-                }
-            
-            }
-            thisContent += toFormat + secondHalf + ";\n";
-            variableNames.push_back(variableName);
-
-            if (insert)
-                content += thisContent;
-
-            std::cout << thisContent << '\n';
-        }
-
-        m_variablesNames.insert(m_variablesNames.begin(), variableNames.begin(), variableNames.end());
-    }
-}
-
 void ShaderMaker::FillFunctionList(NodeManager* manager)
 {
     auto firstNode = manager->GetNodeWithName("Material").lock();
@@ -196,6 +108,8 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node, cons
         }
 
         FillRecurrence(manager, currentNode, node);
+        
+        m_nodesToSerialize.push_back(currentNode);
 
         if (node)
         {
@@ -228,8 +142,38 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
 
     FillFunctionList(manager);
 
-    // RecurrenceWork(manager, endNode, templateList, content, linkManager);
+    for (const auto& currentNode : m_nodesToSerialize)
+    {
+        if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(currentNode.lock()))
+        {
+            content += "void " + customNode->GetFunctionName() + "(";
+            for (const auto& input : customNode->p_inputs)
+            {
+                content += "in " + TypeToGLSLType(input->type) + " " + input->name + ", ";
+            }
+            for (const auto& output : customNode->p_outputs)
+            {
+                content += "out " + TypeToGLSLType(output->type) + " " + output->name + ", ";
+            }
+            content.erase(content.end() - 2, content.end());
+            content += ")\n{\n";
+            content += customNode->GetContent() + "\n}\n";
+        }
+    }
+
+#ifdef FOR_SHADER_TOY
+    content += "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n// Normalized pixel coordinates (from 0 to 1)\nvec2 uv = fragCoord/iResolution.xy;\n";
+#endif
+    
     SerializeFunctions(manager, endNode, content);
+
+#ifdef FOR_SHADER_TOY
+    content += "\n// Output to screen\nfragColor = vec4(";
+    auto firstLink = endNode->GetLinks()[0].lock();
+    auto outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
+    content += outputName + ", 1.0);\n}\n";
+#endif
+    
     // TODO
     ImGui::SetClipboardText(content.c_str());
 
@@ -358,54 +302,8 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
         SerializeFunctions(manager, currentNode, content);
 
         FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
-
-        auto it = std::ranges::find_if(templateList, [currentNode](NodeMethodInfo& templateNode) { return templateNode.node->p_templateID == currentNode->GetTemplateID(); });
-        const NodeMethodInfo& templateNode = *it;
-
-        std::vector<std::string> variableNames = {};
         
-        auto toFormatList = currentNode->GetFormatStrings();
-        for (int k = 0; k < currentNode->p_outputs.size(); k++)
-        {
-            std::string variableName = funcStruct.outputs[k];
-            std::string glslType = TypeToGLSLType(currentNode->p_outputs[k]->type);
-            
-            std::string thisContent = glslType + " " + variableName + " = ";
-            if (m_allVariableNames.contains(variableName))
-            {
-                continue;
-            }
-            m_allVariableNames.insert(variableName);
-            
-            std::string toFormat = toFormatList[k];
-            std::string secondHalf = toFormat;
-            toFormat.clear();
-            for (int j = 0; j < currentNode->p_inputs.size(); j++)
-            {
-                InputRef input = currentNode->p_inputs[j];
-                size_t index = secondHalf.find_first_of("%") + 2;
-                if (index == std::string::npos)
-                    break;
-                std::string firstHalf = secondHalf.substr(0, index);
-                if (index != std::string::npos)
-                    secondHalf = secondHalf.substr(index);
-                if (!input->isLinked)
-                {
-                    m_variablesNames.push_back(GetValueAsString(input));
-                }
-                auto parentVariableName = funcStruct.inputs[j];
-                if (parentVariableName.empty())
-                    parentVariableName = m_variablesNames.back();
-                toFormat += FormatString(firstHalf, parentVariableName.c_str());
-            }
-            thisContent += toFormat + secondHalf + ";\n";
-            variableNames.push_back(variableName);
-
-            content += thisContent;
-
-            std::cout << thisContent << '\n';
-        }
-        
+        content += currentNode->ToShader(this, funcStruct);        
     }
 #endif
 }
@@ -457,6 +355,6 @@ std::string ShaderMaker::TypeToGLSLType(Type type)
     case Type::Vector3:
         return "vec3";
     default:
-        return "";
+        return "void";
     }
 }

@@ -64,7 +64,7 @@ void CustomNode::ShowInInspector()
     }
     for (int i = 0; i < p_outputs.size(); i++)
     {
-        ImGui::PushID(&i);
+        ImGui::PushID(i);
         if (ImGui::TreeNode("##", "Output %d", i))
         {
             ImGui::InputText("Output Name", &p_outputs[i]->name);
@@ -152,8 +152,7 @@ void CustomNode::Deserialize(CppSer::Parser& parser)
 
     int inputCount = parser["Input Count"].As<int>();
 
-    ClearInputs();
-    
+    p_inputs.clear();
     for (uint32_t i = 0; i < inputCount; i++)
     {
         std::string inputName = parser["Input Name " + std::to_string(i)].As<std::string>();
@@ -169,7 +168,7 @@ void CustomNode::Deserialize(CppSer::Parser& parser)
 
     int outputCount = parser["Output Count"].As<int>();
 
-    ClearOutputs();
+    p_outputs.clear();
     for (uint32_t i = 0; i < outputCount; i++)
     {
         std::string outputName = parser["Output Name " + std::to_string(i)].As<std::string>();
@@ -190,7 +189,7 @@ std::string CustomNode::GetFunctionName() const
     return name + "_" + std::to_string(p_uuid) + "_" + "Func";
 }
 
-std::vector<std::string> CustomNode::GetFormatStrings()
+std::vector<std::string> CustomNode::GetFormatStrings() const
 {
     std::vector<std::string> formatStrings = {};
     std::string format = GetFunctionName() + "(";
@@ -206,6 +205,60 @@ std::vector<std::string> CustomNode::GetFormatStrings()
     format += ")";
     formatStrings.push_back(format);
     return formatStrings;
+}
+
+std::string CustomNode::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const
+{
+    std::string content;
+    auto& variableNames = shaderMaker->m_variablesNames;
+    auto& allVariableNames = shaderMaker->m_allVariableNames;
+    auto toFormatList = GetFormatStrings();
+    for (int k = 0; k < p_outputs.size(); k++)
+    {
+        std::string variableName = funcStruct.outputs[k];
+        std::string glslType = ShaderMaker::TypeToGLSLType(p_outputs[k]->type);
+            
+        std::string thisContent = glslType + " " + variableName + ";\n";
+        content += thisContent;
+    }
+
+        
+    std::string toFormat = toFormatList[0];
+    std::string secondHalf = toFormat;
+    toFormat.clear();
+    for (int j = 0; j < p_inputs.size(); j++)
+    {
+        InputRef input = p_inputs[j];
+        size_t index = secondHalf.find_first_of("%") + 2;
+        if (index == std::string::npos)
+            break;
+        std::string firstHalf = secondHalf.substr(0, index);
+        if (index != std::string::npos)
+            secondHalf = secondHalf.substr(index);
+        if (!input->isLinked)
+        {
+            variableNames.push_back(ShaderMaker::GetValueAsString(input));
+        }
+        auto parentVariableName = funcStruct.inputs[j];
+        if (parentVariableName.empty())
+            parentVariableName = variableNames.back();
+        toFormat += FormatString(firstHalf, parentVariableName.c_str());
+    }
+    for (int j = 0; j < p_outputs.size(); j++)
+    {
+        OutputRef output = p_outputs[j];
+        size_t index = secondHalf.find_first_of("%") + 2;
+        if (index == std::string::npos)
+            break;
+        std::string firstHalf = secondHalf.substr(0, index);
+        if (index != std::string::npos)
+            secondHalf = secondHalf.substr(index);
+        auto parentVariableName = funcStruct.outputs[j];
+        toFormat += FormatString(firstHalf, parentVariableName.c_str());
+    }
+    content += toFormat + secondHalf + ";\n";
+    
+    return content;
 }
 
 void CustomNode::ClearInputs()
