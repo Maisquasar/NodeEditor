@@ -117,7 +117,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 {
     if (altClicked)
     {
-        std::vector<LinkWeakRef> links = m_linkManager->GetLinkWithOutput(node->GetOutput(i));
+        std::vector<LinkWeakRef> links = m_linkManager->GetLinksWithOutput(node->GetOutput(i));
         std::vector<NodeWeak> nodes = {};
         
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
@@ -528,7 +528,7 @@ std::vector<NodeWeak> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
 
 std::vector<LinkWeakRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
-    return m_linkManager->GetLinkWithOutput(GetNode(uuid).lock()->GetOutput(index));
+    return m_linkManager->GetLinksWithOutput(GetNode(uuid).lock()->GetOutput(index));
 }
 
 NodeWeak NodeManager::GetSelectedNode() const

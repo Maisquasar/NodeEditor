@@ -6,6 +6,7 @@
 
 #include "NodeSystem/Selectable.h"
 #include "UUID.h"
+class NodeManager;
 class ShaderMaker;
 struct FuncStruct;
 using namespace GALAXY;
@@ -167,7 +168,8 @@ public:
     Vec2f GetSize() const { return p_size; }
     TemplateID GetTemplateID() const { return p_templateID; }
     bool GetAllowInteraction() const { return p_allowInteraction; }
-
+    NodeManager* GetNodeManager() const { return p_nodeManager; }
+    
     virtual void ShowInInspector();
 
     virtual std::vector<std::string> GetFormatStrings() const;

@@ -373,7 +373,7 @@ bool LinkManager::BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1
     return false;
 }
 
-std::vector<LinkWeakRef> LinkManager::GetLinkWithOutput(const OutputRef& output) const
+std::vector<LinkWeakRef> LinkManager::GetLinksWithOutput(const OutputRef& output) const
 {
     std::vector<LinkWeakRef> links;
     for (uint32_t i = 0; i < m_links.size(); i++)

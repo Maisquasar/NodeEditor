@@ -14,6 +14,7 @@ Node* CustomNode::Clone() const
 
 void CustomNode::ShowInInspector()
 {
+    //TODO : Add actions to the node
     Node::ShowInInspector();
 
     ImGui::SeparatorText("Inputs");

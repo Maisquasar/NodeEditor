@@ -3,6 +3,10 @@
 #include <CppSerializer.h>
 #include <imgui_stdlib.h>
 
+#include "Actions/Action.h"
+#include "Actions/ActionChangeInput.h"
+#include "Actions/ActionChangeType.h"
+
 void ParamNode::ShowInInspector()
 {
     Node::ShowInInspector();
@@ -11,13 +15,20 @@ void ParamNode::ShowInInspector()
 
     if (ImGui::InputText("Param Name", &m_paramName))
     {
+        Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs.back()->name, p_outputs.back()->name, m_paramName);
+        ActionManager::AddAction(changeInput);
+        
         p_outputs.back()->name = m_paramName;
     }
+
+    m_paramName = p_outputs.back()->name;
 
     int type = static_cast<int>(m_paramType) - 1;
     if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
     {
+        Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, static_cast<Type>(type + 1), m_paramType);
         SetType(static_cast<Type>(type + 1));
+        ActionManager::AddAction(changeType);
     }
 }
 
