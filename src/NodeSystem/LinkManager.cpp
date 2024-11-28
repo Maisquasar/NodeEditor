@@ -165,8 +165,8 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin)
         Vec2f controlPoint1 = inputPosition + Vec2f(m_controlDistanceX, 0.0f) * zoom;
         Vec2f controlPoint2 = outputPosition - Vec2f(m_controlDistanceX, 0.0f) * zoom;
 
-        drawList->AddCircleFilled(inputPosition, 4.f * zoom, IM_COL32(200, 200, 200, 255));
-        drawList->AddCircleFilled(outputPosition, 4.f * zoom, IM_COL32(200, 200, 200, 255));
+        drawList->AddCircleFilled(inputPosition, 4.f * zoom, IM_COL32(255, 255, 255, 255));
+        drawList->AddCircleFilled(outputPosition, 4.f * zoom, IM_COL32(255, 255, 255, 255));
         
         drawList->AddBezierCubic(inputPosition, controlPoint1, controlPoint2, outputPosition, IM_COL32(255, 255, 255, 255), 2 * zoom, m_bezierSegmentCount);
     }
@@ -527,7 +527,7 @@ void LinkManager::Clean()
     m_selectedLinks.clear();
 }
 
-MainWindow* LinkManager::GetMainWindow() const
+NodeWindow* LinkManager::GetMainWindow() const
 {
     return m_nodeManager->GetMainWindow();
 }

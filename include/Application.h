@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <GLFW/glfw3.h>
 
-#include "MainWindow.h"
+#include "NodeWindow.h"
 
 class Application
 {
@@ -16,6 +16,8 @@ public:
 
     void Run();
 
+    void Render();
+
     void Clean() const;
 
     static void Exit();
@@ -29,7 +31,7 @@ private:
     
     GLFWwindow* m_window = nullptr;
 
-    MainWindow m_mainWindow;
+    NodeWindow m_mainWindow;
 
     uint64_t m_frameCount = 0;
     

@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "NodeWindow.h"
 
 #include <filesystem>
 #include <map>
@@ -98,7 +98,7 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
     return resultString;
 }
 
-void MainWindow::Initialize()
+void NodeWindow::Initialize()
 {
     auto templateHandler = NodeTemplateHandler::Create();
 
@@ -109,7 +109,7 @@ void MainWindow::Initialize()
     LoadEditorFile(EDITOR_FILE_NAME);
 }
 
-void MainWindow::PasteNode() const
+void NodeWindow::PasteNode() const
 {
     auto action = std::make_shared<ActionPaste>(m_nodeManager, m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos(), ImGui::GetClipboardText());
     ActionManager::DoAction(action);
@@ -126,7 +126,7 @@ bool Splitter(const bool split_vertically, const float thickness, float* size1, 
     return ImGui::SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
 }
 
-void MainWindow::Update() const
+void NodeWindow::Update() const
 {
     m_nodeManager->UpdateNodes(m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos());
 
@@ -151,14 +151,14 @@ void MainWindow::Update() const
     }
 }
 
-void MainWindow::Delete() const
+void NodeWindow::Delete() const
 {
     WriteEditorFile(EDITOR_FILE_NAME);
     m_nodeManager->Clean();
     delete m_nodeManager;
 }
 
-void MainWindow::DrawMainDock()
+void NodeWindow::DrawMainDock()
 {
     static bool opt_fullscreen = true;
     static bool opt_padding = false;
@@ -205,7 +205,7 @@ void MainWindow::DrawMainDock()
     ImGui::End();
 }
 
-void MainWindow::Draw()
+void NodeWindow::Draw()
 {
     DrawMainDock();
     DrawMainBar();
@@ -223,7 +223,7 @@ void MainWindow::Draw()
     }
 }
 
-void MainWindow::DrawMainBar()
+void NodeWindow::DrawMainBar()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -316,7 +316,7 @@ void MainWindow::DrawMainBar()
     }
 }
 
-void MainWindow::WriteEditorFile(const std::string& path) const
+void NodeWindow::WriteEditorFile(const std::string& path) const
 {
     CppSer::Serializer serializer(path);
     serializer.SetVersion("1.0");
@@ -325,7 +325,7 @@ void MainWindow::WriteEditorFile(const std::string& path) const
     serializer << CppSer::Pair::EndMap << "Editor";
 }
 
-void MainWindow::LoadEditorFile(const std::string& path) const
+void NodeWindow::LoadEditorFile(const std::string& path) const
 {
     auto fullPath = std::filesystem::path(path);
     CppSer::Parser parser(fullPath);
@@ -337,7 +337,7 @@ void MainWindow::LoadEditorFile(const std::string& path) const
     m_nodeManager->LoadFromFile(parser["Node File"].As<std::string>());
 }
 
-void MainWindow::DrawInspector() const
+void NodeWindow::DrawInspector() const
 {
     static float size1 = 300.f;
     static float size2 = ImGui::GetContentRegionAvail().y;
@@ -357,7 +357,7 @@ void MainWindow::DrawInspector() const
     ImGui::EndChild();   
 }
 
-void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos)
+void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mousePos)
 {
     constexpr uint32_t displayCount = 10;
 
@@ -481,12 +481,12 @@ void MainWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
     }
 }
 
-void MainWindow::SetOpenContextMenu(bool shouldOpen)
+void NodeWindow::SetOpenContextMenu(bool shouldOpen)
 {
     m_shouldOpenContextMenu = shouldOpen;
 }
 
-void MainWindow::DrawGrid()
+void NodeWindow::DrawGrid()
 {
     if (ImGui::IsWindowFocused())
     {

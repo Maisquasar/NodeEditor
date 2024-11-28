@@ -3,7 +3,7 @@
 #include <CppSerializer.h>
 #include <map>
 
-#include "MainWindow.h"
+#include "NodeWindow.h"
 
 void ActionPaste::Do()
 {

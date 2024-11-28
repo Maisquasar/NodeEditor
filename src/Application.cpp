@@ -3,6 +3,7 @@
 #include <galaxymath/Maths.h>
 
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "Render/Framebuffer.h"
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -16,6 +17,8 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 
+static Mesh s_meshTest;
+static Shader s_shaderTest;
 void Application::Initialize()
 {
     // Initialize GLFW
@@ -65,6 +68,11 @@ void Application::Initialize()
     uint64_t toUUID = NodeTemplateHandler::TemplateIDFromString("One Minus");
 
     m_mainWindow.Initialize();
+    if (!s_shaderTest.Load("shaders/defaultShader"))
+    {
+        std::cout << "Failed to load shader" << std::endl;
+    }
+    s_meshTest.Initialize(quadVertices.data(), 6);
 }
 
 void Application::Run()
@@ -86,11 +94,17 @@ void Application::Run()
 
         ImGui::Render();
 
+        /*
         int display_w, display_h;
         glfwGetFramebufferSize(m_window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
+        */
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        s_shaderTest.Use();
+        s_meshTest.Draw();
+        
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -105,6 +119,11 @@ void Application::Run()
         m_frameCount++;
     }
         
+}
+
+void Application::Render()
+{
+    
 }
 
 void Application::Clean() const

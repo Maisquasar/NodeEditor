@@ -188,7 +188,7 @@ protected:
     void Internal_Clone(Node* node) const;
 
 protected:
-    friend class MainWindow;
+    friend class NodeWindow;
     friend class ShaderMaker;
     friend class NodeTemplateHandler;
     friend class NodeManager;

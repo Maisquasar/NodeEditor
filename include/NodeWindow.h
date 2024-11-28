@@ -22,7 +22,7 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
 #pragma endregion
 
 class LinkManager;
-class MainWindow
+class NodeWindow
 {
 public:
     void Initialize();

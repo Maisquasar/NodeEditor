@@ -7,7 +7,7 @@
 #include <ranges>
 #include <unordered_set>
 
-#include "MainWindow.h"
+#include "NodeWindow.h"
 #include "Serializer.h"
 #include "Actions/Action.h"
 #include "Actions/ActionCreateLink.h"
@@ -33,7 +33,7 @@ std::string UserInputEnumToString(UserInputState userInputState)
     }
 }
 
-NodeManager::NodeManager(MainWindow* window) : m_parent(window)
+NodeManager::NodeManager(NodeWindow* window) : m_parent(window)
 {
     m_linkManager = new LinkManager(this);
 

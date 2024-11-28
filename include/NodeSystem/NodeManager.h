@@ -12,7 +12,7 @@
 #include "Node.h"
 
 
-class MainWindow;
+class NodeWindow;
 class LinkManager;
 using NodeList = std::pmr::unordered_map<UUID, NodeRef>;
 struct SelectionSquare
@@ -42,7 +42,7 @@ struct SerializedData
 class NodeManager
 {
 public:
-    NodeManager(MainWindow* window);
+    NodeManager(NodeWindow* window);
     ~NodeManager();
     
     void AddNode(const NodeRef& node);
@@ -82,7 +82,7 @@ public:
     NodeWeak GetSelectedNode() const;
     Link& GetCurrentLink() {return m_currentLink;}
     std::filesystem::path GetFilePath() const {return m_savePath;}
-    MainWindow* GetMainWindow() const { return m_parent; }
+    NodeWindow* GetMainWindow() const { return m_parent; }
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;
@@ -112,12 +112,12 @@ private:
     void SetHoveredStream(const Weak<Stream>& stream);
 
 private:
-    friend class MainWindow;
+    friend class NodeWindow;
     friend class ShaderMaker;
 
     std::filesystem::path m_savePath;
     
-    MainWindow* m_parent;
+    NodeWindow* m_parent;
     LinkManager* m_linkManager = nullptr;
     NodeList m_nodes;
     
