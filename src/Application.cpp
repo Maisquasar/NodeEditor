@@ -29,6 +29,9 @@ void Application::Initialize()
     std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
 
     // Create a windowed mode window and its OpenGL context
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     m_window = glfwCreateWindow(1280, 720, "Hello ImGui", NULL, NULL);
     if (!m_window) {
         glfwTerminate();
@@ -47,6 +50,15 @@ void Application::Initialize()
         return;
     }
 
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* version = glGetString(GL_VERSION);
+    const GLubyte* shadingLangVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    std::cout << "Renderer: " << renderer << std::endl;
+    std::cout << "OpenGL version supported: " << version << std::endl;
+    std::cout << "GLSL version: " << shadingLangVersion << std::endl;
+
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -62,7 +74,7 @@ void Application::Initialize()
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-    ImGui_ImplOpenGL3_Init("#version 130"); // Adjust version as needed
+    ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
     uint64_t fromUUID = NodeTemplateHandler::TemplateIDFromString("1 - x");
     uint64_t toUUID = NodeTemplateHandler::TemplateIDFromString("One Minus");

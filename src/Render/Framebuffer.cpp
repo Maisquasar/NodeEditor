@@ -43,8 +43,7 @@ bool Shader::Load(const std::filesystem::path& path)
     const char* fragSource = fragCode.c_str();
 
     m_program = glCreateProgram();
-    m_fragmentShader = glCreateShader(GL_VERTEX_SHADER);
-    m_vertexShader = glCreateShader(GL_FRAGMENT_SHADER);
+    m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(m_vertexShader, 1, &vertSource, nullptr);
     glCompileShader(m_vertexShader);
 
@@ -55,8 +54,10 @@ bool Shader::Load(const std::filesystem::path& path)
     if (!success) {
         glGetShaderInfoLog(m_vertexShader, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        return false;
     }
     
+    m_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(m_fragmentShader, 1, &fragSource, nullptr);
     glCompileShader(m_fragmentShader);
 
