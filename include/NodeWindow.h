@@ -63,6 +63,8 @@ private:
     int m_shouldOpenContextMenu = -1;
     bool m_contextOpen = false;
 
+    Ref<Mesh> m_quad;
+
     struct GridWindow
     {
         Vec2f origin;

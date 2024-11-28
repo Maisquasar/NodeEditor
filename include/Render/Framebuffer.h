@@ -4,7 +4,10 @@
 #include <vector>
 #include <filesystem>
 
-static std::vector<float> quadVertices = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+template <typename T>
+using Ref = std::shared_ptr<T>;
+
+static std::vector s_quadVertices = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
     // positions   // texCoords
     -1.0f,  1.0f,  0.0f, 1.0f,
     -1.0f, -1.0f,  0.0f, 0.0f,
@@ -21,7 +24,9 @@ public:
     Mesh() = default;
     ~Mesh() = default;
 
-    bool Initialize(const float* vertices, uint32_t count);
+    static Ref<Mesh> CreateQuad();
+
+    bool Initialize(const std::vector<float> vertices);
 
     void Draw() const;
 private:

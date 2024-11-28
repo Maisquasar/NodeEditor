@@ -6,6 +6,9 @@
 
 #include "NodeSystem/Selectable.h"
 #include "UUID.h"
+
+#include "Type.h"
+
 class NodeManager;
 class ShaderMaker;
 struct FuncStruct;
@@ -77,11 +80,6 @@ struct Output : Stream
 
 constexpr int c_pointSize = 25;
 constexpr int c_topSize = 25;
-
-template <typename T>
-using Ref = std::shared_ptr<T>;
-template <typename T>
-using Weak = std::weak_ptr<T>;
 
 typedef Ref<Stream> StreamRef;
 typedef Weak<Stream> StreamWeak;

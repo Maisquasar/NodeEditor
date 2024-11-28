@@ -31,7 +31,7 @@ private:
     
     GLFWwindow* m_window = nullptr;
 
-    NodeWindow m_mainWindow;
+    NodeWindow m_nodeWindow;
 
     uint64_t m_frameCount = 0;
     

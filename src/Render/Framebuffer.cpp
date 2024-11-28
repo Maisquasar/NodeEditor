@@ -4,26 +4,41 @@
 #include <fstream>
 #include <glad/glad.h>
 
-bool Mesh::Initialize(const float* vertices, uint32_t count)
+Ref<Mesh> Mesh::CreateQuad()
 {
-    m_count = count;
-    
+    Ref<Mesh> mesh = std::make_shared<Mesh>();
+    mesh->Initialize(s_quadVertices);
+    return mesh;
+}
+
+bool Mesh::Initialize(const std::vector<float> vertices)
+{
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
+
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+    m_count = vertices.size() / 4;
+
+    // Use correct size calculation and pass vertex data pointer
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    // Configure vertex attributes
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr); // Position (first 2 floats)
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float))); // TexCoords (next 2 floats)
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
     return true;
 }
+
 
 void Mesh::Draw() const
 {
     glBindVertexArray(m_vao);
-    glDrawArrays(GL_TRIANGLES, 0, m_count);
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_count));
+    glBindVertexArray(0);
 }
 
 bool Shader::Load(const std::filesystem::path& path)
