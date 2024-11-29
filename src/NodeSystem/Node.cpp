@@ -30,23 +30,21 @@ std::string TypeEnumToString(Type type)
     return "";
 }
 
+std::unordered_map<Type, uint32_t> colorForType
+{
+        { Type::Float, IM_COL32(90, 120, 255, 255) },    // Soft blue
+        { Type::Int, IM_COL32(255, 100, 100, 255) },     // Soft red
+        { Type::Bool, IM_COL32(100, 255, 100, 255) },    // Soft green
+        { Type::Vector2, IM_COL32(180, 90, 255, 255) },  // Soft purple
+        { Type::Vector3, IM_COL32(255, 255, 90, 255) },  // Soft yellow
+        { Type::Vector4, IM_COL32(90, 255, 255, 255) }   // Soft cyan
+};
+
 uint32_t GetColorFromType(Type type)
 {
-    switch (type) {
-    case Type::Float:
-        return IM_COL32(0, 0, 255, 255);
-    case Type::Int:
-        return IM_COL32(255, 0, 0, 255);
-    case Type::Bool:
-        return IM_COL32(0, 255, 0, 255);
-    case Type::Vector2:
-        return IM_COL32(255, 0, 255, 255);
-    case Type::Vector3:
-        return IM_COL32(255, 255, 0, 255);
-    case Type::Vector4:
-        return IM_COL32(0, 255, 255, 255);
-    }
-    return 0;
+    if (colorForType.find(type) != colorForType.end())
+        return colorForType[type];
+    return IM_COL32(255, 255, 255, 255);
 }
 
 Input::Input(Type type)
@@ -545,7 +543,7 @@ std::string Node::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruc
 
         content += thisContent;
 
-        std::cout << thisContent << '\n';
+        // std::cout << thisContent << '\n';
     }
     return content;
 }

@@ -48,6 +48,7 @@ public:
 
     void Use() const;
     bool RecompileFragmentShader();
+    void UpdateValues();
 
 private:
     std::filesystem::path m_path;

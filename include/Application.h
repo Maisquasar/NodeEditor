@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "NodeWindow.h"
@@ -23,6 +24,7 @@ public:
     void Clean() const;
 
     Ref<Mesh> GetQuad() const;
+    float GetTime() const {return m_time;}
 
     static void Exit();
 
@@ -32,6 +34,8 @@ public:
 
 private:
     static Application* s_instance;
+
+    float m_time = 0;
     
     GLFWwindow* m_window = nullptr;
 

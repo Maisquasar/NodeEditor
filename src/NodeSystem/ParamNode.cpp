@@ -12,6 +12,8 @@ void ParamNode::ShowInInspector()
 {
     Node::ShowInInspector();
 
+    ImGui::BeginDisabled(!m_editable);
+
     ImGui::SeparatorText("Ouput");
 
     if (ImGui::InputText("Param Name", &m_paramName))
@@ -31,6 +33,7 @@ void ParamNode::ShowInInspector()
         SetType(static_cast<Type>(type + 1));
         ActionManager::AddAction(changeType);
     }
+    ImGui::EndDisabled();
 }
 
 std::vector<std::string> ParamNode::GetFormatStrings() const
@@ -58,7 +61,9 @@ Node* ParamNode::Clone() const
 {
     auto node = new ParamNode(p_name);
     node->m_paramName = m_paramName;
+    p_outputs.back()->name = m_paramName;
     node->m_paramType = m_paramType;
+    node->m_editable = m_editable;
     Internal_Clone(node);
     return node;
 }

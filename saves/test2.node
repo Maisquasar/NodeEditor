@@ -1,0 +1,46 @@
+v1.0
+ ------------- Nodes ------------- 
+[Node Count] : 3
+   ------------- Node ------------- 
+  [TemplateID] : 17012624183745116830
+  [UUID] : 4326960791982663485
+  [Position] : 481.000000, -62.000000
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8812250387082948371
+  [UUID] : 9321761857394756168
+  [Position] : 224.595474, -52.803387
+  [Input Count] : 1
+  [Input Name 0] : uv
+  [Input Type 0] : 4
+  [Output Count] : 1
+  [Output Name 0] : Out
+  [Output Type 0] : 5
+  [Content] :     vec2 uv2 = uv;\n    //Asin a + B sin 2a +C sin 3a +D sin 4a\n    uv2.x += iResolution.x/iResolution.y;\n    uv2.x -= 2.0*mod(iTime,1.0*iResolution.x/iResolution.y);\n    float width = -(1.0/(25.0*uv2.x));\n   vec3 l = vec3(width , width* 1.9, width * 1.5);\n    \n    uv.y *= 2.0;\n    float xx = abs(1.0/(20.0*max(abs(uv.x),0.3)));\n    \n    uv.x *=3.0;\n    uv.y -= xx*(sin(uv.x)+3.0*sin(2.0*uv.x)+2.0*sin(3.0*uv.x)+sin(4.0*uv.x));//0.3*sin(uv.x)+0.2*sin(uv.x*2.0)+0.1*sin(uv.x*3.0)+0.1*sin(uv.x*4.0);\n    vec3 col = mix(vec3(1),vec3(0),smoothstep(0.02,0.03,abs(uv.y)));\nOut = vec3(col*l);
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 6727227689689397568
+  [UUID] : 8501008334821994681
+  [Position] : -60.924011, -62.113384
+  [Param Name] : TexCoords
+  [Param Type] : 4
+   ============= Node ============= 
+ ============= Nodes ============= 
+ ------------- Links ------------- 
+[Link Count] : 2
+   ------------- Link ------------- 
+  [From Node Index] : 9321761857394756168
+  [From Output Index] : 0
+  [To Node Index] : 4326960791982663485
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8501008334821994681
+  [From Output Index] : 0
+  [To Node Index] : 9321761857394756168
+  [To Input Index] : 0
+   ============= Link ============= 
+ ============= Links ============= 

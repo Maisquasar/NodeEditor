@@ -63,6 +63,8 @@ void ShaderMaker::FillFunctionList(NodeManager* manager)
     auto firstNode = manager->GetNodeWithName("Material").lock();
     FillRecurrence(manager, firstNode, nullptr);
 
+    /*
+    // Print all
     std::string content;
     for (auto& it : m_functions)
     {
@@ -83,6 +85,7 @@ void ShaderMaker::FillFunctionList(NodeManager* manager)
         content += "}\n";
     }
     std::cout << content;
+    */
 }
 
 void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node, const NodeRef& parentNode)
@@ -141,7 +144,7 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
 
     FillFunctionList(manager);
 
-    content += "#version 330 core\nin vec2 TexCoords;\nout vec4 FragColor;\n";
+    content += "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n";
 
     for (const auto& currentNode : m_nodesToSerialize)
     {

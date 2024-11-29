@@ -4,6 +4,8 @@
 #include <fstream>
 #include <glad/glad.h>
 
+#include "Application.h"
+
 Ref<Mesh> Mesh::CreateQuad()
 {
     Ref<Mesh> mesh = std::make_shared<Mesh>();
@@ -176,6 +178,16 @@ bool Shader::RecompileFragmentShader()
     }
     m_loaded = true;
     return true;
+}
+
+void Shader::UpdateValues()
+{
+    // Set time value
+    GLint timeLocation = glGetUniformLocation(m_program, "Time");
+    if (timeLocation != -1) {
+        float time = Application::GetInstance()->GetTime();
+        glUniform1f(timeLocation, time);
+    }
 }
 
 Framebuffer::Framebuffer(){}

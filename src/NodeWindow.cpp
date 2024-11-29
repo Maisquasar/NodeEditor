@@ -240,6 +240,7 @@ void NodeWindow::Render()
     m_framebuffer->Update();
     m_framebuffer->Bind();
     m_currentShader->Use();
+    m_currentShader->UpdateValues();
     m_quad->Draw();
     m_framebuffer->Unbind();
 }
@@ -380,7 +381,7 @@ void NodeWindow::DrawInspector() const
     Vec2f size = {size1 - 15, size1 - 15};
     m_framebuffer->SetNewSize(size);
     ImGui::Dummy(Vec2f(5, 5));
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), size);
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), size, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1));
     ImGui::Separator();
 
     if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())

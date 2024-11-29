@@ -12,6 +12,7 @@ struct NodeMethodInfo
     NodeMethodInfo() = default;
     NodeMethodInfo(NodeRef ref) : node(ref) {}
     NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), outputFormatStrings({std::move(_formatString)}) {}
+    NodeMethodInfo(NodeRef ref, std::vector<std::string> _formatStrings) : node(ref), outputFormatStrings(std::move(_formatStrings)) {}
 
     template<typename ... Args>
     NodeMethodInfo(NodeRef ref, std::string _formatString, Args ... args) : node(ref)
@@ -50,6 +51,16 @@ public:
     static std::shared_ptr<Node> CreateFromTemplateName(const std::string& name);
 
     TemplateList& GetTemplates() { return m_templateNodes; }
+private:
+    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs, 
+    const std::vector<std::tuple<std::string, Type>>& outputs,  const std::vector<std::string>& format);
+    
+    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs, const std::vector<std::tuple<std::string, Type>>& outputs,  const std::string& format);
+    void CreateTemplateNode(const std::string& name, const uint32_t& color,
+                            const std::vector<std::string>& inputs,
+                            const std::vector<Type>& inputTypes,
+                            const std::vector<std::string>& outputs,
+                            const std::vector<Type>& outputTypes, const std::string& format);
 
 private:
     static std::unique_ptr<NodeTemplateHandler> s_instance;

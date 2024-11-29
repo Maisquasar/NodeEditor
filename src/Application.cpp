@@ -139,6 +139,7 @@ void Application::Run()
     // Main loop
     while (!glfwWindowShouldClose(m_window))
     {
+        m_time = glfwGetTime();
         // Poll and handle events (inputs, window resize, etc.)
         glfwPollEvents();
 
