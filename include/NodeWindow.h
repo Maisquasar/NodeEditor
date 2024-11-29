@@ -6,6 +6,10 @@
 #define EDITOR_FILE_NAME "editor.settings"
 
 #pragma region Dialog
+class Framebuffer;
+class Shader;
+class Mesh;
+
 struct Filter
 {
     Filter(std::string _name, std::string _spec) : name(std::move(_name)), spec(std::move(_spec)) {}
@@ -22,7 +26,13 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
 #pragma endregion
 
 class LinkManager;
-class NodeWindow
+
+__interface Context
+{
+    virtual void Initialize() = 0;
+};
+
+class NodeWindow : public Context
 {
 public:
     void Initialize();
@@ -30,9 +40,10 @@ public:
     void PasteNode() const;
 
     void Update() const;
-
     void Draw();
-    
+    void Render();
+    void ResetActionManager();
+
     void Delete() const;
     static void DrawMainDock();
     void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos);
@@ -44,6 +55,10 @@ public:
     bool IsContextMenuOpen() const { return m_contextOpen; }
 
     Vec2f GetMousePosOnContext() const { return m_mousePosOnContext; }
+
+    void UpdateShader();
+
+    void ShouldUpdateShader() { m_shouldUpdateShader = true; }
 private:
     
     void DrawGrid();
@@ -64,6 +79,9 @@ private:
     bool m_contextOpen = false;
 
     Ref<Mesh> m_quad;
+    Ref<Shader> m_currentShader;
+    Ref<Framebuffer> m_framebuffer;
+    bool m_shouldUpdateShader = true;
 
     struct GridWindow
     {

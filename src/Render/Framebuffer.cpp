@@ -43,6 +43,8 @@ void Mesh::Draw() const
 
 bool Shader::Load(const std::filesystem::path& path)
 {
+    m_path = path;
+    
     auto vertPath = path.string() + ".vert";
     auto fragPath = path.string() + ".frag";
 
@@ -98,13 +100,82 @@ bool Shader::Load(const std::filesystem::path& path)
     }
     
     glDeleteShader(m_vertexShader);
-    glDeleteShader(m_fragmentShader);
+    m_loaded = true;
     return true;
 }
 
 void Shader::Use() const
 {
+    if (!m_loaded)
+        return;
     glUseProgram(m_program);
+}
+
+bool Shader::RecompileFragmentShader()
+{
+    m_loaded = false;
+    std::ifstream fragFile(m_path.string() + ".frag");
+    std::string fragCode((std::istreambuf_iterator<char>(fragFile)), (std::istreambuf_iterator<char>()));
+    const char* fragSource = fragCode.c_str();
+    // Retrieve the existing fragment shader
+    GLint attachedShaders = 0;
+    GLuint shaders[2]; // Typically, a program has a vertex and fragment shader
+    glGetAttachedShaders(m_program, 2, &attachedShaders, shaders);
+
+    GLuint fragmentShader = 0;
+    for (int i = 0; i < attachedShaders; i++)
+    {
+        GLint shaderType;
+        glGetShaderiv(shaders[i], GL_SHADER_TYPE, &shaderType);
+        if (shaderType == GL_FRAGMENT_SHADER)
+        {
+            fragmentShader = shaders[i];
+            break;
+        }
+    }
+
+    if (fragmentShader == 0)
+    {
+        std::cerr << "No fragment shader found in the program." << std::endl;
+    }
+    else
+    {
+        // Delete the old fragment shader
+        glDetachShader(m_program, fragmentShader);
+        glDeleteShader(fragmentShader);
+    }
+    // Create and compile the new fragment shader
+    GLuint newFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(newFragmentShader, 1, &fragSource, nullptr);
+    glCompileShader(newFragmentShader);
+
+    // Check for compilation errors
+    GLint success;
+    glGetShaderiv(newFragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetShaderInfoLog(newFragmentShader, 512, nullptr, infoLog);
+        std::cerr << "Fragment Shader Compilation Error:\n" << infoLog << std::endl;
+        glDeleteShader(newFragmentShader);
+        return false;
+    }
+
+    // Attach the new shader and relink the program
+    glAttachShader(m_program, newFragmentShader);
+    glLinkProgram(m_program);
+
+    // Check for linking errors
+    glGetProgramiv(m_program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(m_program, 512, nullptr, infoLog);
+        std::cerr << "Program Linking Error:\n" << infoLog << std::endl;
+        return false;
+    }
+    m_loaded = true;
+    return true;
 }
 
 Framebuffer::Framebuffer(){}
@@ -152,6 +223,16 @@ void Framebuffer::Unbind() const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void Framebuffer::Update()
+{
+    if (m_newSize.has_value())
+    {
+        glViewport(0, 0, static_cast<GLsizei>(m_newSize.value().x), static_cast<GLsizei>(m_newSize.value().y));
+        Resize(m_newSize.value());
+        m_newSize = std::nullopt;
+    }
 }
 
 void Framebuffer::Resize(const Vec2f& size)

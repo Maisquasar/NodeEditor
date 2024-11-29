@@ -1,9 +1,9 @@
 ﻿#include "NodeSystem/ShaderMaker.h"
 
+#include <fstream>
+
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
-
-#define FOR_SHADER_TOY
 
 void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf)
 {
@@ -130,7 +130,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node, cons
     }
 }
 
-void ShaderMaker::CreateFragmentShader(NodeManager* manager)
+void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeManager* manager)
 {
     // Get all nodes connected to the end node
     NodeRef endNode = manager->GetNodeWithName("Material").lock();
@@ -138,7 +138,63 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
     TemplateList& templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
     
     std::string content;
-    auto linkManager = manager->GetLinkManager();
+
+    FillFunctionList(manager);
+
+    content += "#version 330 core\nin vec2 TexCoords;\nout vec4 FragColor;\n";
+
+    for (const auto& currentNode : m_nodesToSerialize)
+    {
+        if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(currentNode.lock()))
+        {
+            content += "void " + customNode->GetFunctionName() + "(";
+            for (const auto& input : customNode->p_inputs)
+            {
+                content += "in " + TypeToGLSLType(input->type) + " " + input->name + ", ";
+            }
+            for (const auto& output : customNode->p_outputs)
+            {
+                content += "out " + TypeToGLSLType(output->type) + " " + output->name + ", ";
+            }
+            content.erase(content.end() - 2, content.end());
+            content += ")\n{\n";
+            content += customNode->GetContent() + "\n}\n";
+        }
+    }
+
+    content += "void main()\n{\n";
+    
+    SerializeFunctions(manager, endNode, content);
+
+    content += "\n// Output to screen\nFragColor = vec4(";
+    std::vector<LinkWeakRef> links = endNode->GetLinks();
+    std::string outputName;
+    if (links.empty())
+    {
+        outputName = GetValueAsString(endNode->GetInput(0));
+    }
+    else
+    {
+        Ref<Link> firstLink = links[0].lock();
+        outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
+    }
+    content += outputName + ", 1.0);\n}\n";
+    
+    ImGui::SetClipboardText(content.c_str());
+
+    std::ofstream file(path, std::ios::out | std::ios::trunc);
+    file << content;
+    file.close();
+}
+
+void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
+{
+    // Get all nodes connected to the end node
+    NodeRef endNode = manager->GetNodeWithName("Material").lock();
+
+    TemplateList& templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
+    
+    std::string content;
 
     FillFunctionList(manager);
 
@@ -161,18 +217,13 @@ void ShaderMaker::CreateFragmentShader(NodeManager* manager)
         }
     }
 
-#ifdef FOR_SHADER_TOY
     content += "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n// Normalized pixel coordinates (from 0 to 1)\nvec2 uv = fragCoord/iResolution.xy;\n";
-#endif
     
     SerializeFunctions(manager, endNode, content);
-
-#ifdef FOR_SHADER_TOY
     content += "\n// Output to screen\nfragColor = vec4(";
     auto firstLink = endNode->GetLinks()[0].lock();
     auto outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
     content += outputName + ", 1.0);\n}\n";
-#endif
     
     // TODO
     ImGui::SetClipboardText(content.c_str());

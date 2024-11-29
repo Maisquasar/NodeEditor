@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+__interface Context;
+
 class Action
 {
 public:
@@ -61,6 +63,9 @@ public:
 
     static const std::vector<ActionRef>& GetUndoneActions() { return m_current->m_undoneActions; }
 
+    
+    void SetContext(Context* context);
+
 private:
     void CleanRedoneActions();
 
@@ -68,6 +73,8 @@ private:
 
 private:
     static ActionManager* m_current;
+
+    Context* m_context;
     
     std::vector<ActionRef> m_undoneActions;
     std::vector<ActionRef> m_redoneActions;

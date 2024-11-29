@@ -24,11 +24,21 @@ void ActionManager::AddAction(const ActionRef& action)
     }
     m_current->CleanRedoneActions();
     m_current->m_undoneActions.push_back(action);
+
+    if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
+    {
+        nodeWindow->ShouldUpdateShader();
+    }
 }
 
 void ActionManager::SetCurrent(ActionManager* manager)
 {
     m_current = manager;
+}
+
+void ActionManager::SetContext(Context* context)
+{
+    m_context = context;
 }
 
 void ActionManager::CleanRedoneActions()

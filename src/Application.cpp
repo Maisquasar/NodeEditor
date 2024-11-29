@@ -129,6 +129,8 @@ void Application::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
+    m_mesh = Mesh::CreateQuad();
+    
     m_nodeWindow.Initialize();
 }
 
@@ -153,6 +155,8 @@ void Application::Run()
 
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        m_nodeWindow.Render();
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -186,6 +190,11 @@ void Application::Clean() const
 
     glfwDestroyWindow(m_window);
     glfwTerminate();
+}
+
+Ref<Mesh> Application::GetQuad() const
+{
+    return m_mesh;
 }
 
 void Application::Exit()

@@ -578,6 +578,8 @@ void NodeManager::LoadFromFile(const std::string& filePath)
     
     Deserialize(parser);
     m_firstFrame = true;
+
+    m_parent->ShouldUpdateShader();
 }
 
 void NodeManager::Serialize(CppSer::Serializer& serializer) const

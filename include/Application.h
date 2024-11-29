@@ -3,6 +3,8 @@
 
 #include "NodeWindow.h"
 
+class Framebuffer;
+
 class Application
 {
 public:
@@ -20,6 +22,8 @@ public:
 
     void Clean() const;
 
+    Ref<Mesh> GetQuad() const;
+
     static void Exit();
 
     static uint64_t GetFrameCount() { return s_instance->m_frameCount; }
@@ -34,5 +38,7 @@ private:
     NodeWindow m_nodeWindow;
 
     uint64_t m_frameCount = 0;
+
+    Ref<Mesh> m_mesh; // to move to a resource manager
     
 };

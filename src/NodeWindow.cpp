@@ -1,5 +1,6 @@
 #include "NodeWindow.h"
 
+#include <complex.h>
 #include <filesystem>
 #include <map>
 #include <set>
@@ -17,6 +18,7 @@
 #include "Actions/ActionPaste.h"
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/ParamNode.h"
+#include "Render/Framebuffer.h"
 class ParamNode;
 using namespace GALAXY;
 
@@ -100,6 +102,7 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
 
 void NodeWindow::Initialize()
 {
+    m_actionManager.SetContext(this);
     auto templateHandler = NodeTemplateHandler::Create();
 
     templateHandler->Initialize();
@@ -107,6 +110,13 @@ void NodeWindow::Initialize()
     m_nodeManager = new NodeManager(this);
     
     LoadEditorFile(EDITOR_FILE_NAME);
+
+    m_quad = Application::GetInstance()->GetQuad();
+    m_currentShader = std::make_shared<Shader>();
+    m_currentShader->Load("shaders/shader");
+
+    m_framebuffer = std::make_shared<Framebuffer>();
+    m_framebuffer->Initialize();
 }
 
 void NodeWindow::PasteNode() const
@@ -223,6 +233,23 @@ void NodeWindow::Draw()
     }
 }
 
+void NodeWindow::Render()
+{
+    UpdateShader();
+
+    m_framebuffer->Update();
+    m_framebuffer->Bind();
+    m_currentShader->Use();
+    m_quad->Draw();
+    m_framebuffer->Unbind();
+}
+
+void NodeWindow::ResetActionManager()
+{
+    m_actionManager = ActionManager();
+    m_actionManager.SetContext(this);
+}
+
 void NodeWindow::DrawMainBar()
 {
     if (ImGui::BeginMainMenuBar())
@@ -234,7 +261,7 @@ void NodeWindow::DrawMainBar()
                 m_nodeManager->Clean();
                 delete m_nodeManager;
                 m_nodeManager = new NodeManager(this);
-                m_actionManager = ActionManager();
+                ResetActionManager();
             }
             if (ImGui::MenuItem("Open", "CTRL+O"))
             {
@@ -242,7 +269,7 @@ void NodeWindow::DrawMainBar()
                 if (const std::string path = OpenDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
                     m_nodeManager->LoadFromFile(path);
-                    m_actionManager = ActionManager();
+                    ResetActionManager();
                 }
             }
             if (ImGui::MenuItem("Save", "CTRL+S"))
@@ -265,10 +292,10 @@ void NodeWindow::DrawMainBar()
                     m_nodeManager->SaveToFile(path);
                 }
             }
-            if (ImGui::MenuItem("Create shader"))
+            if (ImGui::MenuItem("Export to shaderToy"))
             {
                 ShaderMaker shaderMaker;
-                shaderMaker.CreateFragmentShader(m_nodeManager);
+                shaderMaker.CreateShaderToyShader(m_nodeManager);
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "ALT+F4"))
@@ -347,6 +374,13 @@ void NodeWindow::DrawInspector() const
     
     ImGui::Text("Inspector");
 
+    ImGui::Separator();
+
+    
+    Vec2f size = {size1 - 15, size1 - 15};
+    m_framebuffer->SetNewSize(size);
+    ImGui::Dummy(Vec2f(5, 5));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), size);
     ImGui::Separator();
 
     if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())
@@ -484,6 +518,17 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
 void NodeWindow::SetOpenContextMenu(bool shouldOpen)
 {
     m_shouldOpenContextMenu = shouldOpen;
+}
+
+void NodeWindow::UpdateShader()
+{
+    if (m_shouldUpdateShader)
+    {
+        ShaderMaker shaderMaker;
+        shaderMaker.CreateFragmentShader("shaders/shader.frag", m_nodeManager);
+        m_currentShader->RecompileFragmentShader();
+        m_shouldUpdateShader = false;
+    }
 }
 
 void NodeWindow::DrawGrid()

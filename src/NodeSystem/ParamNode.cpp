@@ -3,6 +3,7 @@
 #include <CppSerializer.h>
 #include <imgui_stdlib.h>
 
+#include "Type.h"
 #include "Actions/Action.h"
 #include "Actions/ActionChangeInput.h"
 #include "Actions/ActionChangeType.h"

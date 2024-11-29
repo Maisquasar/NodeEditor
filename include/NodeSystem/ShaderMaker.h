@@ -32,7 +32,8 @@ public:
     void FillFunctionList(NodeManager* manager);
     void FillRecurrence(NodeManager* manager, const NodeRef& node, const NodeRef& parentNode);
     
-    void CreateFragmentShader(NodeManager* manager);
+    void CreateFragmentShader(const std::filesystem::path& path, NodeManager* manager);
+    void CreateShaderToyShader(NodeManager* manager);
     void SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content);
 
     static std::string GetValueAsString(InputRef input);
