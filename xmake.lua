@@ -22,6 +22,11 @@ target("NodeEditor")
     set_kind("binary")
     add_files("src/**.cpp")
     add_headerfiles("include/**.h")
+    
+    
+    if is_mode("debug") then
+        add_defines("_DEBUG")
+    end
 
     add_defines("IMGUI_IMPLEMENTATION", "IMGUI_DEFINE_MATH_OPERATORS")
 

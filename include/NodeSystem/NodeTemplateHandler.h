@@ -39,6 +39,9 @@ public:
     static NodeTemplateHandler* Create() { return (s_instance = std::make_unique<NodeTemplateHandler>()).get(); }
     static NodeTemplateHandler* GetInstance() { return s_instance.get(); }
 
+    void RunUnitTests();
+    bool RunUnitTest(const NodeMethodInfo& info);
+    
     void Initialize();
 
     static std::vector<std::string> GetTemplateFormatStrings(TemplateID templateID);

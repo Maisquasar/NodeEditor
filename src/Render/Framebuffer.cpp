@@ -91,8 +91,67 @@ bool Shader::Load(const std::filesystem::path& path)
     
     glAttachShader(m_program, m_vertexShader);
     glAttachShader(m_program, m_fragmentShader);
-    glLinkProgram(m_program);
+    
+    Link();
+    
+    glDeleteShader(m_vertexShader);
+    m_loaded = true;
+    return true;
+}
 
+bool Shader::LoadVertexShader(const std::filesystem::path& vertPath)
+{
+    if (!std::filesystem::exists(vertPath))
+        return false;
+    
+    std::ifstream vertFile(vertPath);
+    std::string vertCode((std::istreambuf_iterator<char>(vertFile)), (std::istreambuf_iterator<char>()));
+    const char* vertSource = vertCode.c_str();
+
+    m_program = glCreateProgram();
+    m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(m_vertexShader, 1, &vertSource, nullptr);
+    glCompileShader(m_vertexShader);
+
+    // Check for compilation errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(m_vertexShader, 512, nullptr, infoLog);
+        std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool Shader::SetFragmentShaderContent(const std::string& string)
+{
+    const char* fragSource = string.c_str();
+    m_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(m_fragmentShader, 1, &fragSource, nullptr);
+    glCompileShader(m_fragmentShader);
+
+    int success;
+    char infoLog[512];
+    // Check for compilation errors
+    glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(m_fragmentShader, 512, nullptr, infoLog);
+        std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        return false;
+    }
+    
+    glAttachShader(m_program, m_fragmentShader);
+
+    return true;
+}
+
+bool Shader::Link()
+{
+    glLinkProgram(m_program);
+    int success;
+    char infoLog[512];
     // Check for linking errors
     glGetProgramiv(m_program, GL_LINK_STATUS, &success);
     if (!success) {
@@ -100,9 +159,6 @@ bool Shader::Load(const std::filesystem::path& path)
         std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         return false;
     }
-    
-    glDeleteShader(m_vertexShader);
-    m_loaded = true;
     return true;
 }
 

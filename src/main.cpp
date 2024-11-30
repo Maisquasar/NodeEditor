@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Custom node, Search with special character, Implement a shading in real time
+    //TODO : Search with special character, Improve user inputs
     Application* app = Application::Create();
     
     app->Initialize();

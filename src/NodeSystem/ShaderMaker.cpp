@@ -408,6 +408,8 @@ std::string ShaderMaker::TypeToGLSLType(Type type)
         return "vec2";
     case Type::Vector3:
         return "vec3";
+    case Type::Vector4:
+        return "vec4";
     default:
         return "void";
     }

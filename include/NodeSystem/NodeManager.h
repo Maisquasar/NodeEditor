@@ -10,6 +10,7 @@
 #include "UUID.h"
 
 #include "Node.h"
+#include "Type.h"
 
 
 class NodeWindow;

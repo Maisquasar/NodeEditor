@@ -9,6 +9,7 @@
 
 #include "NodeWindow.h"
 #include "Serializer.h"
+#include "Type.h"
 #include "Actions/Action.h"
 #include "Actions/ActionCreateLink.h"
 #include "Actions/ActionDeleteNodesAndLinks.h"
