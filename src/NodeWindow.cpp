@@ -399,7 +399,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
     // Context menu
     if (m_contextOpen = ImGui::BeginPopup("context"); m_contextOpen)
     {
-        static ImGuiTextFilter filter;
+        static ImGuiTextFilter filter("");
 
         if (m_shouldOpenContextMenu == 0)
         {
@@ -445,7 +445,22 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         for (uint32_t i = 0; i < templates.size()/* && j < displayCount*/; i++)
         {
             std::string name = templates[i].node->GetName();
-            if (!filter.PassFilter(name.c_str()) || !templates[i].node->GetAllowInteraction())
+            if (!templates[i].node->GetAllowInteraction())
+                continue;
+            bool passFilter = false;
+            if (filter.PassFilter(name.c_str()))
+                passFilter = true;
+            for (uint32_t j = 0; j < templates[i].searchStrings.size(); j++)
+            {
+                if (passFilter)
+                    break;
+                if (filter.PassFilter(templates[i].searchStrings[j].c_str()))
+                {
+                    passFilter = true;
+                    break;
+                }
+            }
+            if (!passFilter)
                 continue;
             if (isLinking)
             {
@@ -456,7 +471,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 if (!isOutput && templates[i].node->p_outputs.empty() || isOutput && templates[i].node->p_inputs.empty())
                     continue;
             }
-            if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter))
+            if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
             {
                 const TemplateID templateId = templates[i].node->GetTemplateID();
                 

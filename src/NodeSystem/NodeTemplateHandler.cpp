@@ -156,12 +156,12 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("To Vector3", makeColor, { {"X", Type::Float}}, { {"Result", Type::Vector3} }, "vec3(%s)");
     CreateTemplateNode("To Vector4", makeColor, { {"X", Type::Float}}, { {"Result", Type::Vector4} }, "vec4(%s)");
     
-    CreateTemplateNode("Add", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s + %s");
-    CreateTemplateNode("Multiply", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s * %s");
-    CreateTemplateNode("Subtract", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s - %s");
-    CreateTemplateNode("Divide", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s / %s");
+    CreateTemplateNode("Add", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s + %s", {"+"});
+    CreateTemplateNode("Subtract", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s - %s", {"-"});
+    CreateTemplateNode("Multiply", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s * %s", {"*"});
+    CreateTemplateNode("Divide", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s / %s", {"/"});
     
-    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "1.0 - %s");
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "1.0 - %s", {"1- "});
     CreateTemplateNode("Abs", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "abs(%s)");
     CreateTemplateNode("Floor", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "floor(%s)");
     CreateTemplateNode("Ceil", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "ceil(%s)");
@@ -182,7 +182,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Smooth Step", functionColor, { {"Edge0", Type::Float}, {"Edge1", Type::Float}, {"Value", Type::Float} }, { {"Result", Type::Float} }, "smoothstep(%s, %s, %s)");
     CreateTemplateNode("Step", functionColor, { {"Edge", Type::Float}, {"Value", Type::Float} }, { {"Result", Type::Float} }, "step(%s, %s)");
     CreateTemplateNode("Fract", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "fract(%s)");
-    CreateTemplateNode("Power", functionColor, { {"Base", Type::Float}, {"Exp", Type::Float} }, { {"Result", Type::Float} }, "pow(%s, %s)");
+    CreateTemplateNode("Power", functionColor, { {"Base", Type::Float}, {"Exp", Type::Float} }, { {"Result", Type::Float} }, "pow(%s, %s)", {"**"});
     CreateTemplateNode("Log", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "log(%s)");
     CreateTemplateNode("Exp", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "exp(%s)");
     CreateTemplateNode("Log2", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "log2(%s)");
@@ -200,17 +200,17 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("To Vector3", makeColor, { {"Value", Type::Vector2} }, { {"Result", Type::Vector3} }, "vec3(%s, 0.0)");
     CreateTemplateNode("To Vector4", makeColor, { {"Value", Type::Vector2} }, { {"Result", Type::Vector4} }, "vec4(%s, 0.0, 0.0)");
 
-    CreateTemplateNode("Add", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s + %s");
-    CreateTemplateNode("Sub", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s - %s");
-    CreateTemplateNode("Mul", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s * %s");
-    CreateTemplateNode("Div", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s / %s");
+    CreateTemplateNode("Add", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s + %s", {"+"});
+    CreateTemplateNode("Subtract", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s - %s", {"-"});
+    CreateTemplateNode("Multiply", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s * %s", {"*"});
+    CreateTemplateNode("Divide", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s / %s", {"/"});
     
     CreateTemplateNode("Dot", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Float} }, "dot(%s, %s)");
     CreateTemplateNode("Normalize", functionColor, { {"Value", Type::Vector2} }, { {"Result", Type::Vector2} }, "normalize(%s)");
     CreateTemplateNode("Length", functionColor, { {"Value", Type::Vector2} }, { {"Result", Type::Float} }, "length(%s)");
     CreateTemplateNode("Distance", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Float} }, "distance(%s, %s)");
     
-    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "1.0 - %s");
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "1.0 - %s", {"1-"});
     CreateTemplateNode("Abs", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "abs(%s)");
     CreateTemplateNode("Floor", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "floor(%s)");
     CreateTemplateNode("Ceil", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "ceil(%s)");
@@ -231,7 +231,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Smooth Step", functionColor, { {"Edge0", Type::Vector2}, {"Edge1", Type::Vector2}, {"Value", Type::Vector2} }, { {"Result", Type::Vector2} }, "smoothstep(%s, %s, %s)");
     CreateTemplateNode("Step", functionColor, { {"Edge", Type::Vector2}, {"Value", Type::Vector2} }, { {"Result", Type::Vector2} }, "step(%s, %s)");
     CreateTemplateNode("Fract", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "fract(%s)");
-    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector2}, {"Exp", Type::Vector2} }, { {"Result", Type::Vector2} }, "pow(%s, %s)");
+    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector2}, {"Exp", Type::Vector2} }, { {"Result", Type::Vector2} }, "pow(%s, %s)", {"**"});
     CreateTemplateNode("Log", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "log(%s)");
     CreateTemplateNode("Exp", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "exp(%s)");
     CreateTemplateNode("Log2", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "log2(%s)");
@@ -247,10 +247,10 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("To Vector2", makeColor, { {"Value", Type::Vector3} }, { {"Result", Type::Vector2} }, "vec2(%s)");
     CreateTemplateNode("To Vector4", makeColor, { {"Value", Type::Vector3} }, { {"Result", Type::Vector4} }, "vec4(%s, 0.0)");
 
-    CreateTemplateNode("Add", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s + %s");
-    CreateTemplateNode("Sub", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s - %s");
-    CreateTemplateNode("Mul", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s * %s");
-    CreateTemplateNode("Div", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s / %s");
+    CreateTemplateNode("Add", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s + %s", {"+"});
+    CreateTemplateNode("Subtract", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s - %s", {"-"});
+    CreateTemplateNode("Multiply", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s * %s", {"*"});
+    CreateTemplateNode("Divide", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s / %s", {"/"});
     
     CreateTemplateNode("Dot", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Float} }, "dot(%s, %s)");
     CreateTemplateNode("Cross", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "cross(%s, %s)");
@@ -258,7 +258,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Length", functionColor, { {"Value", Type::Vector3} }, { {"Result", Type::Float} }, "length(%s)");
     CreateTemplateNode("Distance", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Float} }, "distance(%s, %s)");
     
-    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "1.0 - %s");
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "1.0 - %s", {"1-"});
     CreateTemplateNode("Abs", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "abs(%s)");
     CreateTemplateNode("Floor", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "floor(%s)");
     CreateTemplateNode("Ceil", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "ceil(%s)");
@@ -279,7 +279,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Smooth Step", functionColor, { {"Edge0", Type::Vector3}, {"Edge1", Type::Vector3}, {"Value", Type::Vector3} }, { {"Result", Type::Vector3} }, "smoothstep(%s, %s, %s)");
     CreateTemplateNode("Step", functionColor, { {"Edge", Type::Vector3}, {"Value", Type::Vector3} }, { {"Result", Type::Vector3} }, "step(%s, %s)");
     CreateTemplateNode("Fract", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "fract(%s)");
-    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector3}, {"Exp", Type::Vector3} }, { {"Result", Type::Vector3} }, "pow(%s, %s)");
+    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector3}, {"Exp", Type::Vector3} }, { {"Result", Type::Vector3} }, "pow(%s, %s)", {"**"});
     CreateTemplateNode("Log", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "log(%s)");
     CreateTemplateNode("Exp", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "exp(%s)");
     CreateTemplateNode("Log2", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "log2(%s)");
@@ -294,17 +294,17 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("To Vector2", makeColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector2} }, "vec2(%s)");
     CreateTemplateNode("To Vector3", makeColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector3} }, "vec3(%s)");
 
-    CreateTemplateNode("Add", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s + %s");
-    CreateTemplateNode("Sub", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s - %s");
-    CreateTemplateNode("Mul", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s * %s");
-    CreateTemplateNode("Div", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s / %s");
+    CreateTemplateNode("Add", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s + %s", {"+"});
+    CreateTemplateNode("Subtract", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s - %s", {"-"});
+    CreateTemplateNode("Multiply", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s * %s", {"*"});
+    CreateTemplateNode("Divide", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Vector4}}, "%s / %s", {"/"});
     
     CreateTemplateNode("Dot", functionColor, {{"A", Type::Vector4}, {"B", Type::Vector4}}, {{"Result", Type::Float}}, "dot(%s, %s)");
     CreateTemplateNode("Normalize", functionColor, {{"A", Type::Vector4}}, {{"Result", Type::Vector4}}, "normalize(%s)");
     CreateTemplateNode("Length", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Float} }, "length(%s)");
     CreateTemplateNode("Distance", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Float} }, "distance(%s, %s)");
 
-    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "1.0 - %s");
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "1.0 - %s", {"1-"});
     CreateTemplateNode("Abs", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "abs(%s)");
     CreateTemplateNode("Floor", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "floor(%s)");
     CreateTemplateNode("Ceil", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "ceil(%s)");
@@ -325,7 +325,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Smooth Step", functionColor, { {"Edge0", Type::Vector4}, {"Edge1", Type::Vector4}, {"Value", Type::Vector4} }, { {"Result", Type::Vector4} }, "smoothstep(%s, %s, %s)");
     CreateTemplateNode("Step", functionColor, { {"Edge", Type::Vector4}, {"Value", Type::Vector4} }, { {"Result", Type::Vector4} }, "step(%s, %s)");
     CreateTemplateNode("Fract", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "fract(%s)");
-    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector4}, {"Exp", Type::Vector4} }, { {"Result", Type::Vector4} }, "pow(%s, %s)");
+    CreateTemplateNode("Power", functionColor, { {"Base", Type::Vector4}, {"Exp", Type::Vector4} }, { {"Result", Type::Vector4} }, "pow(%s, %s)", {"**"});
     CreateTemplateNode("Log", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "log(%s)");
     CreateTemplateNode("Exp", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "exp(%s)");
     CreateTemplateNode("Log2", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "log2(%s)");
@@ -419,7 +419,7 @@ void NodeTemplateHandler::CreateTemplateNode(
     const std::string& name, const uint32_t& color,
     const std::vector<std::tuple<std::string, Type>>& inputs,
     const std::vector<std::tuple<std::string, Type>>& outputs,
-    const std::vector<std::string>& formats)
+    const std::vector<std::string>& formats, const std::vector<std::string>& searchStrings)
 {
     NodeRef node = std::make_shared<Node>(name);
     node->SetTopColor(color);
@@ -433,44 +433,13 @@ void NodeTemplateHandler::CreateTemplateNode(
         node->AddOutput(std::get<0>(output), std::get<1>(output));
     }
     NodeMethodInfo info = {node, formats};
+    info.searchStrings = std::move(searchStrings);
     AddTemplateNode(info);
 }
 
-void NodeTemplateHandler::CreateTemplateNode(
-    const std::string& name, const uint32_t& color,
-    const std::vector<std::tuple<std::string, Type>>& inputs,
-    const std::vector<std::tuple<std::string, Type>>& outputs,
-    const std::string& format)
-{
-    CreateTemplateNode(name, color, inputs, outputs, std::vector<std::string>{format});
-}
-
 void NodeTemplateHandler::CreateTemplateNode(const std::string& name, const uint32_t& color,
-    const std::vector<std::string>& inputs, const std::vector<Type>& inputTypes,
-    const std::vector<std::string>& outputs, const std::vector<Type>& outputTypes, const std::string& format)
+    const std::vector<std::tuple<std::string, Type>>& inputs, const std::vector<std::tuple<std::string, Type>>& outputs,
+    const std::string& format, const std::vector<std::string>& searchStrings)
 {
-    // Iterate over each input type
-    for (const auto& inputType : inputTypes)
-    {
-        // Create a modified inputs list with the corresponding input names and this input type
-        std::vector<std::tuple<std::string, Type>> modifiedInputs;
-        for (const auto& input : inputs)
-        {
-            modifiedInputs.emplace_back(input, inputType); // Assign the current input type to all inputs
-        }
-
-        // Iterate over each output type
-        for (const auto& outputType : outputTypes)
-        {
-            // Create a modified outputs list with the corresponding output names and this output type
-            std::vector<std::tuple<std::string, Type>> modifiedOutputs;
-            for (const auto& output : outputs)
-            {
-                modifiedOutputs.emplace_back(output, outputType); // Assign the current output type to all outputs
-            }
-
-            // Use the existing CreateTemplateNode method with modified inputs/outputs
-            CreateTemplateNode(name, color, modifiedInputs, modifiedOutputs, format);
-        }
-    }
+    CreateTemplateNode(name, color, inputs, outputs, std::vector<std::string>{format}, searchStrings);
 }

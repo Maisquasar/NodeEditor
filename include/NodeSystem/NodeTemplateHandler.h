@@ -28,6 +28,7 @@ struct NodeMethodInfo
 
     NodeRef node;
     std::vector<std::string> outputFormatStrings;
+    std::vector<std::string> searchStrings;
 };
 
 using TemplateList = std::vector<NodeMethodInfo>;
@@ -55,15 +56,13 @@ public:
 
     TemplateList& GetTemplates() { return m_templateNodes; }
 private:
-    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs, 
-    const std::vector<std::tuple<std::string, Type>>& outputs,  const std::vector<std::string>& format);
+    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs,
+                            const std::vector<std::tuple<std::string, Type>>& outputs, const std::vector<std::string>& format,
+                            const std::vector<std::string>& searchStrings = {});
     
-    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs, const std::vector<std::tuple<std::string, Type>>& outputs,  const std::string& format);
-    void CreateTemplateNode(const std::string& name, const uint32_t& color,
-                            const std::vector<std::string>& inputs,
-                            const std::vector<Type>& inputTypes,
-                            const std::vector<std::string>& outputs,
-                            const std::vector<Type>& outputTypes, const std::string& format);
+    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs,
+                            const std::vector<std::tuple<std::string, Type>>& outputs, const std::string& format,
+                            const std::vector<std::string>& searchStrings = {});
 
 private:
     static std::unique_ptr<NodeTemplateHandler> s_instance;
