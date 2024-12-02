@@ -70,6 +70,8 @@ void Application::Initialize()
         return;
     }
 
+    std::filesystem::create_directory(std::filesystem::current_path().generic_string() + TEMP_FOLDER);
+
     std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
 
     // Create a windowed mode window and its OpenGL context
@@ -182,6 +184,8 @@ void Application::Render()
 
 void Application::Clean() const
 {
+    auto path = std::filesystem::current_path().generic_string() + TEMP_FOLDER;
+    std::filesystem::remove_all(path);
     m_nodeWindow.Delete();
     
     // Cleanup

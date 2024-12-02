@@ -3,6 +3,7 @@
 #include <CppSerializer.h>
 
 #include "imgui_stdlib.h"
+#include "NodeWindow.h"
 #include "Actions/ActionChangeInput.h"
 #include "Actions/ActionChangeType.h"
 #include "NodeSystem/ShaderMaker.h"
@@ -12,6 +13,25 @@ Node* CustomNode::Clone() const
     auto node = new CustomNode();
     Internal_Clone(node);
     return node;
+}
+
+void CustomNode::Update()
+{
+    auto path = std::filesystem::current_path().generic_string() + GetTempPath().generic_string();
+    if (!std::filesystem::exists(path))
+        return;
+    if (std::filesystem::last_write_time(path) <= m_lastWriteTime)
+        return;
+
+    m_lastWriteTime = std::filesystem::last_write_time(path);
+    std::ifstream file(path);
+    std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
+    m_content = content;
+}
+
+std::filesystem::path CustomNode::GetTempPath() const
+{
+    return TEMP_FOLDER + (std::to_string(p_uuid) + ".frag");
 }
 
 void CustomNode::ShowInInspector()
@@ -35,7 +55,7 @@ void CustomNode::ShowInInspector()
     }
     for (int i = 0; i < p_inputs.size(); i++)
     {
-        ImGui::PushID(&i);
+        ImGui::PushID(i);
         if (ImGui::TreeNode("##", "Input %d", i))
         {
             std::string name = p_inputs[i]->name;
@@ -86,11 +106,10 @@ void CustomNode::ShowInInspector()
             int type = static_cast<int>(p_outputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
             {
-                // TODO : Test this
                 Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, p_outputs[i], static_cast<Type>(type + 1), p_outputs[i]->type);
                 ActionManager::AddAction(changeType);
                 p_nodeManager->GetLinkManager()->RemoveLinks(p_outputs[i]);
-                p_inputs[i]->type = static_cast<Type>(type + 1);
+                p_outputs[i]->type = static_cast<Type>(type + 1);
             }
             ImGui::TreePop();
         }
@@ -99,7 +118,21 @@ void CustomNode::ShowInInspector()
 
     ImGui::PopID();
     ImGui::Separator();
-    
+
+    if (ImGui::Button("Edit on vscode"))
+    {
+        std::filesystem::path tempPath = std::filesystem::current_path().generic_string() + GetTempPath().generic_string();
+        std::cout << tempPath << std::filesystem::current_path();
+        std::ofstream file(tempPath);
+        if (file.is_open())
+        {
+            file << m_content;
+            file.close();
+            std::string command = "code \"" + tempPath.generic_string() + "\"";
+            std::system(command.c_str());
+            m_lastWriteTime = std::filesystem::last_write_time(tempPath);
+        }
+    }
     ImGui::InputTextMultiline("Content", &m_content);
 }
 
@@ -236,11 +269,13 @@ std::string CustomNode::ToShader(ShaderMaker* shaderMaker, const FuncStruct& fun
     {
         std::string variableName = funcStruct.outputs[k];
         std::string glslType = ShaderMaker::TypeToGLSLType(p_outputs[k]->type);
-            
+
+        if (allVariableNames.contains(variableName))
+            continue;
+        allVariableNames.insert(variableName);
         std::string thisContent = glslType + " " + variableName + ";\n";
         content += thisContent;
     }
-
         
     std::string toFormat = toFormatList[0];
     std::string secondHalf = toFormat;

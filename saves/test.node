@@ -1,111 +1,46 @@
 v1.0
  ------------- Nodes ------------- 
-[Node Count] : 7
-   ------------- Node ------------- 
-  [TemplateID] : 8812250387082948371
-  [UUID] : 15349960965377174161
-  [Position] : -234.983459, -101.091690
-  [Input Count] : 1
-  [Input Name 0] : In
-  [Input Type 0] : 1
-  [Output Count] : 1
-  [Output Name 0] : Out
-  [Output Type 0] : 1
-  [Content] : Out = sin(In);
-   ============= Node ============= 
+[Node Count] : 3
    ------------- Node ------------- 
   [TemplateID] : 17012624183745116830
-  [UUID] : 4326960791982663485
-  [Position] : 481.000000, -62.000000
+  [UUID] : 2271915348091320420
+  [Position] : 0.000000, 0.000000
   [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
    ============= Node ============= 
    ------------- Node ------------- 
-  [TemplateID] : 10594136665465175771
-  [UUID] : 3011884563408881031
-  [Position] : 28.000000, -42.500000
-  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 15589411689262857270
-  [UUID] : 4246438757948581997
-  [Position] : -465.000000, -86.500000
-   ============= Node ============= 
-   ------------- Node ------------- 
   [TemplateID] : 8812250387082948371
-  [UUID] : 9321761857394756168
-  [Position] : 229.000000, -49.500008
+  [UUID] : 6239055631930981925
+  [Position] : -221.391830, 22.037634
   [Input Count] : 1
-  [Input Name 0] : In
-  [Input Type 0] : 5
+  [Input Name 0] : uv
+  [Input Type 0] : 4
   [Output Count] : 1
   [Output Name 0] : Out
   [Output Type 0] : 5
-  [Content] : Out = vec3(1.0) - In;
+  [Content] : vec3 col = vec3(0.0);\n\n// Calcul pour le premier cercle double\nvec2 centerA1 = vec2(0.58, 0.35);\nvec2 centerB1 = vec2(0.58, 0.15);\nfloat diameter1 = 0.03;\nfloat delta1 = 0.37;\nfloat a1 = length(uv - centerA1) - diameter1;\nfloat b1 = length(uv - centerB1) - diameter1;\nfloat h1 = clamp(0.5 + 0.5 * (a1 - b1) / delta1, 0.0, 1.0);\nfloat smin1 = mix(a1, b1, h1) - delta1 * h1 * (1.0 - h1);\ncol = mix(col, vec3(0.9, 0.15, 0.15), smin1 < 0.0 ? 1.0 : 0.0);\n\n// Calcul pour le deuxième cercle double\nvec2 centerA2 = vec2(0.35, 0.65);\nvec2 centerB2 = vec2(0.35, 0.45);\nfloat diameter2 = 0.04;\nfloat delta2 = 0.35;\nfloat a2 = length(uv - centerA2) - diameter2;\nfloat b2 = length(uv - centerB2) - diameter2;\nfloat h2 = clamp(0.5 + 0.5 * (a2 - b2) / delta2, 0.0, 1.0);\nfloat smin2 = mix(a2, b2, h2) - delta2 * h2 * (1.0 - h2);\ncol = mix(col, vec3(0.9, 0.15, 0.15), smin2 < 0.0 ? 1.0 : 0.0);\n\n// Calcul pour le troisième cercle double\nvec2 centerA3 = vec2(0.5, 0.7);\nvec2 centerB3 = vec2(0.5, 0.4);\nfloat diameter3 = 0.15;\nfloat delta3 = 0.3;\nfloat a3 = length(uv - centerA3) - diameter3;\nfloat b3 = length(uv - centerB3) - diameter3;\nfloat h3 = clamp(0.5 + 0.5 * (a3 - b3) / delta3, 0.0, 1.0);\nfloat smin3 = mix(a3, b3, h3) - delta3 * h3 * (1.0 - h3);\ncol = mix(col, vec3(1.0, 0.2, 0.2), smin3 < 0.0 ? 1.0 : 0.0);\n\n// Calcul pour le quatrième cercle double\nvec2 centerA4 = vec2(0.42, 0.35);\nvec2 centerB4 = vec2(0.42, 0.15);\nfloat diameter4 = 0.03;\nfloat delta4 = 0.37;\nfloat a4 = length(uv - centerA4) - diameter4;\nfloat b4 = length(uv - centerB4) - diameter4;\nfloat h4 = clamp(0.5 + 0.5 * (a4 - b4) / delta4, 0.0, 1.0);\nfloat smin4 = mix(a4, b4, h4) - delta4 * h4 * (1.0 - h4);\ncol = mix(col, vec3(1.0, 0.2, 0.2), smin4 < 0.0 ? 1.0 : 0.0);\n\n// Calcul pour le premier cercle simple\nvec2 centerC1 = vec2(0.6, 0.65);\nfloat diameterC1 = 0.1;\nfloat circle1 = length(uv - centerC1) > diameterC1 ? 0.0 : 1.0;\ncol = mix(col, vec3(0.1, 0.1, 1.0), circle1);\n\n// Calcul pour le deuxième cercle simple\nvec2 centerC2 = vec2(0.55, 0.7);\nfloat diameterC2 = 0.015;\nfloat circle2 = length(uv - centerC2) > diameterC2 ? 0.0 : 1.0;\ncol = mix(col, vec3(0.5, 0.5, 1.0), circle2);\n\n// Calcul pour le troisième cercle simple\nfloat diameterC3 = 0.01;\nfloat circle3 = length(uv - centerC2) > diameterC3 ? 0.0 : 1.0;\ncol = mix(col, vec3(1.0, 1.0, 1.0), circle3);\n// Usage\nOut = col;
    ============= Node ============= 
    ------------- Node ------------- 
-  [TemplateID] : 8812250387082948371
-  [UUID] : 6201238049271601472
-  [Position] : -210.236771, 17.527679
-  [Input Count] : 1
-  [Input Name 0] : In
-  [Input Type 0] : 1
-  [Output Count] : 1
-  [Output Name 0] : Out
-  [Output Type 0] : 1
-  [Content] : Out = sin(In);
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 6727227689689397568
-  [UUID] : 8501008334821994681
-  [Position] : -702.077026, -72.037735
+  [TemplateID] : 6101390888527617091
+  [UUID] : 2638092005519826129
+  [Position] : -402.275787, 31.339481
   [Param Name] : TexCoords
   [Param Type] : 4
    ============= Node ============= 
  ============= Nodes ============= 
  ------------- Links ------------- 
-[Link Count] : 7
+[Link Count] : 2
    ------------- Link ------------- 
-  [From Node Index] : 9321761857394756168
+  [From Node Index] : 6239055631930981925
   [From Output Index] : 0
-  [To Node Index] : 4326960791982663485
+  [To Node Index] : 2271915348091320420
   [To Input Index] : 0
    ============= Link ============= 
    ------------- Link ------------- 
-  [From Node Index] : 4246438757948581997
+  [From Node Index] : 2638092005519826129
   [From Output Index] : 0
-  [To Node Index] : 15349960965377174161
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 15349960965377174161
-  [From Output Index] : 0
-  [To Node Index] : 3011884563408881031
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 4246438757948581997
-  [From Output Index] : 1
-  [To Node Index] : 6201238049271601472
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 6201238049271601472
-  [From Output Index] : 0
-  [To Node Index] : 3011884563408881031
-  [To Input Index] : 1
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 3011884563408881031
-  [From Output Index] : 0
-  [To Node Index] : 9321761857394756168
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 8501008334821994681
-  [From Output Index] : 0
-  [To Node Index] : 4246438757948581997
+  [To Node Index] : 6239055631930981925
   [To Input Index] : 0
    ============= Link ============= 
  ============= Links ============= 

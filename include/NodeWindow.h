@@ -4,6 +4,7 @@
 
 #define SAVE_FOLDER "/save/"
 #define EDITOR_FILE_NAME "editor.settings"
+#define TEMP_FOLDER "/tmp/"
 
 #pragma region Dialog
 class Framebuffer;

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Node.h"
+#include "Actions/ActionChangeType.h"
 
 class CustomNode : public Node
 {
@@ -9,6 +10,9 @@ public:
     ~CustomNode() override = default;
 
     virtual Node* Clone() const override;
+
+    void Update() override;
+    std::filesystem::path GetTempPath() const;
 
     void ShowInInspector() override;
 
@@ -27,6 +31,7 @@ public:
     void ClearOutputs();
 private:
     std::string m_content;
+    std::filesystem::file_time_type m_lastWriteTime;
 };
 
 using CustomNodeRef = Ref<CustomNode>;

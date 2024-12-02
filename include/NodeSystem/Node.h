@@ -106,6 +106,8 @@ public:
     void DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const;
     void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
 
+    virtual void Update();
+
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
     // Selected Methods

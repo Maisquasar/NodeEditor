@@ -146,10 +146,14 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
 
     content += "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n";
 
+    std::set<UUID> customNodesDone;
     for (const auto& currentNode : m_nodesToSerialize)
     {
         if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(currentNode.lock()))
         {
+            if (customNodesDone.contains(customNode->p_uuid))
+                continue;
+            customNodesDone.insert(customNode->p_uuid);
             content += "void " + customNode->GetFunctionName() + "(";
             for (const auto& input : customNode->p_inputs)
             {
@@ -201,10 +205,14 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 
     FillFunctionList(manager);
 
+    std::set<UUID> customNodesDone;
     for (const auto& currentNode : m_nodesToSerialize)
     {
         if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(currentNode.lock()))
         {
+            if (customNodesDone.contains(customNode->p_uuid))
+                continue;
+            customNodesDone.insert(customNode->p_uuid);
             content += "void " + customNode->GetFunctionName() + "(";
             for (const auto& input : customNode->p_inputs)
             {

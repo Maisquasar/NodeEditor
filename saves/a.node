@@ -1,0 +1,61 @@
+v1.0
+ ------------- Nodes ------------- 
+[Node Count] : 4
+   ------------- Node ------------- 
+  [TemplateID] : 17012624183745116830
+  [UUID] : 6596742393712567988
+  [Position] : 0.000000, 0.000000
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8812250387082948371
+  [UUID] : 16024430264665270863
+  [Position] : -224.818726, 50.740219
+  [Input Count] : 2
+  [Input Name 0] : uv
+  [Input Type 0] : 4
+  [Input Name 1] : iTime
+  [Input Type 1] : 1
+  [Output Count] : 1
+  [Output Name 0] : Out
+  [Output Type 0] : 5
+  [Content] :     float time = 51.384;\n\n    // MurmurHash13 intégré dans la fonction principale\n    const uint M = 0x5bd1e995u;\n    uint h = 1190494759u;\n    uvec3 src = floatBitsToUint(vec3(uv, time));\n    src *= M; src ^= src >> 24u; src *= M;\n    h *= M; h ^= src.x; h *= M; h ^= src.y; h *= M; h ^= src.z;\n    h ^= h >> 13u; h *= M; h ^= h >> 15u;\n\n    // Conversion en float entre 0 et 1\n    float hash = uintBitsToFloat(h & 0x007fffffu | 0x3f800000u) - 1.0;\n\n    uv = uv * 2.0 - 1.0;\n    if (dot(uv, uv) > 0.25 + 0.25 * sin(iTime * 3.0)) {\n        src = floatBitsToUint(vec3(uv, iTime * 100.0));\n        src *= M; src ^= src >> 24u; src *= M;\n        h = 1190494759u;\n        h *= M; h ^= src.x; h *= M; h ^= src.y; h *= M; h ^= src.z;\n        h ^= h >> 13u; h *= M; h ^= h >> 15u;\n        hash = uintBitsToFloat(h & 0x007fffffu | 0x3f800000u) - 1.0;\n    }\n\n    Out = vec3(hash, hash, hash);
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 18270082131885319554
+  [UUID] : 4219223008401019250
+  [Position] : -384.364227, 150.106277
+  [Param Name] : Time
+  [Param Type] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 6101390888527617091
+  [UUID] : 14104528305666461794
+  [Position] : -456.672882, 19.017719
+  [Param Name] : TexCoords
+  [Param Type] : 4
+   ============= Node ============= 
+ ============= Nodes ============= 
+ ------------- Links ------------- 
+[Link Count] : 3
+   ------------- Link ------------- 
+  [From Node Index] : 16024430264665270863
+  [From Output Index] : 0
+  [To Node Index] : 6596742393712567988
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 14104528305666461794
+  [From Output Index] : 0
+  [To Node Index] : 16024430264665270863
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4219223008401019250
+  [From Output Index] : 0
+  [To Node Index] : 16024430264665270863
+  [To Input Index] : 1
+   ============= Link ============= 
+ ============= Links ============= 

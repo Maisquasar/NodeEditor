@@ -190,6 +190,11 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
                                   input->name.c_str());
 }
 
+void Node::Update()
+{
+    // TODO : Update name length
+}
+
 void Node::Draw(float zoom, const Vec2f& origin) const
 {    
     const auto drawList = ImGui::GetWindowDrawList();
@@ -437,6 +442,13 @@ void Node::ShowInInspector()
                 Vec3f value = input->GetValue<Vec3f>();
                 ImGui::InputFloat3("##vec3", &value.x);
                 input->SetValue<Vec3f>(value);
+                break;
+            }
+        case Type::Vector4:
+            {
+                Vec4f value = input->GetValue<Vec4f>();
+                ImGui::InputFloat4("##vec4", &value.x);
+                input->SetValue<Vec4f>(value);
                 break;
             }
         default:

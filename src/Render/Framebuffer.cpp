@@ -157,8 +157,10 @@ bool Shader::Link()
     if (!success) {
         glGetProgramInfoLog(m_program, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        m_loaded = false;
         return false;
     }
+    m_loaded = true;
     return true;
 }
 
@@ -221,19 +223,7 @@ bool Shader::RecompileFragmentShader()
 
     // Attach the new shader and relink the program
     glAttachShader(m_program, newFragmentShader);
-    glLinkProgram(m_program);
-
-    // Check for linking errors
-    glGetProgramiv(m_program, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        char infoLog[512];
-        glGetProgramInfoLog(m_program, 512, nullptr, infoLog);
-        std::cerr << "Program Linking Error:\n" << infoLog << std::endl;
-        return false;
-    }
-    m_loaded = true;
-    return true;
+    return Link();
 }
 
 void Shader::UpdateValues()

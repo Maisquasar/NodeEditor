@@ -159,6 +159,9 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Add", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s + %s", {"+"});
     CreateTemplateNode("Subtract", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s - %s", {"-"});
     CreateTemplateNode("Multiply", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s * %s", {"*"});
+    CreateTemplateNode("Multiply scalar", functionColor, { {"A", Type::Vector2}, {"B", Type::Float} }, { {"Result", Type::Vector2} }, "%s * %s", {"*"});
+    CreateTemplateNode("Multiply scalar", functionColor, { {"A", Type::Vector3}, {"B", Type::Float} }, { {"Result", Type::Vector3} }, "%s * %s", {"*"});
+    CreateTemplateNode("Multiply scalar", functionColor, { {"A", Type::Vector4}, {"B", Type::Float} }, { {"Result", Type::Vector4} }, "%s * %s", {"*"});
     CreateTemplateNode("Divide", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s / %s", {"/"});
     
     CreateTemplateNode("One Minus", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "1.0 - %s", {"1- "});
@@ -284,6 +287,8 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Exp", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "exp(%s)");
     CreateTemplateNode("Log2", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "log2(%s)");
     CreateTemplateNode("Saturate", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "clamp(%s, 0.0, 1.0)");
+
+    CreateTemplateNode("Mix", functionColor, {{"A", Type::Vector3}, {"B", Type::Vector3}, {"T", Type::Float} }, { {"Result", Type::Vector3} }, "mix(%s, %s, %s)");
     
 #pragma endregion
 

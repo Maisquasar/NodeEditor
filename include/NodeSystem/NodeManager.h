@@ -72,7 +72,7 @@ public:
     void ClearSelectedNodes();
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
-    NodeWeak GetNode(const UUID& uuid) const{ return m_nodes.at(uuid); }
+    NodeWeak GetNode(const UUID& uuid) const;
     NodeWeak GetNodeWithTemplate(TemplateID templateID);
     NodeWeak GetNodeWithName(const std::string& name);
     std::vector<NodeWeak> GetNodeConnectedTo(const UUID& uuid) const;

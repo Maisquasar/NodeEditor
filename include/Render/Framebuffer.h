@@ -53,6 +53,8 @@ public:
     bool RecompileFragmentShader();
     void UpdateValues();
 
+    bool IsLoaded() const { return m_loaded; }
+
 private:
     std::filesystem::path m_path;
     uint32_t m_program = -1;

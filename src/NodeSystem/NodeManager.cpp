@@ -313,6 +313,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         UpdateInputOutputClick(zoom, origin, mousePos, mouseClicked, node);
 
         UpdateNodeSelection(node, zoom, origin, mousePos, mouseClicked, ctrlClick, wasNodeClicked);
+
+        node->Update();
     }
 
     m_linkManager->UpdateLinkSelection(origin, zoom);
@@ -479,6 +481,16 @@ void NodeManager::ClearSelectedNodes()
         node->p_selected = false;
     }
     m_selectedNodes.clear();
+}
+
+NodeWeak NodeManager::GetNode(const UUID& uuid) const
+{
+    if (m_nodes.find(uuid) == m_nodes.end())
+    {
+        __debugbreak();
+        return {};
+    }
+    return m_nodes.at(uuid);
 }
 
 NodeWeak NodeManager::GetNodeWithTemplate(TemplateID templateID)

@@ -543,6 +543,7 @@ void NodeWindow::UpdateShader()
         ShaderMaker shaderMaker;
         shaderMaker.CreateFragmentShader("shaders/shader.frag", m_nodeManager);
         m_currentShader->RecompileFragmentShader();
+        
         m_shouldUpdateShader = false;
     }
 }
