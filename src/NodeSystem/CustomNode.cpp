@@ -121,8 +121,7 @@ void CustomNode::ShowInInspector()
 
     if (ImGui::Button("Edit on vscode"))
     {
-        std::filesystem::path tempPath = std::filesystem::current_path().generic_string() + GetTempPath().generic_string();
-        std::cout << tempPath << std::filesystem::current_path();
+        std::filesystem::path tempPath = GetTempPath();
         std::ofstream file(tempPath);
         if (file.is_open())
         {

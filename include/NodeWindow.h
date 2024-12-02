@@ -2,9 +2,9 @@
 #include "NodeSystem/NodeManager.h"
 #include "Actions/Action.h"
 
-#define SAVE_FOLDER "/save/"
+#define SAVE_FOLDER "saves/"
 #define EDITOR_FILE_NAME "editor.settings"
-#define TEMP_FOLDER "/tmp/"
+#define TEMP_FOLDER "tmp/"
 
 #pragma region Dialog
 class Framebuffer;
