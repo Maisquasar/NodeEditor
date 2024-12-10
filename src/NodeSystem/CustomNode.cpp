@@ -12,12 +12,18 @@ Node* CustomNode::Clone() const
 {
     auto node = new CustomNode();
     Internal_Clone(node);
+    node->Initialize();
     return node;
+}
+
+void CustomNode::Initialize()
+{
+    m_content = GetFunction();
 }
 
 void CustomNode::Update()
 {
-    auto path = std::filesystem::current_path().generic_string() + GetTempPath().generic_string();
+    auto path = GetTempPath().generic_string();
     if (!std::filesystem::exists(path))
         return;
     if (std::filesystem::last_write_time(path) <= m_lastWriteTime)
@@ -28,6 +34,53 @@ void CustomNode::Update()
     std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
     m_content = content;
 }
+
+void CustomNode::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
+{
+    auto prevName = GetName();
+    ShaderMaker::CleanString(prevName);
+    prevName = prevName + "_" + std::to_string(prevUUID) + "_" + "Func";
+
+    auto currentName = GetName();
+    ShaderMaker::CleanString(currentName);
+    currentName = currentName + "_" + std::to_string(newUUID) + "_" + "Func";
+    
+    size_t it = m_content.find(prevName);
+
+    if (it == std::string::npos)
+        return;
+
+    auto beforeString = m_content.substr(0, it);
+    auto afterString = m_content.substr(it + prevName.size());
+    m_content = beforeString + currentName + afterString;
+    std::cout << m_content;
+}
+
+void CustomNode::UpdateFunction()
+{
+    auto functionName = GetFunctionName();
+    size_t from = m_content.find(functionName);
+    auto temp = m_content.substr(0, from);
+    from = temp.find_last_of("void") - 3;
+    if (from == std::string::npos)
+        return;
+    auto newContent = m_content.substr(from);
+    size_t to = from + newContent.find_first_of(")");
+    newContent = GetFunctionNameAndArgs();
+    m_content = m_content.substr(0, from) + newContent + m_content.substr(to + 1);
+
+    std::filesystem::path tempPath = GetTempPath();
+    if (!std::filesystem::exists(tempPath))
+        return;
+    std::ofstream file(tempPath);
+    if (file.is_open())
+    {
+        file << m_content;
+        file.close();
+        m_lastWriteTime = std::filesystem::last_write_time(tempPath);
+    }
+}
+
 
 std::filesystem::path CustomNode::GetTempPath() const
 {
@@ -44,6 +97,7 @@ void CustomNode::ShowInInspector()
     if (ImGui::Button("+"))
     {
         AddInput("Input " + std::to_string(p_inputs.size()), Type::Float);
+        UpdateFunction();
     }
     if (!p_inputs.empty())
     {
@@ -51,6 +105,7 @@ void CustomNode::ShowInInspector()
         if (ImGui::Button("-"))
         {
             RemoveInput(p_inputs.size() - 1);
+            UpdateFunction();
         }
     }
     for (int i = 0; i < p_inputs.size(); i++)
@@ -63,6 +118,7 @@ void CustomNode::ShowInInspector()
             {
                 Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_inputs[i]->name, p_inputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
+                UpdateFunction();
             }
             int type = static_cast<int>(p_inputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
@@ -71,6 +127,7 @@ void CustomNode::ShowInInspector()
                 ActionManager::AddAction(changeType);
                 p_nodeManager->GetLinkManager()->RemoveLink(p_inputs[i]);
                 p_inputs[i]->type = static_cast<Type>(type + 1);
+                UpdateFunction();
             }
             ImGui::TreePop();
         }
@@ -83,6 +140,7 @@ void CustomNode::ShowInInspector()
     if (ImGui::Button("+"))
     {
         AddOutput("Output" + std::to_string(p_outputs.size()), Type::Float);
+        UpdateFunction();
     }
     if (!p_outputs.empty())
     {
@@ -90,6 +148,7 @@ void CustomNode::ShowInInspector()
         if (ImGui::Button("-"))
         {
             RemoveOutput(p_outputs.size() - 1);
+            UpdateFunction();
         }
     }
     for (int i = 0; i < p_outputs.size(); i++)
@@ -102,6 +161,7 @@ void CustomNode::ShowInInspector()
             {
                 Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs[i]->name, p_outputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
+                UpdateFunction();
             }
             int type = static_cast<int>(p_outputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
@@ -110,6 +170,7 @@ void CustomNode::ShowInInspector()
                 ActionManager::AddAction(changeType);
                 p_nodeManager->GetLinkManager()->RemoveLinks(p_outputs[i]);
                 p_outputs[i]->type = static_cast<Type>(type + 1);
+                UpdateFunction();
             }
             ImGui::TreePop();
         }
@@ -231,6 +292,30 @@ void CustomNode::Deserialize(CppSer::Parser& parser)
     UnsanitizeString(m_content);
 
     InternalDeserialize(parser);
+}
+
+std::string CustomNode::GetFunctionNameAndArgs() const
+{
+    std::string content;
+    content = "void " + GetFunctionName() + "(";
+    for (const auto& input : p_inputs)
+    {
+        content += "in " + ShaderMaker::TypeToGLSLType(input->type) + " " + input->name + ", ";
+    }
+    for (const auto& output : p_outputs)
+    {
+        content += "out " + ShaderMaker::TypeToGLSLType(output->type) + " " + output->name + ", ";
+    }
+    content.erase(content.end() - 2, content.end());
+    content += ")";
+    return content;
+}
+
+std::string CustomNode::GetFunction() const
+{
+    std::string content = GetFunctionNameAndArgs() + "\n{\n";
+    content += GetContent() + "\n}\n";
+    return content;
 }
 
 std::string CustomNode::GetFunctionName() const

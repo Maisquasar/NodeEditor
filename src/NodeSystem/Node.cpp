@@ -567,8 +567,13 @@ Node* Node::Clone() const
     return node;
 }
 
+void Node::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
+{
+}
+
 void Node::SetUUID(const UUID& uuid)
 {
+    OnChangeUUID(p_uuid, uuid);
     p_uuid = uuid;
     for (auto& input : p_inputs)
     {

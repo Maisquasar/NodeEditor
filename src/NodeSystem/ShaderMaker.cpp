@@ -154,18 +154,7 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
             if (customNodesDone.contains(customNode->p_uuid))
                 continue;
             customNodesDone.insert(customNode->p_uuid);
-            content += "void " + customNode->GetFunctionName() + "(";
-            for (const auto& input : customNode->p_inputs)
-            {
-                content += "in " + TypeToGLSLType(input->type) + " " + input->name + ", ";
-            }
-            for (const auto& output : customNode->p_outputs)
-            {
-                content += "out " + TypeToGLSLType(output->type) + " " + output->name + ", ";
-            }
-            content.erase(content.end() - 2, content.end());
-            content += ")\n{\n";
-            content += customNode->GetContent() + "\n}\n";
+            content += customNode->GetContent();
         }
     }
 

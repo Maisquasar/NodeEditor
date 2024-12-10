@@ -11,7 +11,11 @@ public:
 
     virtual Node* Clone() const override;
 
+    void Initialize();
+    
     void Update() override;
+    void OnChangeUUID(const UUID& prevUUID, const UUID& newUUID) override;
+    
     std::filesystem::path GetTempPath() const;
 
     void ShowInInspector() override;
@@ -19,10 +23,12 @@ public:
     void Serialize(CppSer::Serializer& serializer) const override;
     void Deserialize(CppSer::Parser& parser) override;
     
+    void UpdateFunction();
+    
     std::string GetContent() const { return m_content; }
-
+    std::string GetFunctionNameAndArgs() const;
+    std::string GetFunction() const;
     std::string GetFunctionName() const;
-
     std::vector<std::string> GetFormatStrings() const override;
 
     std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const override;

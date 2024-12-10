@@ -36,7 +36,7 @@ __interface Context
 class NodeWindow : public Context
 {
 public:
-    void Initialize();
+    void Initialize() override;
     
     void PasteNode() const;
 

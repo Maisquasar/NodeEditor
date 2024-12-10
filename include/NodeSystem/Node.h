@@ -182,6 +182,8 @@ public:
     virtual std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const;
 
     virtual Node* Clone() const;
+
+    virtual void OnChangeUUID(const UUID& prevUUID, const UUID& newUUID);
 protected:
     void SetUUID(const UUID& uuid);
 
