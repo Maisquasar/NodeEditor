@@ -50,6 +50,8 @@ struct Stream
     Type type = Type::None;
     
     bool isLinked = false;
+
+    bool isHovered = false;
 };
 
 struct Input : Stream
@@ -92,7 +94,9 @@ typedef Weak<Output> OutputWeak;
 
 uint32_t GetColor(Type type);
 
-constexpr float streamCircleRadius = 5.0f;
+static void AddColor(uint32_t& color, int value);
+constexpr float c_streamCircleRadius = 5.0f;
+constexpr float c_hoveredCircleRadiusFactor = 1.2f;
 
 class Node : public Selectable
 {
@@ -103,6 +107,7 @@ public:
 
     // Draw Methods
     void Draw(float zoom, const Vec2f& origin) const;
+    void DrawDot(float zoom, const Vec2f& origin, uint32_t i, bool isOutput) const;
     void DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const;
     void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
 

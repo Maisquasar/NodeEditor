@@ -84,6 +84,7 @@ public:
     Link& GetCurrentLink() {return m_currentLink;}
     std::filesystem::path GetFilePath() const {return m_savePath;}
     NodeWindow* GetMainWindow() const { return m_parent; }
+    StreamWeak GetHoveredStream() const {return m_hoveredStream;}
 
     // Link
     bool CurrentLinkIsAlmostLinked() const;

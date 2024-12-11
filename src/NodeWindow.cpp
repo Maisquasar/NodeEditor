@@ -1,6 +1,7 @@
 #include "NodeWindow.h"
 
 #include <complex.h>
+#include <algorithm>
 #include <filesystem>
 #include <map>
 #include <set>
@@ -566,8 +567,8 @@ void NodeWindow::DrawGrid()
     // Using InvisibleButton() as a convenience 1) it will advance the layout cursor and 2) allows us to use IsItemHovered()/IsItemActive()
     ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
     ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
-    if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
-    if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
+    canvas_sz.x = std::max(canvas_sz.x, 50.0f);
+    canvas_sz.y = std::max(canvas_sz.y, 50.0f);
     ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
     // Draw border and background color

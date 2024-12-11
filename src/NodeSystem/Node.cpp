@@ -47,6 +47,28 @@ uint32_t GetColorFromType(Type type)
     return IM_COL32(255, 255, 255, 255);
 }
 
+void AddColor(uint32_t& color, int value)
+{
+    // Extract individual color channels using bitwise operations
+    ImU32 r = (color >> IM_COL32_R_SHIFT) & 0xFF;
+    ImU32 g = (color >> IM_COL32_G_SHIFT) & 0xFF;
+    ImU32 b = (color >> IM_COL32_B_SHIFT) & 0xFF;
+    ImU32 a = (color >> IM_COL32_A_SHIFT) & 0xFF; // Alpha remains unchanged
+
+    // Add brightness
+    r += value;
+    g += value;
+    b += value;
+
+    // Clamp to 255
+    r = std::clamp(r, static_cast<ImU32>(0), static_cast<ImU32>(255));
+    g = std::clamp(g, static_cast<ImU32>(0), static_cast<ImU32>(255));
+    b = std::clamp(b, static_cast<ImU32>(0), static_cast<ImU32>(255));
+
+    // Reconstruct the color with clamped values
+    color = IM_COL32(r, g, b, a);
+}
+
 Input::Input(Type type)
 {
     this->index = 0;
@@ -163,31 +185,45 @@ Node::Node(std::string _name) : p_nodeManager(nullptr), p_name(std::move(_name))
 {
 }
 
-void Node::DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const
+void Node::DrawDot(float zoom, const Vec2f& origin, uint32_t i, bool isOutput) const
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
-    OutputRef output = p_outputs[i];
-    Vec2f position = GetOutputPosition(i, origin, zoom);
-    
-    uint32_t color = GetColorFromType(output->type);
-    drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
-    Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, output->name.c_str());
-    drawList->AddText(font, 14 * zoom, position + Vec2f(-10, -7.5f) * zoom - Vec2f(textSize.x, 0),
-                                  IM_COL32(255, 255, 255, 255), output->name.c_str());
+
+    // Get the relevant data
+    const auto& ref = isOutput ? static_cast<const StreamRef&>(p_outputs[i]) : static_cast<const StreamRef&>(p_inputs[i]);
+    Vec2f position = isOutput ? GetOutputPosition(i, origin, zoom) : GetInputPosition(i, origin, zoom);
+
+    // Get color and size
+    uint32_t color = GetColorFromType(ref->type);
+    float dotSize = c_streamCircleRadius * zoom;
+    if (ref->isHovered && !ref->isLinked)
+        dotSize *= c_hoveredCircleRadiusFactor;
+    else if (ref->isHovered && ref->isLinked)
+        AddColor(color, -50);
+
+    // Draw the dot
+    drawList->AddCircle(position, dotSize, color, 0, 2 * zoom);
+
+    // Calculate text position offset
+    Vec2f textOffset = isOutput ? Vec2f(-10, -7.5f) : Vec2f(10, -7.5f);
+    Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, ref->name.c_str());
+
+    Vec2f textOff = {};
+    if (isOutput)
+        textOff.x = textSize.x;
+    // Draw the text
+    drawList->AddText(font, 14 * zoom, position + textOffset * zoom - textOff, IM_COL32(255, 255, 255, 255), ref->name.c_str());
+}
+
+void Node::DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const
+{
+    DrawDot(zoom, origin, i, true);
 }
 
 void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
 {
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
-    const InputRef input = p_inputs[i];
-    Vec2f position = GetInputPosition(i, origin, zoom);
-        
-    const uint32_t color = GetColorFromType(input->type);
-    drawList->AddCircle(position, streamCircleRadius * zoom, color, 0, 2 * zoom);
-    drawList->AddText(font, 14 * zoom, position + Vec2f(10, -7.5f) * zoom, IM_COL32(255, 255, 255, 255),
-                                  input->name.c_str());
+    DrawDot(zoom, origin, i, false);
 }
 
 void Node::Update()
@@ -229,7 +265,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
 bool Node::IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index)
 {
     Vec2f position = circlePos;
-    float radius = (streamCircleRadius + 1.f) * zoom;
+    float radius = (c_streamCircleRadius * c_hoveredCircleRadiusFactor) * zoom;
     if (point.x > position.x - radius && point.x < position.x + radius && point.y > position.y - radius && point.y <
         position.y + radius)
     {
@@ -267,7 +303,6 @@ bool Node::IsNodeVisible(const Vec2f& origin, float zoom) const
 
 bool Node::IsInputClicked(const Vec2f& point, const Vec2f& origin, const float zoom, uint32_t& index) const
 {
-    Vec2f pMin = GetMin(zoom, origin);
     for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
         if (IsPointHoverCircle(point, GetInputPosition(i, origin, zoom), origin, zoom, i))

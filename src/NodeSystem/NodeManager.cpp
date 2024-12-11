@@ -149,8 +149,7 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
             Vec2f circlePos = node->GetInputPosition(i, origin, zoom);
             if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                if (GetUserInputState() == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-                    SetHoveredStream(node->p_inputs[i]);
+                SetHoveredStream(node->p_inputs[i]);
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
                     OnInputClicked(node, altClicked, i);
                 return;
@@ -163,10 +162,9 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
         for (uint32_t i = 0; i < node->p_outputs.size(); i++)
         {
             Vec2f circlePos = node->GetOutputPosition(i, origin, zoom);
-            if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
+            if (Node::IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
-                if (GetUserInputState() == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-                    SetHoveredStream(node->p_outputs[i]);
+                SetHoveredStream(node->p_outputs[i]);
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
                     OnOutputClicked(node, altClicked, i);
                 return;
@@ -281,7 +279,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 {
     if (!m_isGridHovered && !m_firstFrame)
         return;
-    m_hoveredStream.reset();
+    SetHoveredStream({});
     m_firstFrame = false;
     UserInputState prevUserInputState = m_userInputState;
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
@@ -719,5 +717,13 @@ void NodeManager::Clean()
 
 void NodeManager::SetHoveredStream(const Weak<Stream>& stream)
 {
+    if (auto prev = m_hoveredStream.lock())
+    {
+        prev->isHovered = false;
+    }
     m_hoveredStream = stream;
+    if (auto curr = m_hoveredStream.lock())
+    {
+        curr->isHovered = true;
+    }
 }
