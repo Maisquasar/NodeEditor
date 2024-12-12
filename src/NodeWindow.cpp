@@ -1,11 +1,15 @@
 #include "NodeWindow.h"
 
-#include <complex.h>
+#include <complex>
 #include <algorithm>
 #include <filesystem>
 #include <map>
 #include <set>
+
 #include <galaxymath/Maths.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <nfd.hpp>
 
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/LinkManager.h"
@@ -22,12 +26,6 @@
 #include "Render/Framebuffer.h"
 class ParamNode;
 using namespace GALAXY;
-
-#include <imgui.h>
-#include <imgui_internal.h>
-
-#include <nfd.hpp>
-
 
 std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath)
 {
@@ -443,7 +441,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
 
         ImGui::BeginChild("##context", ImVec2(0, 350));
         uint32_t j = 0;
-        for (uint32_t i = 0; i < templates.size()/* && j < displayCount*/; i++)
+        for (uint32_t i = 0; i < templates.size(); i++)
         {
             std::string name = templates[i].node->GetName();
             if (!templates[i].node->GetAllowInteraction())
@@ -481,7 +479,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
 
                 if (isLinking)
                 {
-                    if (auto customNode = std::dynamic_pointer_cast<CustomNode>(node))
+                    if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(node))
                     {
                         if (isOutput)
                         {
@@ -493,6 +491,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                             customNode->ClearOutputs();
                             customNode->AddOutput("Out", streamLinking->type);
                         }
+                            customNode->UpdateFunction();
                     }
                     else if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node))
                     {
@@ -528,6 +527,12 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
             j++;
         }
         ImGui::EndChild();
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+        {
+            m_nodeManager->SetUserInputState(UserInputState::Busy);
+            filter.Clear();
+            ImGui::CloseCurrentPopup();
+        }
         ImGui::EndPopup();
     }
 }

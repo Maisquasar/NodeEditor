@@ -174,6 +174,8 @@ public:
     TemplateID GetTemplateID() const { return p_templateID; }
     bool GetAllowInteraction() const { return p_allowInteraction; }
     NodeManager* GetNodeManager() const { return p_nodeManager; }
+    std::vector<InputRef>& GetInputs() { return p_inputs; }
+    std::vector<OutputRef>& GetOutputs() { return p_outputs; }
     
     virtual void ShowInInspector();
 

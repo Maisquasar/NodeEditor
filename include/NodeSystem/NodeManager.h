@@ -89,6 +89,7 @@ public:
     // Link
     bool CurrentLinkIsAlmostLinked() const;
     bool CurrentLinkIsNone() const;
+    void ClearCurrentLink();
 
     void SetUserInputState(const UserInputState& state) { m_userInputState = state; }
     UserInputState GetUserInputState() const { return m_userInputState; }

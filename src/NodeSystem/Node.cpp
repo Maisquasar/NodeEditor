@@ -244,11 +244,33 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     ImFont* font = ImGui::GetFont();
     drawList->AddText(font, 14 * zoom, pMin + Vec2f(5, 5) * zoom, IM_COL32(255, 255, 255, 255), p_name.c_str());
 
+    bool hover = false;
+    for (uint32_t i = 0; i < p_inputs.size() + p_outputs.size(); i++)
+    {
+        StreamRef ref;
+        if (i < p_inputs.size())
+        {
+            ref = p_inputs[i];
+        }
+        else
+        {
+            ref = p_outputs[i - p_inputs.size()];
+        }
+        if (ref->isHovered)
+        {
+            hover = true;
+            ImGui::SetTooltip(("UUID: " + std::to_string(ref->parentUUID)).c_str());
+            break;
+        }
+    }
     if (p_selected)
     {
         drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.000000, 240, 2);
 
-        ImGui::SetTooltip(("UUID: " + std::to_string(p_uuid)).c_str());
+        if (!hover)
+        {
+            ImGui::SetTooltip(("UUID: " + std::to_string(p_uuid)).c_str());
+        }
     }
 
     for (uint32_t i = 0; i < p_inputs.size(); i++)
@@ -634,8 +656,10 @@ void Node::Internal_Clone(Node* node) const
         input->parentUUID = node->p_uuid;
     }
     node->p_outputs = p_outputs;
-    for (auto& output : node->p_outputs)
+    for (size_t i = 0; i < node->p_outputs.size(); i++)
     {
+        auto& output = node->p_outputs[i];
+        output = std::make_shared<Output>(*output);
         output->parentUUID = node->p_uuid;
     }
     node->p_size = p_size;

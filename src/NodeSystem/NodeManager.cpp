@@ -106,7 +106,7 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
         m_currentLink.toNodeIndex = node->p_uuid;
         m_currentLink.toInputIndex = i;
 
-        if (m_currentLink.fromNodeIndex != UUID_NULL &&!m_linkManager->CanCreateLink(m_currentLink))
+        if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
         {
             m_currentLink.toNodeIndex = UUID_NULL;
             m_currentLink.toInputIndex = UUID_NULL;
@@ -180,8 +180,7 @@ void NodeManager::UpdateCurrentLink()
         auto link = m_linkManager->AddLink(m_currentLink);
         auto action =std::make_shared<ActionCreateLink>(this, link.lock());
         ActionManager::AddAction(action);
-        m_userInputState = UserInputState::None;
-        m_currentLink = Link();
+        ClearCurrentLink();
     }
 }
 
@@ -328,8 +327,13 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         
                 if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
                 {
-                    m_currentLink.toNodeIndex = UUID_NULL;
-                    m_currentLink.toInputIndex = UUID_NULL;
+                    ClearCurrentLink();
+                }
+                else
+                {
+                    InputRef inputRef = GetInput(m_currentLink.toNodeIndex, m_currentLink.toInputIndex).lock();
+                    assert(inputRef);
+                    m_linkManager->RemoveLink(inputRef);
                 }
             }
             else if (auto output = std::dynamic_pointer_cast<Output>( m_hoveredStream.lock()))
@@ -339,8 +343,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         
                 if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
                 {
-                    m_currentLink.fromNodeIndex = UUID_NULL;
-                    m_currentLink.fromOutputIndex = UUID_NULL;
+                    ClearCurrentLink();
                 }
             }
         }
@@ -556,6 +559,12 @@ bool NodeManager::CurrentLinkIsAlmostLinked() const
 bool NodeManager::CurrentLinkIsNone() const
 {
     return m_currentLink.fromNodeIndex == UUID_NULL && m_currentLink.toNodeIndex == UUID_NULL;
+}
+
+void NodeManager::ClearCurrentLink()
+{
+    m_userInputState = UserInputState::None;
+    m_currentLink = Link();
 }
 
 void NodeManager::SaveToFile(const std::string& path)

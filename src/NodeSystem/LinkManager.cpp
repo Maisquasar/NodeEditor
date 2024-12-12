@@ -123,6 +123,12 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin)
 
     for (uint32_t i = 0; i < m_selectedLinks.size(); i++)
     {
+        if (!m_selectedLinks[i].lock())
+        {
+            m_selectedLinks.erase(m_selectedLinks.begin() + i);
+            i--;
+            continue;
+        }
         LinkRef selectedLink = m_selectedLinks[i].lock();
         NodeRef fromNode = m_nodeManager->GetNode(selectedLink->fromNodeIndex).lock();
         NodeRef toNode = m_nodeManager->GetNode(selectedLink->toNodeIndex).lock();
@@ -130,6 +136,7 @@ void LinkManager::DrawLinks(float zoom, const Vec2f& origin)
         if (!fromNode || !toNode)
         {
             m_selectedLinks.erase(m_selectedLinks.begin() + i);
+            i--;
             continue;
         }
         
@@ -294,12 +301,13 @@ bool LinkManager::CanCreateLink(const Link& link) const
     if (!fromOutput || !toInput || fromNode == toNode || fromOutput->type != toInput->type)
         return false;
 
-    // Check if input is already connected
+    /*
     for (const LinkRef& inLink : m_links)
     {
         if (inLink->toNodeIndex == link.toNodeIndex && inLink->toInputIndex == link.toInputIndex)
             return false;
     }
+    */
     
     return true;
 }

@@ -176,7 +176,7 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
     }
     content += outputName + ", 1.0);\n}\n";
     
-    ImGui::SetClipboardText(content.c_str());
+    // ImGui::SetClipboardText(content.c_str());
 
     std::ofstream file(path, std::ios::out | std::ios::trunc);
     file << content;

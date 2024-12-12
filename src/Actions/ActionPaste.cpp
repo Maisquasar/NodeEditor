@@ -40,6 +40,15 @@ void ActionPaste::Do()
         UUID oldUUID = node->GetUUID();
         node->ResetUUID();
         uuidMap[oldUUID] = node->GetUUID();
+
+        for (InputRef& input : node->GetInputs())
+        {
+            input->parentUUID = node->GetUUID();
+        }
+        for (OutputRef& output : node->GetOutputs())
+        {
+            output->parentUUID = node->GetUUID();
+        }
             
         // Adjust node position relative to the local center and paste position, taking zoom and origin into account
         Vec2f offset = (node->GetPosition() - NodeManager::ToGrid(localCenter, m_zoom, m_origin));
@@ -55,9 +64,21 @@ void ActionPaste::Do()
     for (auto& link : data.links)
     {
         if (uuidMap.contains(link->fromNodeIndex))
+        {
             link->fromNodeIndex = uuidMap[link->fromNodeIndex];
+        }
+        else
+        {
+            std::cout << "Link from node not found: " << link->fromNodeIndex << std::endl;
+        }
         if (uuidMap.contains(link->toNodeIndex))
+        {
             link->toNodeIndex = uuidMap[link->toNodeIndex];
+        }
+        else
+        {
+            std::cout << "Link from node not found: " << link->fromNodeIndex << std::endl;
+        }
             
         // Add link to link manager
         m_nodeManager->GetLinkManager()->AddLink(link);
