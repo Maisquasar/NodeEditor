@@ -1,12 +1,11 @@
 #pragma once
 #include <iostream>
 #include <vector>
-
 #include <galaxymath/maths.h>
 
 #include "NodeSystem/Selectable.h"
-#include "UUID.h"
 
+#include "UUID.h"
 #include "Type.h"
 
 class NodeManager;
@@ -157,7 +156,9 @@ public:
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
 
     Vec2f GetInputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
+    Vec2f GetInputPosition(uint32_t index) const;
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
+    Vec2f GetOutputPosition(uint32_t index) const;
 
     using LinkWeakRef = std::weak_ptr<struct Link>;
     std::vector<LinkWeakRef> GetLinks() const;

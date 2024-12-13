@@ -14,16 +14,17 @@
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/LinkManager.h"
 #include "NodeSystem/Node.h"
+#include "NodeSystem/CustomNode.h"
+#include "NodeSystem/ParamNode.h"
+#include "NodeSystem/ShaderMaker.h"
 
 #include "Application.h"
 #include "Serializer.h"
-#include "NodeSystem/ShaderMaker.h"
+
+#include "Render/Framebuffer.h"
 
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionPaste.h"
-#include "NodeSystem/CustomNode.h"
-#include "NodeSystem/ParamNode.h"
-#include "Render/Framebuffer.h"
 class ParamNode;
 using namespace GALAXY;
 
@@ -502,8 +503,21 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 auto action = std::make_shared<ActionCreateNode>(m_nodeManager, node);
                 
                 ActionManager::AddAction(action);
-                
+
                 node->SetPosition((m_mousePosOnContext - origin) / zoom);
+                if (isLinking)
+                {
+                    Vec2f nodePosition = node->GetPosition();
+                    if (isOutput)
+                    {
+                        nodePosition += nodePosition - node->GetInputPosition(0);
+                    }
+                    else
+                    {
+                        nodePosition += nodePosition - node->GetOutputPosition(0);
+                    }
+                    node->SetPosition(nodePosition);
+                }
                 m_nodeManager->AddNode(node);
 
                 filter.Clear();

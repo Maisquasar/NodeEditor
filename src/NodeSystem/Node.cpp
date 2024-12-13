@@ -424,9 +424,19 @@ Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zo
     return GetMin(zoom, origin) + Vec2f(10, c_topSize + 15 + c_pointSize * index) * zoom;
 }
 
+Vec2f Node::GetInputPosition(uint32_t index) const
+{
+    return p_position + Vec2f(10, c_topSize + 15 + c_pointSize * index);
+}
+
 Vec2f Node::GetOutputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
 {
     return GetMin(zoom, origin) + Vec2f(p_size.x - 10, c_topSize + 15 + c_pointSize * index) * zoom;
+}
+
+Vec2f Node::GetOutputPosition(uint32_t index) const
+{
+    return p_position + Vec2f(p_size.x - 10, c_topSize + 15 + c_pointSize * index);
 }
 
 std::vector<LinkWeakRef> Node::GetLinks() const
