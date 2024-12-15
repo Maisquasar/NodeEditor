@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Search with special character, Improve user inputs
+    //TODO : Fix node size with name, Fix names
     Application* app = Application::Create();
     
     app->Initialize();

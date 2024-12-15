@@ -364,6 +364,20 @@ void NodeTemplateHandler::Initialize()
     // std::ranges::sort(m_templateNodes, [](const NodeMethodInfo& a, const NodeMethodInfo& b) { return a.node->GetName() < b.node->GetName(); });
 }
 
+void NodeTemplateHandler::ComputeNodesSize()
+{
+    if (m_computed)
+        return;
+    m_computed = true;
+    for (NodeMethodInfo& templateNode : m_templateNodes)
+    {
+        NodeRef& node = templateNode.node;
+        
+        float textSizeX = ImGui::CalcTextSize(node->p_name.c_str()).x + 20.f;
+        node->p_size.x = std::max(textSizeX, node->p_size.x);
+    }
+}
+
 std::vector<std::string> NodeTemplateHandler::GetTemplateFormatStrings(TemplateID templateID)
 {
     for (auto& m_templateNode : s_instance->m_templateNodes)

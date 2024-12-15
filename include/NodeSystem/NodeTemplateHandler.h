@@ -45,6 +45,8 @@ public:
     
     void Initialize();
 
+    void ComputeNodesSize();
+
     static std::vector<std::string> GetTemplateFormatStrings(TemplateID templateID);
 
     void AddTemplateNode(const NodeMethodInfo& info);
@@ -68,4 +70,6 @@ private:
     static std::unique_ptr<NodeTemplateHandler> s_instance;
 
     TemplateList m_templateNodes;
+
+    bool m_computed = false;
 };

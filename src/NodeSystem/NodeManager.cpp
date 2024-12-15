@@ -365,7 +365,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape))
     {
         SetUserInputState(UserInputState::None);
-        m_currentLink = Link();
+        ClearCurrentLink();
         m_parent->SetOpenContextMenu(false);
     }
     

@@ -138,6 +138,10 @@ bool Splitter(const bool split_vertically, const float thickness, float* size1, 
 
 void NodeWindow::Update() const
 {
+    if (NodeTemplateHandler* nodeTemplateHandler = NodeTemplateHandler::GetInstance())
+    {
+        nodeTemplateHandler->ComputeNodesSize();
+    }
     m_nodeManager->UpdateNodes(m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos());
 
     if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
