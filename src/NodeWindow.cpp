@@ -545,7 +545,9 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
             j++;
         }
         ImGui::EndChild();
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+        Vec2f windowPos = ImGui::GetWindowPos();
+        Vec2f windowSize = ImGui::GetWindowSize();
+        if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right)) && !ImGui::IsMouseHoveringRect(windowPos, windowPos + windowSize, false))
         {
             m_nodeManager->SetUserInputState(UserInputState::Busy);
             filter.Clear();
