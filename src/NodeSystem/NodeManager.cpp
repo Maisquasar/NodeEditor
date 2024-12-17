@@ -285,9 +285,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
 
-    if ((m_userInputState == UserInputState::DragNode ||
-        m_userInputState == UserInputState::SelectingSquare) && ImGui::IsMouseReleased(ImGuiMouseButton_Left)
-        || m_userInputState == UserInputState::Busy)
+    if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
+        && ImGui::IsMouseReleased(ImGuiMouseButton_Left) || m_userInputState == UserInputState::Busy)
     {
         if (m_userInputState == UserInputState::DragNode)
         {
@@ -652,9 +651,9 @@ void NodeManager::SerializeSelectedNodes(CppSer::Serializer& serializer) const
     std::vector<LinkRef> linkToSerialize;
     std::unordered_set<LinkRef> uniqueLinks;
 
+    auto links = m_linkManager->GetLinks();
     for (const NodeRef& node : nodesToSerialize)
     {
-        auto links = node->GetLinks();
         for (const LinkWeakRef& link : links)
         {
             if (auto linkPtr = link.lock();
