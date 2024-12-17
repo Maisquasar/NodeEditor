@@ -146,7 +146,7 @@ void NodeWindow::Update() const
 
     if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
     {
-        auto serializer = CppSer::Serializer();
+        CppSer::Serializer serializer;
         m_nodeManager->SerializeSelectedNodes(serializer);
         ImGui::SetClipboardText(serializer.GetContent().c_str());
     }
@@ -547,8 +547,8 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         ImGui::EndChild();
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
         {
-            m_nodeManager->SetUserInputState(UserInputState::Busy);
             filter.Clear();
+            m_nodeManager->ClearCurrentLink();
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();

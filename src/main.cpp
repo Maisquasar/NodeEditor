@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Fix node size with name, Fix names
+    //TODO : Fix names, add previews
     Application* app = Application::Create();
     
     app->Initialize();
