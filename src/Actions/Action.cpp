@@ -31,6 +31,42 @@ void ActionManager::AddAction(const ActionRef& action)
     }
 }
 
+void ActionManager::DoAction(const ActionRef& action)
+{
+    action->Do();
+    AddAction(action);
+}
+
+void ActionManager::UndoLastAction()
+{
+    if (!m_current->m_undoneActions.empty())
+    {
+        m_current->m_undoneActions.back()->Undo();
+        m_current->m_redoneActions.push_back(m_current->m_undoneActions.back());
+        m_current->m_undoneActions.pop_back();
+
+        if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
+        {
+            nodeWindow->ShouldUpdateShader();
+        }
+    }
+}
+
+void ActionManager::RedoLastAction()
+{
+    if (!m_current->m_redoneActions.empty())
+    {
+        m_current->m_redoneActions.back()->Do();
+        m_current->m_undoneActions.push_back(m_current->m_redoneActions.back());
+        m_current->m_redoneActions.pop_back();
+        
+        if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
+        {
+            nodeWindow->ShouldUpdateShader();
+        }
+    }
+}
+
 void ActionManager::SetCurrent(ActionManager* manager)
 {
     m_current = manager;

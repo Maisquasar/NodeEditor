@@ -26,31 +26,11 @@ public:
 
     static void AddAction(const ActionRef& action);
 
-    static void DoAction(ActionRef action)
-    {
-        action->Do();
-        AddAction(action);
-    }
+    static void DoAction(const ActionRef& action);
 
-    static void UndoLastAction()
-    {
-        if (!m_current->m_undoneActions.empty())
-        {
-            m_current->m_undoneActions.back()->Undo();
-            m_current->m_redoneActions.push_back(m_current->m_undoneActions.back());
-            m_current->m_undoneActions.pop_back();
-        }
-    }
+    static void UndoLastAction();
 
-    static void RedoLastAction()
-    {
-        if (!m_current->m_redoneActions.empty())
-        {
-            m_current->m_redoneActions.back()->Do();
-            m_current->m_undoneActions.push_back(m_current->m_redoneActions.back());
-            m_current->m_redoneActions.pop_back();
-        }
-    }
+    static void RedoLastAction();
 
     template<typename T>
     static T* GetLastAction() { return static_cast<T*>(m_current->m_undoneActions.back()); }
@@ -62,6 +42,8 @@ public:
     static void SetCurrent(ActionManager* );
 
     static const std::vector<ActionRef>& GetUndoneActions() { return m_current->m_undoneActions; }
+
+    static const std::vector<ActionRef>& GetRedoneActions() { return m_current->m_redoneActions; }
 
     
     void SetContext(Context* context);

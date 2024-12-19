@@ -151,7 +151,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
             {
                 SetHoveredStream(node->p_inputs[i]);
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
+                {
                     OnInputClicked(node, altClicked, i);
+                    SetUserInputState(UserInputState::CreateLink);
+                }
                 return;
             }
         }
@@ -166,7 +169,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
             {
                 SetHoveredStream(node->p_outputs[i]);
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
+                {
                     OnOutputClicked(node, altClicked, i);
+                    SetUserInputState(UserInputState::CreateLink);
+                }
                 return;
             }
         }
@@ -354,12 +360,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     
     UpdateCurrentLink();
 
-    if (m_userInputState == UserInputState::ClickNode && CurrentLinkIsAlmostLinked())
-    {
-        RemoveSelectedNode(m_selectedNodes.back());
-        SetUserInputState(UserInputState::CreateLink);
-    }
-
     // Cancel when escape pressed
     if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape))
     {
@@ -383,7 +383,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     // Update States
     if (m_userInputState == UserInputState::ClickNode
         && ImGui::IsMouseDown(ImGuiMouseButton_Left)
-        && !CurrentLinkIsAlmostLinked())
+        && !CurrentLinkIsAlmostLinked()
+        && ImGui::GetIO().MouseDelta != ImVec2(0.0f, 0.0f))
     {
         SetUserInputState(UserInputState::DragNode);
         auto action = std::make_shared<ActionMoveNodes>(m_selectedNodes);
@@ -564,6 +565,15 @@ void NodeManager::ClearCurrentLink()
 {
     m_userInputState = UserInputState::None;
     m_currentLink = Link();
+}
+
+void NodeManager::SetUserInputState(const UserInputState& state)
+{
+    if (state != m_userInputState)
+    {
+        m_userInputState = state;
+        std::cout << "Set User Input -> " << UserInputEnumToString(state) << std::endl;
+    }
 }
 
 void NodeManager::SaveToFile(const std::string& path)

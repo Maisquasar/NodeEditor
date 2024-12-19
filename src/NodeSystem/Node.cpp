@@ -2,6 +2,8 @@
 
 #include <CppSerializer.h>
 
+#include "Actions/Action.h"
+#include "Actions/ActionChangeValue.h"
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ShaderMaker.h"
@@ -474,48 +476,74 @@ void Node::ShowInInspector()
         ImGui::Text("%s: ", input->name.c_str());
         ImGui::SameLine();
                 
+        Vec4f prevValue = input->GetValue<Vec4f>();
         switch (input->type)
         {
         case Type::Float:
             {
                 float value = input->GetValue<float>();
-                ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f");
-                input->SetValue<float>(value);
+                if (ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f"))
+                {
+                    input->SetValue<float>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 break;
             }
         case Type::Int:
             {
                 int value = input->GetValue<int>();
-                ImGui::InputInt("##int", &value);
-                input->SetValue<int>(value);
+                if (ImGui::InputInt("##int", &value))
+                {
+                    input->SetValue<int>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 break;
             }
         case Type::Bool:
             {
                 bool value = input->GetValue<bool>();
-                ImGui::Checkbox("##bool", &value);
-                input->SetValue<bool>(value);
+                if (ImGui::Checkbox("##bool", &value))
+                {
+                    input->SetValue<bool>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 break;
             }
         case Type::Vector2:
             {
                 Vec2f value = input->GetValue<Vec2f>();
-                ImGui::InputFloat2("##vec2", &value[0]);
-                input->SetValue<Vec2f>(value);
+                if (ImGui::InputFloat2("##vec2", &value[0]))
+                {
+                    input->SetValue<Vec2f>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 break;
             }
         case Type::Vector3:
             {
                 Vec3f value = input->GetValue<Vec3f>();
-                ImGui::InputFloat3("##vec3", &value.x);
+                if (ImGui::InputFloat3("##vec3", &value.x))
+                {
+                    input->SetValue<Vec3f>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 input->SetValue<Vec3f>(value);
                 break;
             }
         case Type::Vector4:
             {
                 Vec4f value = input->GetValue<Vec4f>();
-                ImGui::InputFloat4("##vec4", &value.x);
-                input->SetValue<Vec4f>(value);
+                if (ImGui::InputFloat4("##vec4", &value.x))
+                {
+                    input->SetValue<Vec4f>(value);
+                    auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                    ActionManager::AddAction(action);
+                }
                 break;
             }
         default:

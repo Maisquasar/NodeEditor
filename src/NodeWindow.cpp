@@ -327,17 +327,32 @@ void NodeWindow::DrawMainBar()
             auto current = ActionManager::GetCurrent();
             if (current != nullptr)
             {
-                auto actions = current->GetUndoneActions();
-                for (uint32_t i = 0; i < actions.size(); i++)
+                auto redoneActions = ActionManager::GetRedoneActions();
+                for (auto& redoneAction : redoneActions)
                 {
-                    if (ImGui::MenuItem(actions[i]->ToString().c_str()))
+                    if (ImGui::MenuItem(redoneAction->ToString().c_str()))
                     {
                         
                     }
                     if (ImGui::IsItemHovered())
                     {
                         ImGui::BeginTooltip();
-                        ImGui::Text("%p", (void*)actions[i].get());
+                        ImGui::Text("%p", redoneAction.get());
+                        ImGui::EndTooltip();
+                    }
+                }
+                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 2);
+                auto undoneActions = ActionManager::GetUndoneActions();
+                for (uint32_t i = 0; i < undoneActions.size(); i++)
+                {
+                    if (ImGui::MenuItem(undoneActions[i]->ToString().c_str()))
+                    {
+                        
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("%p", undoneActions[i].get());
                         ImGui::EndTooltip();
                     }
                 }
@@ -380,7 +395,6 @@ void NodeWindow::DrawInspector() const
     ImGui::Text("Inspector");
 
     ImGui::Separator();
-
     
     Vec2f size = {size1 - 15, size1 - 15};
     m_framebuffer->SetNewSize(size);

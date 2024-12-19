@@ -91,7 +91,7 @@ public:
     bool CurrentLinkIsNone() const;
     void ClearCurrentLink();
 
-    void SetUserInputState(const UserInputState& state) { m_userInputState = state; }
+    void SetUserInputState(const UserInputState& state);
     UserInputState GetUserInputState() const { return m_userInputState; }
 
     SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
