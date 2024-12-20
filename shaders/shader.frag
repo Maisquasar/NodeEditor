@@ -6,6 +6,7 @@ void main()
 {
 vec2 TexCoords_16922580609918647625_0 = TexCoords;
 vec3 To_Vector3_Vector2_1645320118562651443_0 = vec3(TexCoords_16922580609918647625_0, 0.0);
+float Add_Float_10115191232937522629_0 = 0.000000 + 0.000000;
 
 // Output to screen
 FragColor = vec4(To_Vector3_Vector2_1645320118562651443_0, 1.0);

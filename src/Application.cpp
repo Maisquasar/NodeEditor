@@ -3,6 +3,7 @@
 #include <galaxymath/Maths.h>
 
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "Render/Font.h"
 #include "Render/Framebuffer.h"
 using namespace GALAXY;
 #include <imgui.h>
@@ -130,6 +131,8 @@ void Application::Initialize()
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
+
+    Font::LoadFont();
 
     m_mesh = Mesh::CreateQuad();
     

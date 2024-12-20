@@ -72,7 +72,8 @@ private:
 private:
     NodeManager* m_nodeManager = nullptr;
 
-    ActionManager m_actionManager;
+    ActionManager m_actionManager = {};
+    bool m_isFocused = false;
 
     Vec2f m_mousePosOnContext;
     bool m_focusInput = false;

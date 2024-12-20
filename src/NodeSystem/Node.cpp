@@ -7,6 +7,7 @@
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ShaderMaker.h"
+#include "Render/Font.h"
 
 const char* SerializeTypeEnum()
 {
@@ -190,7 +191,8 @@ Node::Node(std::string _name) : p_nodeManager(nullptr), p_name(std::move(_name))
 void Node::DrawDot(float zoom, const Vec2f& origin, uint32_t i, bool isOutput) const
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
-    ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
+    ImFont* font = Font::GetFontScaled();
+    ImFont* fontToCalc = Font::GetFont();
 
     // Get the relevant data
     const auto& ref = isOutput ? static_cast<const StreamRef&>(p_outputs[i]) : static_cast<const StreamRef&>(p_inputs[i]);
@@ -209,7 +211,7 @@ void Node::DrawDot(float zoom, const Vec2f& origin, uint32_t i, bool isOutput) c
 
     // Calculate text position offset
     Vec2f textOffset = isOutput ? Vec2f(-10, -7.5f) : Vec2f(10, -7.5f);
-    Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, ref->name.c_str());
+    Vec2f textSize = fontToCalc->CalcTextSizeA(14 * zoom, FLT_MAX, 0.0f, ref->name.c_str());
 
     Vec2f textOff = {};
     if (isOutput)
@@ -239,11 +241,11 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     //Background rect
     Vec2f pMin = GetMin(zoom, origin);
     Vec2f pMax = GetMax(pMin, zoom);
-    drawList->AddRectFilled(pMin, pMax, IM_COL32(26, 28, 26, 200), 8.000000, 240);
+    drawList->AddRectFilled(pMin, pMax, IM_COL32(26, 28, 26, 200), 8.f * zoom, 240);
 
     // Draw Top
-    drawList->AddRectFilled(pMin, pMin + Vec2f(p_size.x, c_topSize) * zoom, p_topColor, 8.000000, 48);
-    ImFont* font = ImGui::GetFont();
+    drawList->AddRectFilled(pMin, pMin + Vec2f(p_size.x, c_topSize) * zoom, p_topColor, 8.f * zoom, 48);
+    ImFont* font = Font::GetFontScaled();
     drawList->AddText(font, 14 * zoom, pMin + Vec2f(5, 5) * zoom, IM_COL32(255, 255, 255, 255), p_name.c_str());
 
     bool hover = false;

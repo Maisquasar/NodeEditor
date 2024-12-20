@@ -142,6 +142,11 @@ void NodeWindow::Update() const
     {
         nodeTemplateHandler->ComputeNodesSize();
     }
+
+    std::cout << m_isFocused << '\n';
+    if (!m_isFocused)
+        return;
+    
     m_nodeManager->UpdateNodes(m_gridWindow.zoom, m_gridWindow.origin, ImGui::GetMousePos());
 
     if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
@@ -226,6 +231,7 @@ void NodeWindow::Draw()
 
     if (ImGui::Begin("Node Editor", nullptr))
     {
+        m_isFocused = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) || ImGui::IsWindowFocused(ImGuiHoveredFlags_RootAndChildWindows);
         // ImGui::SetWindowPos({ 0, 0 });
         // Vec2f windowSize = Application::GetInstance()->GetWindowSize();
         // ImGui::SetWindowSize({ windowSize.x, windowSize.y });
