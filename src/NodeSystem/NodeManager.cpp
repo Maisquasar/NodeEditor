@@ -307,6 +307,11 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
     for (NodeRef& node : m_nodes | std::views::values)
     {
+        if (!node->p_computed)
+        {
+            node->p_computed = true;
+            node->ComputeNodeSize();
+        }
         node->p_isVisible = node->IsNodeVisible(origin, zoom);
 
         if (!node->p_isVisible)

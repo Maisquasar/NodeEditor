@@ -167,6 +167,7 @@ public:
     void SetName(std::string name) { p_name = std::move(name); }
     void SetTopColor(uint32_t color) { p_topColor = color; }
     void ResetUUID();
+    void ComputeNodeSize();
 
     UUID GetUUID() const { return p_uuid; }
     std::string GetName() const { return p_name; }
@@ -197,6 +198,7 @@ protected:
 
     void Internal_Clone(Node* node) const;
 
+
 protected:
     friend class NodeWindow;
     friend class ShaderMaker;
@@ -224,6 +226,7 @@ protected:
     bool p_allowInteraction = true; // Used for nodes that are not supposed to be delted or copied
     bool p_alwaysVisibleOnContext = false;
     bool p_isVisible = true;
+    bool p_computed = false;
 };
 
 typedef std::shared_ptr<Node> NodeRef;

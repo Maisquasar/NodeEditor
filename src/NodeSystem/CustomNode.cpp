@@ -193,11 +193,14 @@ void CustomNode::ShowInInspector()
             m_lastWriteTime = std::filesystem::last_write_time(tempPath);
         }
     }
-    ImGui::InputTextMultiline("Content", &m_content);
+    Vec2f size = ImGui::GetContentRegionAvail();
+    size.y = std::max(size.y, 100.f);
+    ImGui::InputTextMultiline("##Content", &m_content, size);
 }
 
 // Function to replace all occurrences of a substring with another substring
-void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
+static void ReplaceAll(std::string& str, const std::string& from, const std::string& to)
+{
     size_t start_pos = 0;
     while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
@@ -206,7 +209,8 @@ void ReplaceAll(std::string& str, const std::string& from, const std::string& to
 }
 
 // Sanitize function: Replaces actual newlines and tabs with literal \n and \t
-void SanitizeString(std::string& str) {
+static void SanitizeString(std::string& str)
+{
     ReplaceAll(str, "\n", "\\n"); // Replace newline with \n
     ReplaceAll(str, "\t", "\\t"); // Replace tab with \t
 }

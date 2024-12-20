@@ -234,7 +234,7 @@ void Node::Update()
 }
 
 void Node::Draw(float zoom, const Vec2f& origin) const
-{    
+{
     const auto drawList = ImGui::GetWindowDrawList();
     //Background rect
     Vec2f pMin = GetMin(zoom, origin);
@@ -463,6 +463,12 @@ void Node::ResetUUID()
     SetUUID(UUID());
 }
 
+void Node::ComputeNodeSize()
+{
+    float textSizeX = ImGui::CalcTextSize(p_name.c_str()).x + 20.f;
+    p_size.x = std::max(textSizeX, p_size.x);
+}
+
 void Node::ShowInInspector()
 {
     ImGui::PushID(GetUUID());
@@ -685,6 +691,7 @@ void Node::Internal_Clone(Node* node) const
     node->p_name = p_name;
     node->p_inputs = p_inputs;
     node->p_templateID = p_templateID;
+    node->p_computed = p_computed;
     for (size_t i = 0; i < node->p_inputs.size(); i++)
     {
         auto& input = node->p_inputs[i];

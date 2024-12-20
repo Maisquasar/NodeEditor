@@ -372,9 +372,8 @@ void NodeTemplateHandler::ComputeNodesSize()
     for (NodeMethodInfo& templateNode : m_templateNodes)
     {
         NodeRef& node = templateNode.node;
-        
-        float textSizeX = ImGui::CalcTextSize(node->p_name.c_str()).x + 20.f;
-        node->p_size.x = std::max(textSizeX, node->p_size.x);
+        node->ComputeNodeSize();
+        node->p_computed = true;
     }
 }
 
