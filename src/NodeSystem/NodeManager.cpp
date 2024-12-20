@@ -203,7 +203,8 @@ void NodeManager::UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& ori
             }
         }
     }
-    else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom) && m_userInputState == UserInputState::None)
+    else if (mouseClicked && !wasNodeClicked && node->IsSelected(mousePos, origin, zoom)
+        && (m_userInputState == UserInputState::None || m_userInputState == UserInputState::ClickNode))
     {
         SetUserInputState(UserInputState::ClickNode);
         if (ctrlDown)
@@ -238,30 +239,29 @@ void NodeManager::UpdateDragging(float zoom, const Vec2f& origin, const Vec2f& m
 {
     static float prevZoom = 1.f;
     // Update dragging
-    if (m_userInputState == UserInputState::DragNode)
+    if (m_userInputState != UserInputState::DragNode)
+        return;
+    bool changePosition = false;
+    if (prevZoom != zoom)
     {
-        bool changePosition = false;
-        if (prevZoom != zoom)
+        changePosition = true;
+        prevZoom = zoom;
+    }
+        
+    // Move nodes
+    for (const auto& selectedNode : m_selectedNodes)
+    {
+        if (changePosition)
         {
-            changePosition = true;
-            prevZoom = zoom;
+            Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
+            selectedNode.lock()->p_positionOnClick = posOnScreen ;
+            m_onClickPos = mousePos;
         }
-            
-        // Move nodes
-        for (const auto& selectedNode : m_selectedNodes)
-        {
-            if (changePosition)
-            {
-                Vec2f posOnScreen = ToScreen(selectedNode.lock()->p_position, zoom, origin);
-                selectedNode.lock()->p_positionOnClick = posOnScreen ;
-                m_onClickPos = mousePos;
-            }
-            Node* currentSelectedNode = selectedNode.lock().get();
-            Vec2f offset = m_onClickPos - currentSelectedNode->p_positionOnClick;
-            Vec2f newPosition = ToGrid(mousePos - offset, zoom, origin) ;
-            
-            currentSelectedNode->SetPosition(newPosition);
-        }
+        Node* currentSelectedNode = selectedNode.lock().get();
+        Vec2f offset = m_onClickPos - currentSelectedNode->p_positionOnClick;
+        Vec2f newPosition = ToGrid(mousePos - offset, zoom, origin) ;
+        
+        currentSelectedNode->SetPosition(newPosition);
     }
 }
 
@@ -291,7 +291,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
 
-    if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare)
+    if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare || m_userInputState == UserInputState::ClickNode)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left) || m_userInputState == UserInputState::Busy)
     {
         if (m_userInputState == UserInputState::DragNode)
@@ -370,6 +370,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     
     if (mouseClicked && !wasNodeClicked)
     {
+        // SetUserInputState(UserInputState::None);
         SelectNode(nullptr);
         m_linkManager->ClearSelectedLinks();
     }
@@ -569,11 +570,15 @@ void NodeManager::ClearCurrentLink()
 
 void NodeManager::SetUserInputState(const UserInputState& state)
 {
-    if (state != m_userInputState)
+#ifdef _DEBUG
+    if (m_userInputState != state)
     {
         m_userInputState = state;
-        std::cout << "Set User Input -> " << UserInputEnumToString(state) << std::endl;
+        // std::cout << "Set User Input -> " << UserInputEnumToString(state) << "\n";
     }
+#else
+    m_userInputState = state;
+#endif
 }
 
 void NodeManager::SaveToFile(const std::string& path)

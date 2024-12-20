@@ -53,8 +53,11 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
 {
     Node::InternalDeserialize(parser);
 
+    auto prevLinks = this->GetLinks();
+
     m_paramName = parser["Param Name"].As<std::string>();
-    SetType(static_cast<Type>(parser["Param Type"].As<int>()));
+    // Do not use the method to not remove links associate to it, force the type set
+    m_paramType = static_cast<Type>(parser["Param Type"].As<int>());
 }
 
 Node* ParamNode::Clone() const

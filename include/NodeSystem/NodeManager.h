@@ -25,13 +25,14 @@ struct SelectionSquare
 
 enum class UserInputState
 {
-    None,
-    CreateLink,
-    ClickNode,
-    DragNode,
-    SelectingSquare,
-    Busy,
+    None, // Nothing
+    CreateLink, // Is creating a link, or selecting a node to create
+    ClickNode, // When node is clicked, keep while mouse pressed 
+    DragNode, // Drag a node
+    SelectingSquare, // Select with the square
+    Busy, // Cancel all user input state change for current frame
 };
+
 std::string UserInputEnumToString(UserInputState userInputState);
 
 struct SerializedData
