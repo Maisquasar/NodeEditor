@@ -8,6 +8,8 @@
 #include "UUID.h"
 #include "Type.h"
 
+class Framebuffer;
+class Shader;
 class NodeManager;
 class ShaderMaker;
 struct FuncStruct;
@@ -97,6 +99,8 @@ static void AddColor(uint32_t& color, int value);
 constexpr float c_streamCircleRadius = 5.0f;
 constexpr float c_hoveredCircleRadiusFactor = 1.2f;
 
+static void DrawTriangle(ImDrawList* draw_list, ImGuiDir dir, const Vec2f& position, const Vec2f& size);
+
 class Node : public Selectable
 {
 public:
@@ -109,14 +113,18 @@ public:
     void DrawDot(float zoom, const Vec2f& origin, uint32_t i, bool isOutput) const;
     void DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const;
     void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
+    void DrawButtonPreview(float zoom, const Vec2f& origin, Vec2f pMin, Vec2f pMax) const;
 
     virtual void Update();
+    void GetPreviewRect(const Vec2f& pMin, float zoom, Vec2f& imageMin, Vec2f& imageMax) const;
+    void DrawPreview(Vec2f pMin, float zoom) const;
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
     // Selected Methods
     bool IsSelected(const Vec2f& point, const Vec2f& origin, float zoom) const override { return IsPointHoverNode(point, origin, zoom); }
     bool IsSelected(const Vec2f& rectMin, const Vec2f& rectMax, const Vec2f& origin, float zoom) const override;
+    bool IsPreviewHovered(const Vec2f& point, const Vec2f& origin, float zoom) const;
 
     Vec2f GetMin(float zoom, const Vec2f& origin) const 
     {
@@ -124,7 +132,7 @@ public:
     }
     Vec2f GetMax(const Vec2f& min, float zoom) const
     {
-        return min + p_size * zoom;
+        return min + (p_preview ? p_sizeWithPreview : p_size) * zoom;
     }
     Vec2f GetMax(float zoom, const Vec2f& origin) const
     {
@@ -178,6 +186,9 @@ public:
     NodeManager* GetNodeManager() const { return p_nodeManager; }
     std::vector<InputRef>& GetInputs() { return p_inputs; }
     std::vector<OutputRef>& GetOutputs() { return p_outputs; }
+
+    static void GetPreviewTriangle(Vec2f& trianglePos, Vec2f& triangleSize, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom);
+    static void GetPreviewButtonRect(Vec2f& outMin, Vec2f& outMax, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom);
     
     virtual void ShowInInspector();
 
@@ -193,6 +204,8 @@ public:
     virtual Node* Clone() const;
 
     virtual void OnChangeUUID(const UUID& prevUUID, const UUID& newUUID);
+
+    void OpenPreview(bool open);
 protected:
     void SetUUID(const UUID& uuid);
 
@@ -204,13 +217,7 @@ protected:
     friend class ShaderMaker;
     friend class NodeTemplateHandler;
     friend class NodeManager;
-
-    TemplateID p_templateID = -1;
-
-    NodeManager* p_nodeManager;
-
-    uint32_t p_topColor = IM_COL32(150, 150, 150, 255);
-
+    
     UUID p_uuid;
     std::string p_name;
     
@@ -218,7 +225,13 @@ protected:
     std::vector<OutputRef> p_outputs;
     
     Vec2f p_position;
-    Vec2f p_size = {150.0f, c_topSize};
+    Vec2f p_size = {125.0f, c_topSize};
+    Vec2f p_sizeWithPreview;
+    
+    TemplateID p_templateID = -1;
+    uint32_t p_topColor = IM_COL32(150, 150, 150, 255);
+    
+    NodeManager* p_nodeManager;
     
     bool p_selected = false;
     Vec2f p_positionOnClick = {0, 0};
@@ -227,6 +240,11 @@ protected:
     bool p_alwaysVisibleOnContext = false;
     bool p_isVisible = true;
     bool p_computed = false;
+
+    bool p_previewHovered = false;
+    bool p_preview = false;
+    Ref<Shader> m_shader;
+    Ref<Framebuffer> m_framebuffer;
 };
 
 typedef std::shared_ptr<Node> NodeRef;

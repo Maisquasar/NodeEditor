@@ -290,6 +290,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
+    bool wasPreviewClicked = false;
 
     if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare || m_userInputState == UserInputState::ClickNode)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left) || m_userInputState == UserInputState::Busy)
@@ -316,6 +317,19 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
         if (!node->p_isVisible)
             continue;
+
+
+        if (m_userInputState == UserInputState::None)
+        {
+            if (node->p_previewHovered = node->IsPreviewHovered(mousePos, origin, zoom))
+            {
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                {
+                    node->OpenPreview(!node->p_preview);
+                    break;
+                }
+            }
+        }
         
         UpdateInputOutputClick(zoom, origin, mousePos, mouseClicked, node);
 
@@ -494,7 +508,6 @@ NodeWeak NodeManager::GetNode(const UUID& uuid) const
 {
     if (m_nodes.find(uuid) == m_nodes.end())
     {
-        __debugbreak();
         return {};
     }
     return m_nodes.at(uuid);

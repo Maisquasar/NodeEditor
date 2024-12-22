@@ -113,7 +113,7 @@ void NodeWindow::Initialize()
 
     m_quad = Application::GetInstance()->GetQuad();
     m_currentShader = std::make_shared<Shader>();
-    m_currentShader->Load("shaders/shader");
+    m_currentShader->LoadDefaultShader();
 
     m_framebuffer = std::make_shared<Framebuffer>();
     m_framebuffer->Initialize();
@@ -143,7 +143,6 @@ void NodeWindow::Update() const
         nodeTemplateHandler->ComputeNodesSize();
     }
 
-    std::cout << m_isFocused << '\n';
     if (!m_isFocused)
         return;
     
@@ -245,7 +244,26 @@ void NodeWindow::Draw()
 
 void NodeWindow::Render()
 {
-    UpdateShader();
+    // UpdateShader();
+    UpdateShaders();
+
+    for (auto it = m_previewNodes.begin(); it != m_previewNodes.end();)
+    {
+        const auto previewNode = m_nodeManager->GetNode(*it).lock();
+
+        if (!previewNode || !previewNode->p_preview)
+        {
+            it = m_previewNodes.erase(it); // Erase returns the next valid iterator
+            continue;
+        }
+        previewNode->m_framebuffer->Update();
+        previewNode->m_framebuffer->Bind();
+        previewNode->m_shader->Use();
+        previewNode->m_shader->UpdateValues();
+        m_quad->Draw();
+        previewNode->m_framebuffer->Unbind();
+        ++it;
+    }
 
     m_framebuffer->Update();
     m_framebuffer->Bind();
@@ -587,8 +605,29 @@ void NodeWindow::UpdateShader()
     if (m_shouldUpdateShader)
     {
         ShaderMaker shaderMaker;
-        shaderMaker.CreateFragmentShader("shaders/shader.frag", m_nodeManager);
-        m_currentShader->RecompileFragmentShader();
+        std::string content;
+        
+        shaderMaker.CreateFragmentShader(content, m_nodeManager);
+        
+        m_currentShader->RecompileFragmentShader(content.c_str());
+        
+        m_shouldUpdateShader = false;
+    }
+}
+
+void NodeWindow::UpdateShaders()
+{
+    if (m_shouldUpdateShader)
+    {
+        ShaderMaker shaderMaker;
+        
+        shaderMaker.DoWork(m_nodeManager);
+        
+        std::string content;
+        
+        shaderMaker.CreateFragmentShader(content, m_nodeManager);
+        
+        m_currentShader->RecompileFragmentShader(content.c_str());
         
         m_shouldUpdateShader = false;
     }

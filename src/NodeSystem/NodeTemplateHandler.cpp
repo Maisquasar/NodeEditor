@@ -27,7 +27,7 @@ bool NodeTemplateHandler::RunUnitTest(const NodeMethodInfo& info)
     if (!node->p_allowInteraction || typeid(*node) != typeid(Node))
         return true;
     Ref<Shader> shader = std::make_shared<Shader>();
-    if (!shader->LoadVertexShader("shaders/shader.vert"))
+    if (!shader->LoadDefaultVertex())
     {
         std::cout << "Failed to load vertex shader\n";
         return false;
@@ -179,6 +179,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ASin", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "asin(%s)");
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "atan(%s)");
+    CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Float}, {"X", Type::Float} }, { {"Result", Type::Float} }, "atan(%s, %s)");
     CreateTemplateNode("Mod", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "modf(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "min(%s, %s)");
@@ -228,6 +229,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ASin", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "asin(%s)");
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "atan(%s)");
+    CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector2}, {"X", Type::Vector2} }, { {"Result", Type::Vector2} }, "atan(%s, %s)");
     CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "modf(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "min(%s, %s)");
@@ -276,6 +278,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ASin", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "asin(%s)");
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "atan(%s)");
+    CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector3}, {"X", Type::Vector3} }, { {"Result", Type::Vector3} }, "atan(%s, %s)");
     CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "modf(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "min(%s, %s)");
@@ -324,6 +327,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ASin", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "asin(%s)");
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "atan(%s)");
+    CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector4}, {"X", Type::Vector4} }, { {"Result", Type::Vector4} }, "atan(%s, %s)");
     CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "modf(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "min(%s, %s)");

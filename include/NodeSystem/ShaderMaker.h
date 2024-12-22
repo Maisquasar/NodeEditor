@@ -29,10 +29,13 @@ class ShaderMaker
 public:
     void FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf);
     
-    void FillFunctionList(NodeManager* manager);
-    void FillRecurrence(NodeManager* manager, const NodeRef& node, const NodeRef& parentNode);
-    
+    void FillFunctionList(NodeManager* manager, NodeRef firstNode);
+    void FillRecurrence(NodeManager* manager, const NodeRef& node);
+
+    void DoWork(NodeManager* manager);
+    void CreateFragmentShader(std::string& content, NodeManager* manager);
     void CreateFragmentShader(const std::filesystem::path& path, NodeManager* manager);
+    void CreateFragmentShader(std::string& content, NodeManager* manager, const NodeRef& endNode);
     void CreateShaderToyShader(NodeManager* manager);
     void SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content);
 

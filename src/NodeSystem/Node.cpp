@@ -1,13 +1,16 @@
 #include "NodeSystem/Node.h"
 
 #include <CppSerializer.h>
+#include <imgui_internal.h>
 
+#include "NodeWindow.h"
 #include "Actions/Action.h"
 #include "Actions/ActionChangeValue.h"
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Font.h"
+#include "Render/Framebuffer.h"
 
 const char* SerializeTypeEnum()
 {
@@ -179,6 +182,39 @@ Input* Input::Clone() const
     return input;
 }
 
+void DrawTriangle(ImDrawList* draw_list, ImGuiDir dir, const Vec2f& position, const Vec2f& size)
+{
+    Vec2f p1, p2, p3;
+
+    switch (dir)
+    {
+    case ImGuiDir_Up:
+        p1 = position + Vec2f(size.x * 0.5f, 0);
+        p2 = position + Vec2f(0, size.y);
+        p3 = position + Vec2f(size.x, size.y);
+        break;
+    case ImGuiDir_Down:
+        p1 = position + Vec2f(0, 0);
+        p2 = position + Vec2f(size.x, 0);
+        p3 = position + Vec2f(size.x * 0.5f, size.y);
+        break;
+    case ImGuiDir_Left:
+        p1 = position + Vec2f(size.x, 0);
+        p2 = position + Vec2f(size.x, size.y);
+        p3 = position + Vec2f(0, size.y * 0.5f);
+        break;
+    case ImGuiDir_Right:
+        p1 = position + Vec2f(0, 0);
+        p2 = position + Vec2f(size.x, size.y * 0.5f);
+        p3 = position + Vec2f(0, size.y);
+        break;
+    default:
+        return;
+    }
+
+    draw_list->AddTriangleFilled(p1, p2, p3, IM_COL32(255, 255, 255, 255));
+}
+
 Node::Node() : p_nodeManager(nullptr)
 {
     
@@ -230,9 +266,52 @@ void Node::DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const
     DrawDot(zoom, origin, i, false);
 }
 
+void Node::DrawButtonPreview(float zoom, const Vec2f& origin, Vec2f pMin, Vec2f pMax) const
+{
+    auto drawList = ImGui::GetWindowDrawList();
+    Vec2f triangleSize, trianglePos;
+    GetPreviewTriangle(trianglePos, triangleSize, pMin, pMax, zoom);
+
+    if (p_previewHovered)
+    {
+        Vec2f rectMin, rectMax;
+        GetPreviewButtonRect(rectMin, rectMax, pMin, pMax, zoom);
+        drawList->AddRect(rectMin, rectMax, IM_COL32(255, 255, 255, 255));
+    }
+    DrawTriangle(drawList, p_preview ? ImGuiDir_Up : ImGuiDir_Down, trianglePos, triangleSize);
+}
+
 void Node::Update()
 {
-    // TODO : Update name length
+}
+
+void Node::GetPreviewRect(const Vec2f& pMin, float zoom, Vec2f& imageMin, Vec2f& imageMax) const
+{
+    float gap = 5.0f; // Gap around the image
+
+    float sizeY = ((p_sizeWithPreview.y - p_size.y) - 2 * gap) * zoom;
+    float sizeX = sizeY; // Maintain 1:1 aspect ratio
+
+    // Center horizontally, considering zoom and gap
+    float centerXOffset = (p_size.x * zoom - sizeX) * 0.5f;
+
+    imageMin = pMin + Vec2f(centerXOffset, p_size.y * zoom + gap * zoom);
+    imageMax = imageMin + Vec2f(sizeX, sizeY);
+}
+
+void Node::DrawPreview(Vec2f pMin, float zoom) const
+{
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    Vec2f imageMin;
+    Vec2f imageMax;
+    GetPreviewRect(pMin, zoom, imageMin, imageMax);
+
+    if (m_framebuffer)
+    {
+        m_framebuffer->SetNewSize(imageMax - imageMin);
+    }
+
+    drawList->AddImage(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), imageMin, imageMax, ImVec2(0, 1), ImVec2(1, 0));
 }
 
 void Node::Draw(float zoom, const Vec2f& origin) const
@@ -248,6 +327,9 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     ImFont* font = Font::GetFontScaled();
     drawList->AddText(font, 14 * zoom, pMin + Vec2f(5, 5) * zoom, IM_COL32(255, 255, 255, 255), p_name.c_str());
 
+    DrawButtonPreview(zoom, origin, pMin, pMax);
+
+#ifdef _DEBUG
     bool hover = false;
     for (uint32_t i = 0; i < p_inputs.size() + p_outputs.size(); i++)
     {
@@ -267,14 +349,17 @@ void Node::Draw(float zoom, const Vec2f& origin) const
             break;
         }
     }
+#endif
     if (p_selected)
     {
-        drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.000000, 240, 2);
+        drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.f * zoom, 240, 2);
 
+#ifdef _DEBUG
         if (!hover)
         {
             ImGui::SetTooltip(("UUID: " + std::to_string(p_uuid)).c_str());
         }
+#endif
     }
 
     for (uint32_t i = 0; i < p_inputs.size(); i++)
@@ -285,6 +370,11 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     for (uint32_t i = 0; i < p_outputs.size(); i++)
     {
         DrawOutputDot(zoom, origin, i);
+    }
+
+    if (p_preview)
+    {
+        DrawPreview(pMin, zoom);
     }
 }
 
@@ -308,6 +398,20 @@ bool Node::IsSelected(const Vec2f& rectMin, const Vec2f& rectMax, const Vec2f& o
         && std::max(pMin.x, pMax.x) >= std::min(rectMin.x, rectMax.x)
         && std::min(pMin.y, pMax.y) <= std::max(rectMin.y, rectMax.y)
         && std::max(pMin.y, pMax.y) >= std::min(rectMin.y, rectMax.y))
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Node::IsPreviewHovered(const Vec2f& point, const Vec2f& origin, float zoom) const
+{
+    Vec2f pMin = GetMin(zoom, origin);
+    Vec2f pMax = GetMax(pMin, zoom);
+    Vec2f rectMin, rectMax;
+    GetPreviewButtonRect(rectMin, rectMax, pMin, pMax, zoom);
+
+    if (point.x > rectMin.x && point.x < rectMax.x && point.y > rectMin.y && point.y < rectMax.y)
     {
         return true;
     }
@@ -471,6 +575,27 @@ void Node::ComputeNodeSize()
     p_size.x = std::max(textSizeX, p_size.x);
 }
 
+void Node::GetPreviewTriangle(Vec2f& trianglePos, Vec2f& triangleSize, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom)
+{
+    triangleSize = Vec2f(10) * zoom;
+    trianglePos = Vec2f(nodeMax.x, nodeMin.y) - Vec2f(triangleSize.x * 2.f, -(c_topSize * zoom - triangleSize.y) * 0.5f);
+}
+
+void Node::GetPreviewButtonRect(Vec2f& outMin, Vec2f& outMax, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom)
+{
+    Vec2f triangleSize;
+    Vec2f trianglePos;
+    
+    GetPreviewTriangle(trianglePos, triangleSize, nodeMin, nodeMax, zoom);
+
+    const float gap = 5.0f;
+    Vec2f rectPos = trianglePos - Vec2f(gap) * zoom;
+    Vec2f rectSize = triangleSize + Vec2f(gap * 2) * zoom;
+
+    outMin = rectPos;
+    outMax = rectPos + rectSize;
+}
+
 void Node::ShowInInspector()
 {
     ImGui::PushID(GetUUID());
@@ -625,6 +750,8 @@ std::string Node::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruc
     auto toFormatList = GetFormatStrings();
     for (int k = 0; k < p_outputs.size(); k++)
     {
+        if (funcStruct.outputs.size() <= k)
+            break;
         std::string variableName = funcStruct.outputs[k];
         std::string glslType = ShaderMaker::TypeToGLSLType(p_outputs[k]->type);
             
@@ -672,6 +799,31 @@ Node* Node::Clone() const
 
 void Node::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
 {
+}
+
+void Node::OpenPreview(bool open)
+{
+    p_preview = open;
+
+    if (p_preview)
+    {
+        p_nodeManager->GetMainWindow()->AddPreviewNode(p_uuid);
+        p_sizeWithPreview = {p_size.x, p_size.y + p_size.x};
+
+        if (!m_shader)
+        {
+            m_shader = std::make_shared<Shader>();
+            m_framebuffer = std::make_shared<Framebuffer>();
+
+            m_shader->LoadDefaultShader();
+            m_framebuffer->Initialize();
+            p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+        }
+    }
+    else
+    {
+        p_nodeManager->GetMainWindow()->RemovePreviewNode(p_uuid);
+    }
 }
 
 void Node::SetUUID(const UUID& uuid)

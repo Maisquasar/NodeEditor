@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Fix names, add previews
+    //TODO : Add reroute nodes, add 
     Application* app = Application::Create();
     
     app->Initialize();

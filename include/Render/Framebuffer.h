@@ -44,14 +44,19 @@ public:
     Shader() = default;
     ~Shader() = default;
 
+    bool LoadDefaultShader();
+    bool LoadDefaultVertex();
     bool Load(const std::filesystem::path& path);
+    bool Load(const char* vertSource, const char* fragSource);
     bool LoadVertexShader(const std::filesystem::path& vertPath);
+    bool LoadVertexShader(const char* vertSource);
     bool SetFragmentShaderContent(const std::string& string);
     bool Link();
 
     void Use() const;
     bool RecompileFragmentShader();
-    void UpdateValues();
+    bool RecompileFragmentShader(const char* content);
+    void UpdateValues() const;
 
     bool IsLoaded() const { return m_loaded; }
 

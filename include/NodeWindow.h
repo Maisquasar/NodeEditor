@@ -1,4 +1,6 @@
 #pragma once
+#include <set>
+
 #include "NodeSystem/NodeManager.h"
 #include "Actions/Action.h"
 
@@ -58,8 +60,12 @@ public:
     Vec2f GetMousePosOnContext() const { return m_mousePosOnContext; }
 
     void UpdateShader();
+    void UpdateShaders();
 
     void ShouldUpdateShader() { m_shouldUpdateShader = true; }
+    
+    void AddPreviewNode(const UUID& uuid) { m_previewNodes.insert(uuid); }
+    void RemovePreviewNode(const UUID& uuid) { m_previewNodes.erase(uuid); }
 private:
     
     void DrawGrid();
@@ -84,6 +90,8 @@ private:
     Ref<Shader> m_currentShader;
     Ref<Framebuffer> m_framebuffer;
     bool m_shouldUpdateShader = true;
+
+    std::set<UUID> m_previewNodes;
 
     struct GridWindow
     {

@@ -43,6 +43,39 @@ void Mesh::Draw() const
     glBindVertexArray(0);
 }
 
+static std::string s_defaultVertShader = R"(#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+    TexCoords = aTexCoords;
+}
+)"; 
+static std::string s_defaultFragShader = R"(#version 330 core
+in vec2 TexCoords;
+uniform float Time;
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}
+)"; 
+
+bool Shader::LoadDefaultShader()
+{
+    return Load(s_defaultVertShader.c_str(), s_defaultFragShader.c_str());
+}
+
+bool Shader::LoadDefaultVertex()
+{
+    return LoadVertexShader(s_defaultVertShader.c_str());
+}
+
 bool Shader::Load(const std::filesystem::path& path)
 {
     m_path = path;
@@ -61,6 +94,11 @@ bool Shader::Load(const std::filesystem::path& path)
     const char* vertSource = vertCode.c_str();
     const char* fragSource = fragCode.c_str();
 
+    return Load(vertSource, fragSource);
+}
+
+bool Shader::Load(const char* vertSource, const char* fragSource)
+{
     m_program = glCreateProgram();
     m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(m_vertexShader, 1, &vertSource, nullptr);
@@ -108,6 +146,11 @@ bool Shader::LoadVertexShader(const std::filesystem::path& vertPath)
     std::string vertCode((std::istreambuf_iterator<char>(vertFile)), (std::istreambuf_iterator<char>()));
     const char* vertSource = vertCode.c_str();
 
+    return LoadVertexShader(vertSource);
+}
+
+bool Shader::LoadVertexShader(const char* vertSource)
+{
     m_program = glCreateProgram();
     m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(m_vertexShader, 1, &vertSource, nullptr);
@@ -177,6 +220,11 @@ bool Shader::RecompileFragmentShader()
     std::ifstream fragFile(m_path.string() + ".frag");
     std::string fragCode((std::istreambuf_iterator<char>(fragFile)), (std::istreambuf_iterator<char>()));
     const char* fragSource = fragCode.c_str();
+    return RecompileFragmentShader(fragSource);
+}
+
+bool Shader::RecompileFragmentShader(const char* content)
+{
     // Retrieve the existing fragment shader
     GLint attachedShaders = 0;
     GLuint shaders[2]; // Typically, a program has a vertex and fragment shader
@@ -206,7 +254,7 @@ bool Shader::RecompileFragmentShader()
     }
     // Create and compile the new fragment shader
     GLuint newFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(newFragmentShader, 1, &fragSource, nullptr);
+    glShaderSource(newFragmentShader, 1, &content, nullptr);
     glCompileShader(newFragmentShader);
 
     // Check for compilation errors
@@ -218,6 +266,7 @@ bool Shader::RecompileFragmentShader()
         glGetShaderInfoLog(newFragmentShader, 512, nullptr, infoLog);
         std::cerr << "Fragment Shader Compilation Error:\n" << infoLog << std::endl;
         glDeleteShader(newFragmentShader);
+        ImGui::SetClipboardText(content);
         return false;
     }
 
@@ -226,7 +275,7 @@ bool Shader::RecompileFragmentShader()
     return Link();
 }
 
-void Shader::UpdateValues()
+void Shader::UpdateValues() const
 {
     // Set time value
     GLint timeLocation = glGetUniformLocation(m_program, "Time");
