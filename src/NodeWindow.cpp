@@ -441,6 +441,9 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
     // Context menu
     if (m_contextOpen = ImGui::BeginPopup("context"); m_contextOpen)
     {
+        if (m_nodeManager->GetUserInputState() == UserInputState::None)
+            m_nodeManager->SetUserInputState(UserInputState::CreateNode);
+        
         static ImGuiTextFilter filter("");
 
         if (m_shouldOpenContextMenu == 0)
@@ -455,8 +458,8 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
             m_focusInput = false;
         }
         filter.Draw("", ImGui::GetContentRegionAvail().x);
-        auto nodeTemplate = NodeTemplateHandler::GetInstance();
-        auto templates = nodeTemplate->GetTemplates();
+        NodeTemplateHandler* nodeTemplate = NodeTemplateHandler::GetInstance();
+        TemplateList templates = nodeTemplate->GetTemplates();
 
         // If is linking
         bool isLinking = m_nodeManager->CurrentLinkIsAlmostLinked();
@@ -577,6 +580,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                         link.fromNodeIndex = node->GetUUID();
                     }
                 }
+                m_nodeManager->SetUserInputState(UserInputState::None);
                 ImGui::CloseCurrentPopup();
                 break;
             }

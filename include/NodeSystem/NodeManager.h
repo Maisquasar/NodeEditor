@@ -27,6 +27,7 @@ enum class UserInputState
 {
     None, // Nothing
     CreateLink, // Is creating a link, or selecting a node to create
+    CreateNode, // Is creating a node with context menu
     ClickNode, // When node is clicked, keep while mouse pressed 
     DragNode, // Drag a node
     SelectingSquare, // Select with the square

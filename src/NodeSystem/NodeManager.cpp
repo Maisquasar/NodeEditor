@@ -27,6 +27,8 @@ std::string UserInputEnumToString(UserInputState userInputState)
         return "SelectingSquare";
     case UserInputState::CreateLink:
         return "CreateLink";
+    case UserInputState::CreateNode:
+        return "CreateNode";
     case UserInputState::ClickNode:
         return "ClickNode";
     default:
@@ -373,6 +375,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         }
         else
         {
+            SetUserInputState(UserInputState::CreateNode);
             m_parent->SetOpenContextMenu(true);
         }
     }
