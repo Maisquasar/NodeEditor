@@ -25,6 +25,7 @@
 
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionPaste.h"
+#include "NodeSystem/RerouteNodeNamed.h"
 class ParamNode;
 using namespace GALAXY;
 
@@ -423,7 +424,7 @@ void NodeWindow::DrawInspector() const
     Vec2f size = {size1 - 15, size1 - 15};
     m_framebuffer->SetNewSize(size);
     ImGui::Dummy(Vec2f(5, 5));
-    ImGui::Image(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), size, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1));
+    ImGui::Image(reinterpret_cast<void*>(static_cast<size_t>(m_framebuffer->GetRenderTexture())), size, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1));
     ImGui::Separator();
 
     if (NodeRef selectedNode = m_nodeManager->GetSelectedNode().lock())
@@ -441,8 +442,6 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
     // Context menu
     if (m_contextOpen = ImGui::BeginPopup("context"); m_contextOpen)
     {
-        if (m_nodeManager->GetUserInputState() == UserInputState::None)
-            m_nodeManager->SetUserInputState(UserInputState::CreateNode);
         
         static ImGuiTextFilter filter("");
 
@@ -450,7 +449,11 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         {
             m_shouldOpenContextMenu = -1;
             ImGui::CloseCurrentPopup();
+            return;
         }
+        
+        if (m_nodeManager->GetUserInputState() == UserInputState::None)
+            m_nodeManager->SetUserInputState(UserInputState::CreateNode);
 
         if (m_focusInput)
         {
@@ -489,8 +492,9 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
         uint32_t j = 0;
         for (uint32_t i = 0; i < templates.size(); i++)
         {
-            std::string name = templates[i].node->GetName();
-            if (!templates[i].node->GetAllowInteraction())
+            NodeRef nodeRef = templates[i].node;
+            std::string name = nodeRef->GetName();
+            if (!nodeRef->GetAllowInteraction())
                 continue;
             bool passFilter = false;
             if (filter.PassFilter(name.c_str()))
@@ -509,16 +513,16 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                 continue;
             if (isLinking)
             {
-                if (isOutput && !templates[i].node->p_inputs.empty() && templates[i].node->p_inputs[0]->type != streamLinking->type && !templates[i].node->p_alwaysVisibleOnContext)
+                if (isOutput && !nodeRef->p_inputs.empty() && nodeRef->p_inputs[0]->type != streamLinking->type && !nodeRef->p_alwaysVisibleOnContext)
                     continue;
-                if (!isOutput && !templates[i].node->p_outputs.empty() && templates[i].node->p_outputs[0]->type != streamLinking->type&& !templates[i].node->p_alwaysVisibleOnContext)
+                if (!isOutput && !nodeRef->p_outputs.empty() && nodeRef->p_outputs[0]->type != streamLinking->type&& !nodeRef->p_alwaysVisibleOnContext)
                     continue;
-                if (!isOutput && templates[i].node->p_outputs.empty() || isOutput && templates[i].node->p_inputs.empty())
+                if (!isOutput && nodeRef->p_outputs.empty() || isOutput && nodeRef->p_inputs.empty())
                     continue;
             }
             if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
             {
-                const TemplateID templateId = templates[i].node->GetTemplateID();
+                const TemplateID templateId = nodeRef->GetTemplateID();
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
                 node->p_nodeManager = m_nodeManager;
@@ -542,6 +546,10 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                     else if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node))
                     {
                         paramNode->SetType(streamLinking->type);
+                    }
+                    else if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(node))
+                    {
+                        rerouteNode->SetType(streamLinking->type);
                     }
                 }
                 

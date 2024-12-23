@@ -10,6 +10,7 @@ class Node;
 struct NodeMethodInfo
 {
     NodeMethodInfo() = default;
+    NodeMethodInfo(Node* ptr) : node(ptr) {}
     NodeMethodInfo(NodeRef ref) : node(ref) {}
     NodeMethodInfo(NodeRef ref, std::string _formatString) : node(ref), outputFormatStrings({std::move(_formatString)}) {}
     NodeMethodInfo(NodeRef ref, std::vector<std::string> _formatStrings) : node(ref), outputFormatStrings(std::move(_formatStrings)) {}
@@ -56,7 +57,15 @@ public:
 
     static std::shared_ptr<Node> CreateFromTemplateName(const std::string& name);
 
+    void RemoveTemplateNode(const std::string& name);
+
     TemplateList& GetTemplates() { return m_templateNodes; }
+    static NodeMethodInfo GetFromName(const std::string& name);
+
+    static void UpdateKey(const std::string& oldName, const std::string& newName);
+    static void UpdateType(const std::string& name, Type type);
+
+    static bool IsNameExist(const std::string& name);
 private:
     void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<std::tuple<std::string, Type>>& inputs,
                             const std::vector<std::tuple<std::string, Type>>& outputs, const std::vector<std::string>& format,

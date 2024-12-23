@@ -5,6 +5,7 @@
 
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/ParamNode.h"
+#include "NodeSystem/RerouteNodeNamed.h"
 
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Framebuffer.h"
@@ -144,6 +145,18 @@ void NodeTemplateHandler::Initialize()
 
         node->AddInput("In", Type::Vector3);
         node->AddOutput("Out", Type::Vector3);
+        node->p_alwaysVisibleOnContext = true;
+        
+        NodeMethodInfo info{node};
+        AddTemplateNode(info);
+    }
+
+    {
+        Ref<RerouteNodeNamed> node = std::make_shared<RerouteNodeNamed>("Reroute Named");
+        node->SetTopColor(customNodeColor);
+        node->AddInput("", Type::Float);
+        node->AddOutput("", Type::Float);
+        node->p_allowPreview = false;
         node->p_alwaysVisibleOnContext = true;
         
         NodeMethodInfo info{node};
@@ -413,30 +426,95 @@ TemplateID NodeTemplateHandler::TemplateIDFromString(const std::string& name)
     return std::hash<std::string>{}(name);
 }
 
-std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplate(size_t templateID)
+NodeRef NodeTemplateHandler::CreateFromTemplate(size_t templateID)
 {
     for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
     {
-        auto hash = s_instance->m_templateNodes[i].node->GetTemplateID();
+        NodeRef nodeToClone = s_instance->m_templateNodes[i].node;
+        auto hash = nodeToClone->GetTemplateID();
         if (hash == templateID)
         {
-            return std::shared_ptr<Node>(s_instance->m_templateNodes[i].node->Clone());
+            NodeRef node(nodeToClone->Clone());
+            node->OnCreate();
+            return node;
         }   
     }
     return nullptr;
 }
 
-std::shared_ptr<Node> NodeTemplateHandler::CreateFromTemplateName(const std::string& name)
+NodeRef NodeTemplateHandler::CreateFromTemplateName(const std::string& name)
 {
     for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
     {
         std::string nodeName = s_instance->m_templateNodes[i].node->GetName();
         if (nodeName == name)
         {
-            return std::shared_ptr<Node>(s_instance->m_templateNodes[i].node->Clone());
+            return NodeRef(s_instance->m_templateNodes[i].node->Clone());
         }
     }
     return nullptr;
+}
+
+void NodeTemplateHandler::RemoveTemplateNode(const std::string& name)
+{
+    m_templateNodes.erase(std::ranges::remove_if(m_templateNodes, [&name](const NodeMethodInfo& node) {
+        return node.node->GetName() == name;
+    }).begin(), m_templateNodes.end());
+}
+
+NodeMethodInfo NodeTemplateHandler::GetFromName(const std::string& name)
+{
+    for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
+    {
+        std::string nodeName = s_instance->m_templateNodes[i].node->GetName();
+        if (nodeName == name)
+        {
+            return s_instance->m_templateNodes[i];
+        }
+    }
+    return {};
+}
+
+void NodeTemplateHandler::UpdateKey(const std::string& oldName, const std::string& newName)
+{
+    auto it = std::ranges::find_if(s_instance->m_templateNodes, [&oldName](const NodeMethodInfo& node) {
+        return node.node->GetName() == oldName;
+    });
+    if (it != s_instance->m_templateNodes.end())
+    {
+        it->node->SetName(newName);
+        it->node->p_templateID = TemplateIDFromString(newName);
+
+        if (auto reroute = std::dynamic_pointer_cast<RerouteNodeNamed>(it->node))
+        {
+            reroute->SetRerouteName(newName);
+        }
+    }
+}
+
+void NodeTemplateHandler::UpdateType(const std::string& name, Type type)
+{
+    auto it = std::ranges::find_if(s_instance->m_templateNodes, [&name](const NodeMethodInfo& node) {
+        return node.node->GetName() == name;
+    });
+    if (it != s_instance->m_templateNodes.end())
+    {
+        if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(it->node))
+            rerouteNode->SetType(type);
+    }
+}
+
+bool NodeTemplateHandler::IsNameExist(const std::string& name)
+{
+    for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
+    {
+        std::string nodeName = s_instance->m_templateNodes[i].node->GetName();
+        if (nodeName == name)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void NodeTemplateHandler::CreateTemplateNode(

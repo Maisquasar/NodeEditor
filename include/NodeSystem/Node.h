@@ -106,7 +106,7 @@ class Node : public Selectable
 public:
     explicit Node();
     Node(std::string _name);
-    ~Node() = default;
+    ~Node() override;
 
     // Draw Methods
     void Draw(float zoom, const Vec2f& origin) const;
@@ -160,6 +160,9 @@ public:
     void RemoveInput(uint32_t index);
     void RemoveOutput(uint32_t index);
 
+    void ClearInputs();
+    void ClearOutputs();
+
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
 
@@ -211,6 +214,11 @@ protected:
 
     void Internal_Clone(Node* node) const;
 
+    // Called when the node is created
+    virtual void OnCreate() {}
+    // Called when the node is removed from the node manager
+    virtual void OnRemove() {}
+
 
 protected:
     friend class NodeWindow;
@@ -238,6 +246,7 @@ protected:
 
     bool p_allowInteraction = true; // Used for nodes that are not supposed to be delted or copied
     bool p_alwaysVisibleOnContext = false;
+    bool p_allowPreview = true;
     bool p_isVisible = true;
     bool p_computed = false;
 

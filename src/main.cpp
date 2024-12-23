@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Add reroute nodes, add 
+    //TODO : Add reroute nodes, Clean code! 
     Application* app = Application::Create();
     
     app->Initialize();

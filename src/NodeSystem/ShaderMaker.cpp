@@ -6,7 +6,10 @@
 #include "NodeWindow.h"
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/RerouteNodeNamed.h"
 #include "Render/Framebuffer.h"
+
+class RerouteNodeNamed;
 
 void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf)
 {
@@ -116,6 +119,20 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
         FuncStruct& parentFuncStruct = m_functions[fromNode->p_uuid];
         auto inputName = parentFuncStruct.outputs[link->fromOutputIndex];
         funcStruct.inputs.push_back(inputName);
+    }
+
+    if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(node))
+    {
+        if (!rerouteNode->IsDefinition())
+        {
+            if (auto rerouteNodeNamed = NodeRef(rerouteNode->GetDefinitionNode()))
+            {
+                FillRecurrence(manager, rerouteNodeNamed);
+                FuncStruct& parentFuncStruct = m_functions[rerouteNodeNamed->p_uuid];
+                auto inputName = parentFuncStruct.outputs[0];
+                funcStruct.inputs.push_back(inputName);
+            }
+        }
     }
 
     // Add the current node to the serialization list
@@ -284,14 +301,26 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content)
 {
     auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
-    for (int i = 0; i < node->p_inputs.size(); i++)
+    NodeRef currentNode;
+    for (int i = 0; i < m_functions[node->p_uuid].inputs.size(); i++)
     {
-        LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();
-        if (link == nullptr)
-            continue;
-        NodeRef currentNode = manager->GetNode(link->fromNodeIndex).lock();
-        if (currentNode == nullptr)
-            continue;
+        auto isReroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
+        if (!isReroute || isReroute && isReroute->IsDefinition())
+        {
+            LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+            if (link == nullptr)
+                continue;
+            currentNode = manager->GetNode(link->fromNodeIndex).lock();
+            if (currentNode == nullptr)
+                continue;
+        }
+        else
+        {
+            if (!isReroute->IsDefinition())
+            {
+                currentNode = isReroute->GetDefinitionNode();
+            }
+        }
         
         SerializeFunctions(manager, currentNode, content);
 

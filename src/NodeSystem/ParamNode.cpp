@@ -14,7 +14,7 @@ void ParamNode::ShowInInspector()
 
     ImGui::BeginDisabled(!m_editable);
 
-    ImGui::SeparatorText("Ouput");
+    ImGui::SeparatorText("Output");
 
     if (ImGui::InputText("Param Name", &m_paramName))
     {
@@ -73,7 +73,7 @@ Node* ParamNode::Clone() const
 
 void ParamNode::SetType(Type type)
 {
-    RemoveOutput(0);
+    ClearOutputs();
     AddOutput(m_paramName, type);
     m_paramType = type;
 }

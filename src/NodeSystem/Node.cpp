@@ -220,7 +220,11 @@ Node::Node() : p_nodeManager(nullptr)
     
 }
 
-Node::Node(std::string _name) : p_nodeManager(nullptr), p_name(std::move(_name))
+Node::Node(std::string _name) : p_name(std::move(_name)), p_nodeManager(nullptr)
+{
+}
+
+Node::~Node()
 {
 }
 
@@ -327,7 +331,10 @@ void Node::Draw(float zoom, const Vec2f& origin) const
     ImFont* font = Font::GetFontScaled();
     drawList->AddText(font, 14 * zoom, pMin + Vec2f(5, 5) * zoom, IM_COL32(255, 255, 255, 255), p_name.c_str());
 
-    DrawButtonPreview(zoom, origin, pMin, pMax);
+    if (p_allowPreview)
+    {
+        DrawButtonPreview(zoom, origin, pMin, pMax);
+    }
 
 #ifdef _DEBUG
     bool hover = false;
@@ -372,7 +379,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         DrawOutputDot(zoom, origin, i);
     }
 
-    if (p_preview)
+    if (p_allowPreview && p_preview)
     {
         DrawPreview(pMin, zoom);
     }
@@ -493,38 +500,61 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
 }
 
 void Node::RemoveInput(uint32_t index)
-{
-    p_inputs.erase(p_inputs.begin() + index);
+{    
     int size = CalculateSize(p_inputs.size());
 
     int size2 = CalculateSize(p_outputs.size());
-
-    auto linkManager = p_nodeManager->GetLinkManager();
-    for (auto& link : linkManager->GetLinks())
-    {
-        if (link->toNodeIndex == p_uuid && link->toInputIndex == index)
-        {
-            linkManager->RemoveLink(link->toInputIndex, false);
-            break;
-        }
-    }
     
     p_size.y = static_cast<float>(std::max(size, size2));
+
+    if (p_nodeManager) // Case when Using with a templateNode
+    {
+        auto linkManager = p_nodeManager->GetLinkManager();
+        for (auto& link : linkManager->GetLinks())
+        {
+            if (link->toNodeIndex == p_uuid && link->toInputIndex == index)
+            {
+                linkManager->RemoveLink(link->toInputIndex, false);
+                break;
+            }
+        }
+    }
+    p_inputs.erase(p_inputs.begin() + index);
+    
 }
 
 void Node::RemoveOutput(uint32_t index)
 {
-    if (!p_nodeManager) // Case when Using with a templateNode
-        return;
+    
     int size = CalculateSize(p_inputs.size());
 
     int size2 = CalculateSize(p_outputs.size());
     
-    auto linkManager = p_nodeManager->GetLinkManager();
-    linkManager->RemoveLinks(p_outputs[index]);
-
     p_size.y = static_cast<float>(std::max(size, size2));
+    
+    if (p_nodeManager) // Case when Using with a templateNode
+    {
+        auto linkManager = p_nodeManager->GetLinkManager();
+        linkManager->RemoveLinks(p_outputs[index]);
+    }
+
     p_outputs.erase(p_outputs.begin() + index);
+}
+
+void Node::ClearInputs()
+{
+    for (uint32_t i = 0; i < p_inputs.size(); i++)
+    {
+        RemoveInput(i--);
+    }
+}
+
+void Node::ClearOutputs()
+{
+    for (uint32_t i = 0; i < p_outputs.size(); i++)
+    {
+        RemoveOutput(i--);
+    }
 }
 
 Vec2f Node::GetInputPosition(const uint32_t index, const Vec2f& origin, float zoom) const
@@ -865,4 +895,5 @@ void Node::Internal_Clone(Node* node) const
     node->p_position = p_position;
     node->p_topColor = p_topColor;
     node->p_allowInteraction = p_allowInteraction;
+    node->p_allowPreview = p_allowPreview;
 }

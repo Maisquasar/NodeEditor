@@ -45,6 +45,7 @@ public:
     static std::string GetOutputVariableName(NodeRef currentNode, int j);
     static std::string TypeToGLSLType(Type type);
 private:
+    friend class RerouteNodeNamed;
     friend class Node;
     friend class CustomNode;
     std::unordered_map<UUID, FuncStruct> m_functions;

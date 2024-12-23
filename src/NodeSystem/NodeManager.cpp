@@ -61,6 +61,13 @@ void NodeManager::AddNode(const NodeRef& node)
 
 void NodeManager::RemoveNode(const UUID& uuid)
 {
+    auto node = m_nodes.find(uuid);
+    if (node == m_nodes.end())
+    {
+        std::cout << "Node with UUID " << uuid << " does not exist\n";
+        return;
+    }
+    node->second->OnRemove();
     m_nodes.erase(uuid);
 }
 
@@ -321,7 +328,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             continue;
 
 
-        if (m_userInputState == UserInputState::None)
+        if (m_userInputState == UserInputState::None && node->p_allowPreview)
         {
             if (node->p_previewHovered = node->IsPreviewHovered(mousePos, origin, zoom))
             {
@@ -375,7 +382,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         }
         else
         {
-            SetUserInputState(UserInputState::CreateNode);
             m_parent->SetOpenContextMenu(true);
         }
     }
@@ -383,7 +389,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     UpdateCurrentLink();
 
     // Cancel when escape pressed
-    if (m_userInputState == UserInputState::CreateLink && ImGui::IsKeyPressed(ImGuiKey_Escape))
+    if ((m_userInputState == UserInputState::CreateLink || m_userInputState == UserInputState::CreateNode) && ImGui::IsKeyPressed(ImGuiKey_Escape))
     {
         SetUserInputState(UserInputState::None);
         ClearCurrentLink();
@@ -595,7 +601,7 @@ void NodeManager::SetUserInputState(const UserInputState& state)
     if (m_userInputState != state)
     {
         m_userInputState = state;
-        // std::cout << "Set User Input -> " << UserInputEnumToString(state) << "\n";
+        std::cout << "Set User Input -> " << UserInputEnumToString(state) << "\n";
     }
 #else
     m_userInputState = state;
