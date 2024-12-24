@@ -7,7 +7,7 @@
 
 int Main()
 {
-    //TODO : Add reroute nodes, Clean code! 
+    //TODO : Add reroute nodes, Clean code, Fix selecting square enable when not needed 
     Application* app = Application::Create();
     
     app->Initialize();
