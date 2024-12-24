@@ -772,7 +772,7 @@ void NodeManager::SetHoveredStream(const Weak<Stream>& stream)
         prev->isHovered = false;
     }
     m_hoveredStream = stream;
-    if (auto curr = m_hoveredStream.lock())
+    if (const auto curr = m_hoveredStream.lock())
     {
         curr->isHovered = true;
     }

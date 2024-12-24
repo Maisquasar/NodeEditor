@@ -689,7 +689,7 @@ void Node::ShowInInspector()
         case Type::Vector3:
             {
                 Vec3f value = input->GetValue<Vec3f>();
-                if (ImGui::InputFloat3("##vec3", &value.x))
+                if (ImGui::ColorEdit3("##vec3", &value.x))
                 {
                     input->SetValue<Vec3f>(value);
                     auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
@@ -701,7 +701,7 @@ void Node::ShowInInspector()
         case Type::Vector4:
             {
                 Vec4f value = input->GetValue<Vec4f>();
-                if (ImGui::InputFloat4("##vec4", &value.x))
+                if (ImGui::ColorEdit4("##vec4", &value.x))
                 {
                     input->SetValue<Vec4f>(value);
                     auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
