@@ -156,7 +156,7 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(customNodeColor);
         node->AddInput("", Type::Float);
         node->AddOutput("", Type::Float);
-        node->p_allowPreview = false;
+        // node->p_allowPreview = false;
         node->p_alwaysVisibleOnContext = true;
         
         NodeMethodInfo info{node};

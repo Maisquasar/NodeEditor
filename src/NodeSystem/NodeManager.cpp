@@ -299,7 +299,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     bool mouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool wasNodeClicked = false;
     bool ctrlClick = ImGui::IsKeyDown(ImGuiKey_LeftCtrl);
-    bool wasPreviewClicked = false;
+    size_t selectedLinkSize = m_linkManager->GetSelectedLinks().size();
 
     if ((m_userInputState == UserInputState::DragNode || m_userInputState == UserInputState::SelectingSquare || m_userInputState == UserInputState::ClickNode)
         && ImGui::IsMouseReleased(ImGuiMouseButton_Left) || m_userInputState == UserInputState::Busy)
@@ -396,7 +396,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         m_parent->SetOpenContextMenu(false);
     }
     
-    if (mouseClicked && !wasNodeClicked)
+    if (mouseClicked && !wasNodeClicked && selectedLinkSize == m_linkManager->GetSelectedLinks().size())
     {
         // SetUserInputState(UserInputState::None);
         SelectNode(nullptr);

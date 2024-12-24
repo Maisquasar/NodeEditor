@@ -807,7 +807,7 @@ std::string Node::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruc
                 variableNames.push_back(ShaderMaker::GetValueAsString(input));
             }
             auto parentVariableName = funcStruct.inputs[j];
-            if (parentVariableName.empty())
+            if (parentVariableName.empty() && !variableNames.empty())
                 parentVariableName = variableNames.back();
             toFormat += FormatString(firstHalf, parentVariableName.c_str());
         }

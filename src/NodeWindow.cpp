@@ -550,6 +550,7 @@ void NodeWindow::DrawContextMenu(float& zoom, Vec2f& origin, const ImVec2 mouseP
                     else if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(node))
                     {
                         rerouteNode->SetType(streamLinking->type);
+                        RerouteNodeNamedManager::UpdateType(rerouteNode->GetName(), streamLinking->type);
                     }
                 }
                 

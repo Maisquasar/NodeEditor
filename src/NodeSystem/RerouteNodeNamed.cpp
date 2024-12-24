@@ -244,6 +244,7 @@ void RerouteNodeNamed::InternalSerialize(CppSer::Serializer& serializer) const
 
     serializer << CppSer::Pair::Key << "Name" << CppSer::Pair::Value << m_name;
     serializer << CppSer::Pair::Key << "Type" << CppSer::Pair::Value << static_cast<int>(m_type);
+    serializer << CppSer::Pair::Key << "Definition" << CppSer::Pair::Value << m_definition;
 }
 
 void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
@@ -251,8 +252,10 @@ void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
     Node::InternalDeserialize(parser);
 
     auto type = parser["Type"].As<int>();
-    SetType(static_cast<Type>(type));
     auto name = parser["Name"].As<std::string>();
+    auto definition = parser["Definition"].As<bool>();
+    m_definition = definition;
+    SetType(static_cast<Type>(type));
     RerouteNodeNamedManager::UpdateKey(p_name, name);
     RerouteNodeNamedManager::UpdateType(p_name, m_type);
     SetRerouteName(name);

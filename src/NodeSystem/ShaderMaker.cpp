@@ -105,14 +105,14 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
         LinkRef link = linkManager->GetLinkLinkedToInput(node->GetUUID(), i).lock();
         if (link == nullptr)
         {
-            funcStruct.inputs.emplace_back("");
+            funcStruct.inputs.emplace_back();
             continue;
         }
 
-        auto fromNode = manager->GetNode(link->fromNodeIndex).lock();
+        std::shared_ptr<Node> fromNode = manager->GetNode(link->fromNodeIndex).lock();
         if (fromNode == nullptr)
         {
-            funcStruct.inputs.emplace_back("");
+            funcStruct.inputs.emplace_back();
             continue;
         }
 
@@ -304,7 +304,8 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
     NodeRef currentNode;
     for (int i = 0; i < m_functions[node->p_uuid].inputs.size(); i++)
     {
-        auto isReroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
+        std::string basicStrings = m_functions[node->p_uuid].inputs[i];
+        Ref<RerouteNodeNamed> isReroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
         if (!isReroute || isReroute && isReroute->IsDefinition())
         {
             LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();

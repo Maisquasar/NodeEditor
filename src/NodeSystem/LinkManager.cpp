@@ -3,6 +3,7 @@
 #include <CppSerializer.h>
 #include <utility>
 
+#include "Actions/ActionDeleteNodesAndLinks.h"
 #include "NodeSystem/NodeManager.h"
 namespace Utils
 {
@@ -68,12 +69,22 @@ namespace Utils
 
 void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
 {
+    auto altClick = ImGui::IsKeyDown(ImGuiMod_Alt);
     UserInputState userInputState = m_nodeManager->GetUserInputState();
     if (userInputState == UserInputState::None && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
     {
         if (auto clickedLink = GetLinkClicked(zoom, origin, ImGui::GetMousePos()).lock())
         {
-            AddSelectedLink(clickedLink);
+            if (altClick)
+            {
+                std::vector<NodeWeak> nodeList = {};
+                std::vector<LinkWeakRef> linkList = { clickedLink };
+                auto action = std::make_shared<ActionDeleteNodesAndLinks>(m_nodeManager, nodeList, linkList);
+                ActionManager::AddAction(action);
+                RemoveLink(clickedLink);
+            }
+            else
+                AddSelectedLink(clickedLink);
         }
     }
     
@@ -470,7 +481,7 @@ void LinkManager::DeleteSelectedLinks()
     {
         RemoveLink(i);
     }
-    m_selectedLinks.clear();
+    ClearSelectedLinks();
 }
 
 void LinkManager::ClearSelectedLinks()
@@ -531,8 +542,7 @@ void LinkManager::Clean()
     {
         RemoveLink(i--);
     }
-    
-    m_selectedLinks.clear();
+    ClearSelectedLinks();
 }
 
 NodeWindow* LinkManager::GetMainWindow() const
