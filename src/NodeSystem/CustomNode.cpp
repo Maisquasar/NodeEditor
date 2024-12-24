@@ -189,7 +189,7 @@ void CustomNode::ShowInInspector()
             file << m_content;
             file.close();
             std::string command = "code \"" + tempPath.generic_string() + "\"";
-            std::system(command.c_str());
+            int result = std::system(command.c_str());
             m_lastWriteTime = std::filesystem::last_write_time(tempPath);
         }
     }

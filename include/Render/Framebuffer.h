@@ -3,6 +3,7 @@
 #include <Maths.h>
 #include <vector>
 #include <filesystem>
+#include <optional>
 
 template <typename T>
 using Ref = std::shared_ptr<T>;

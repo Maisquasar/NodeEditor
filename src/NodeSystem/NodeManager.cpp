@@ -118,7 +118,7 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
         if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
         {
             m_currentLink.toNodeIndex = UUID_NULL;
-            m_currentLink.toInputIndex = UUID_NULL;
+            m_currentLink.toInputIndex = INDEX_NULL;
         }
     }
 }
@@ -143,7 +143,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
         if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
         {
             m_currentLink.fromNodeIndex = UUID_NULL;
-            m_currentLink.fromOutputIndex = UUID_NULL;
+            m_currentLink.fromOutputIndex = INDEX_NULL;
         }
     }
 }

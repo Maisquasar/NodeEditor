@@ -30,7 +30,7 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
 
 class LinkManager;
 
-__interface Context
+class Context
 {
     virtual void Initialize() = 0;
 };

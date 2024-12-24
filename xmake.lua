@@ -1,5 +1,6 @@
 add_rules("mode.debug", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
+add_rules("plugin.compile_commands.autoupdate", { outputdir = ".vscode" })
 
 if is_plat("windows") then
     set_runtimes(is_mode("debug") and "MDd" or "MD")

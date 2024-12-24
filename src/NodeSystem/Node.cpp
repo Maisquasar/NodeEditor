@@ -352,7 +352,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         if (ref->isHovered)
         {
             hover = true;
-            ImGui::SetTooltip(("UUID: " + std::to_string(ref->parentUUID)).c_str());
+            ImGui::SetTooltip("UUID: %s", std::to_string(p_uuid).c_str());
             break;
         }
     }
@@ -364,7 +364,7 @@ void Node::Draw(float zoom, const Vec2f& origin) const
 #ifdef _DEBUG
         if (!hover)
         {
-            ImGui::SetTooltip(("UUID: " + std::to_string(p_uuid)).c_str());
+            ImGui::SetTooltip("UUID: %s", std::to_string(p_uuid).c_str());
         }
 #endif
     }

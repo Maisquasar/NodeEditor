@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <iostream>
+#include <cstdint>
+#define INDEX_NULL -1u
 #define UUID_NULL -1ull
 
 using TemplateID = uint64_t;

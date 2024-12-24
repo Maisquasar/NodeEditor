@@ -137,6 +137,8 @@ void Application::Initialize()
     m_mesh = Mesh::CreateQuad();
     
     m_nodeWindow.Initialize();
+
+    std::cout << "Application initialized" << std::endl;
 }
 
 void Application::Run()
