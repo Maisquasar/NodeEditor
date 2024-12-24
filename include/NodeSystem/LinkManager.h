@@ -76,7 +76,7 @@ public:
 
     void Clean();
 
-    NodeWindow* GetMainWindow() const;
+    class NodeWindow* GetMainWindow() const;
 
 private:
     NodeManager* m_nodeManager = nullptr;

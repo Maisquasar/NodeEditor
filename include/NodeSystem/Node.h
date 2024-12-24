@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <galaxymath/maths.h>
+#include <galaxymath/Maths.h>
 
 #include "NodeSystem/Selectable.h"
 

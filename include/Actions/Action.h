@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-__interface Context;
+class Context;
 
 class Action
 {
