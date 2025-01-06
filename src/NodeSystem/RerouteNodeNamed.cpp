@@ -47,7 +47,7 @@ void RerouteNodeNamedManager::UpdateKey(std::string oldName, const std::string& 
     s_instance->m_rerouteNamedNodes.erase(it);
     s_instance->m_rerouteNamedNodes[newName] = nodeData;
     
-    for (auto& node : nodeData.node)
+    for (RerouteNodeNamed*& node : nodeData.node)
     {
         node->SetRerouteName(newName);
     }
@@ -285,6 +285,7 @@ void RerouteNodeNamed::SetRerouteName(const std::string& string)
 {
     m_name = string;
     SetName(string);
+    RecalculateNameSize();
 }
 
 void RerouteNodeNamed::OnCreate()

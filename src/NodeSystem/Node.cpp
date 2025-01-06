@@ -601,6 +601,7 @@ void Node::ResetUUID()
 
 void Node::ComputeNodeSize()
 {
+    //TODO : Get Node size with input + output names size
     float textSizeX = ImGui::CalcTextSize(p_name.c_str()).x + 20.f;
     p_size.x = std::max(textSizeX, p_size.x);
 }
@@ -854,6 +855,11 @@ void Node::OpenPreview(bool open)
     {
         p_nodeManager->GetMainWindow()->RemovePreviewNode(p_uuid);
     }
+}
+
+void Node::RecalculateNameSize()
+{
+    p_computed = false;
 }
 
 void Node::SetUUID(const UUID& uuid)

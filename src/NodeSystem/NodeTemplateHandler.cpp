@@ -193,7 +193,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "atan(%s)");
     CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Float}, {"X", Type::Float} }, { {"Result", Type::Float} }, "atan(%s, %s)");
-    CreateTemplateNode("Mod", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "modf(%s, %s)");
+    CreateTemplateNode("Mod", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "mod(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "min(%s, %s)");
     CreateTemplateNode("Clamp", functionColor, { {"Value", Type::Float}, {"Min", Type::Float}, {"Max", Type::Float} }, { {"Result", Type::Float} }, "clamp(%s, %s, %s)");
@@ -243,7 +243,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "atan(%s)");
     CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector2}, {"X", Type::Vector2} }, { {"Result", Type::Vector2} }, "atan(%s, %s)");
-    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "modf(%s, %s)");
+    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "mod(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "min(%s, %s)");
     CreateTemplateNode("Clamp", functionColor, { {"Value", Type::Vector2}, {"Min", Type::Vector2}, {"Max", Type::Vector2} }, { {"Result", Type::Vector2} }, "clamp(%s, %s, %s)");
@@ -292,7 +292,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "atan(%s)");
     CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector3}, {"X", Type::Vector3} }, { {"Result", Type::Vector3} }, "atan(%s, %s)");
-    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "modf(%s, %s)");
+    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "mod(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "min(%s, %s)");
     CreateTemplateNode("Clamp", functionColor, { {"Value", Type::Vector3}, {"Min", Type::Vector3}, {"Max", Type::Vector3} }, { {"Result", Type::Vector3} }, "clamp(%s, %s, %s)");
@@ -341,7 +341,7 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("ACos", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "acos(%s)");
     CreateTemplateNode("ATan", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "atan(%s)");
     CreateTemplateNode("ATan2", functionColor, { {"Y", Type::Vector4}, {"X", Type::Vector4} }, { {"Result", Type::Vector4} }, "atan(%s, %s)");
-    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "modf(%s, %s)");
+    CreateTemplateNode("Mod", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "mod(%s, %s)");
     CreateTemplateNode("Max", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "max(%s, %s)");
     CreateTemplateNode("Min", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "min(%s, %s)");
     CreateTemplateNode("Clamp", functionColor, { {"Value", Type::Vector4}, {"Min", Type::Vector4}, {"Max", Type::Vector4} }, { {"Result", Type::Vector4} }, "clamp(%s, %s, %s)");

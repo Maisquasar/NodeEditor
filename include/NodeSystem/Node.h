@@ -160,8 +160,8 @@ public:
     void RemoveInput(uint32_t index);
     void RemoveOutput(uint32_t index);
 
-    void ClearInputs();
-    void ClearOutputs();
+    virtual void ClearInputs();
+    virtual void ClearOutputs();
 
     InputRef GetInput(uint32_t index) { return p_inputs[index]; }
     OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
@@ -209,6 +209,8 @@ public:
     virtual void OnChangeUUID(const UUID& prevUUID, const UUID& newUUID);
 
     void OpenPreview(bool open);
+
+    void RecalculateNameSize();
 protected:
     void SetUUID(const UUID& uuid);
 
