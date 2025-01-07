@@ -7,6 +7,7 @@
 
 void ActionPaste::Do()
 {
+    LinkManager* linkManager = m_nodeManager->GetLinkManager();
     std::string clipboardText = m_clipboardText;
     CppSer::Parser parser = CppSer::Parser(clipboardText);
         
@@ -81,10 +82,10 @@ void ActionPaste::Do()
         }
             
         // Add link to link manager
-        m_nodeManager->GetLinkManager()->AddLink(link);
-
-        m_pastedLinks.push_back(link);
+        if (linkManager->AddLink(link))
+            m_pastedLinks.push_back(link);
     }
+    linkManager->UpdateInputOutputLinks();
 }
 
 void ActionPaste::Undo()

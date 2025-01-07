@@ -59,6 +59,8 @@ public:
     
     Node* Clone() const override;
 
+    void InitializePreview() override;
+
     Ref<RerouteNodeNamed> GetDefinitionNode() const;
     
     bool IsDefinition() const { return m_definition; }

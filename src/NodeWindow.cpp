@@ -243,6 +243,16 @@ void NodeWindow::Draw()
     }
 }
 
+void NodeWindow::DrawNodePreview(const std::shared_ptr<Node> previewNode)
+{
+    previewNode->m_framebuffer->Update();
+    previewNode->m_framebuffer->Bind();
+    previewNode->m_shader->Use();
+    previewNode->m_shader->UpdateValues();
+    m_quad->Draw();
+    previewNode->m_framebuffer->Unbind();
+}
+
 void NodeWindow::Render()
 {
     // UpdateShader();
@@ -257,12 +267,7 @@ void NodeWindow::Render()
             it = m_previewNodes.erase(it); // Erase returns the next valid iterator
             continue;
         }
-        previewNode->m_framebuffer->Update();
-        previewNode->m_framebuffer->Bind();
-        previewNode->m_shader->Use();
-        previewNode->m_shader->UpdateValues();
-        m_quad->Draw();
-        previewNode->m_framebuffer->Unbind();
+        previewNode->RenderPreview(m_quad);
         ++it;
     }
 

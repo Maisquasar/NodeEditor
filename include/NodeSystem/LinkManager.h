@@ -32,7 +32,7 @@ public:
     void CreateLink(UUID fromNodeIndex, uint32_t fromOutputIndex, UUID toNodeIndex, uint32_t toOutputIndex);
 
     LinkWeakRef AddLink(Link link);
-    void AddLink(const LinkRef& link);
+    bool AddLink(const LinkRef& link);
 
     void RemoveLink(uint32_t index, bool removeOnLink = true);
     void RemoveLink(const NodeRef& fromNode, uint32_t fromOutput, const NodeRef& toNode, uint32_t toOutput);

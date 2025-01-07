@@ -285,6 +285,16 @@ void Node::DrawButtonPreview(float zoom, const Vec2f& origin, Vec2f pMin, Vec2f 
     DrawTriangle(drawList, p_preview ? ImGuiDir_Up : ImGuiDir_Down, trianglePos, triangleSize);
 }
 
+void Node::RenderPreview(std::shared_ptr<Mesh> quad) const
+{
+    m_framebuffer->Update();
+    m_framebuffer->Bind();
+    m_shader->Use();
+    m_shader->UpdateValues();
+    quad->Draw();
+    m_framebuffer->Unbind();
+}
+
 void Node::Update()
 {
 }
@@ -499,6 +509,16 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
     p_size.y = std::max(p_size.y, static_cast<float>(size));
 }
 
+void Node::ChangeInputType(uint32_t index, Type type) const
+{
+    p_inputs[index]->type = type;
+}
+
+void Node::ChangeOutputType(uint32_t index, Type type) const
+{
+    p_outputs[index]->type = type;
+}
+
 void Node::RemoveInput(uint32_t index)
 {    
     int size = CalculateSize(p_inputs.size());
@@ -601,9 +621,30 @@ void Node::ResetUUID()
 
 void Node::ComputeNodeSize()
 {
-    //TODO : Get Node size with input + output names size
-    float textSizeX = ImGui::CalcTextSize(p_name.c_str()).x + 20.f;
-    p_size.x = std::max(textSizeX, p_size.x);
+    constexpr float minNodeSize = 125.0f;
+    constexpr float spacing = 5.f;
+    // Get max input name size
+    auto font = Font::GetFont();
+    float inputSize = 0;
+    for (auto& input : p_inputs)
+    {
+        float textSizeX =font->CalcTextSizeA(14, FLT_MAX, FLT_MAX, input->name.c_str()).x + 20.f;
+        inputSize = std::max(textSizeX, inputSize);
+    }
+
+    // Get max output name size
+    float outputSize = 0;
+    for (auto& output : p_outputs)
+    {
+        float textSizeX =font->CalcTextSizeA(14, FLT_MAX, FLT_MAX, output->name.c_str()).x + 20.f;
+        outputSize = std::max(textSizeX, outputSize);
+    }
+
+    // Get title size
+    float titleSize = font->CalcTextSizeA(14, FLT_MAX, FLT_MAX, p_name.c_str()).x + 40.f;
+
+    // Set the size
+    p_size.x = std::max(std::max(outputSize + inputSize + spacing, minNodeSize), titleSize);
 }
 
 void Node::GetPreviewTriangle(Vec2f& trianglePos, Vec2f& triangleSize, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom)
@@ -832,6 +873,16 @@ void Node::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
 {
 }
 
+void Node::InitializePreview()
+{
+    m_shader = std::make_shared<Shader>();
+    m_framebuffer = std::make_shared<Framebuffer>();
+
+    m_shader->LoadDefaultShader();
+    m_framebuffer->Initialize();
+    p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+}
+
 void Node::OpenPreview(bool open)
 {
     p_preview = open;
@@ -843,12 +894,7 @@ void Node::OpenPreview(bool open)
 
         if (!m_shader)
         {
-            m_shader = std::make_shared<Shader>();
-            m_framebuffer = std::make_shared<Framebuffer>();
-
-            m_shader->LoadDefaultShader();
-            m_framebuffer->Initialize();
-            p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            InitializePreview();
         }
     }
     else
@@ -857,7 +903,7 @@ void Node::OpenPreview(bool open)
     }
 }
 
-void Node::RecalculateNameSize()
+void Node::RecalculateWidth()
 {
     p_computed = false;
 }

@@ -79,6 +79,8 @@ public:
     NodeWeak GetNodeWithName(const std::string& name);
     std::vector<NodeWeak> GetNodeConnectedTo(const UUID& uuid) const;
     bool NodeExists(const UUID& uuid) const { return m_nodes.find(uuid) != m_nodes.end(); }
+    bool InputExists(const UUID& uuid, const uint32_t index);
+    bool OutputExists(const UUID& uuid, const uint32_t index);
     InputWeak GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeak GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
     std::vector<LinkWeakRef> GetLinkWithOutput(const UUID& uuid, uint32_t index) const;

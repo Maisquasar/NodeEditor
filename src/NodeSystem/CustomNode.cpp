@@ -119,6 +119,7 @@ void CustomNode::ShowInInspector()
                 Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_inputs[i]->name, p_inputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
                 UpdateFunction();
+                RecalculateWidth();
             }
             int type = static_cast<int>(p_inputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
@@ -162,6 +163,7 @@ void CustomNode::ShowInInspector()
                 Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs[i]->name, p_outputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
                 UpdateFunction();
+                RecalculateWidth();
             }
             int type = static_cast<int>(p_outputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))

@@ -8,6 +8,7 @@
 #include "UUID.h"
 #include "Type.h"
 
+class Mesh;
 class Framebuffer;
 class Shader;
 class NodeManager;
@@ -93,6 +94,9 @@ typedef Weak<Input> InputWeak;
 typedef Ref<Output> OutputRef;
 typedef Weak<Output> OutputWeak;
 
+using LinkWeakRef = std::weak_ptr<struct Link>;
+using LinkRef = std::shared_ptr<struct Link>;
+
 uint32_t GetColor(Type type);
 
 static void AddColor(uint32_t& color, int value);
@@ -114,6 +118,8 @@ public:
     void DrawOutputDot(float zoom, const Vec2f& origin, uint32_t i) const;
     void DrawInputDot(float zoom, const Vec2f& origin, uint32_t i) const;
     void DrawButtonPreview(float zoom, const Vec2f& origin, Vec2f pMin, Vec2f pMax) const;
+
+    void RenderPreview(std::shared_ptr<Mesh> quad) const;
 
     virtual void Update();
     void GetPreviewRect(const Vec2f& pMin, float zoom, Vec2f& imageMin, Vec2f& imageMax) const;
@@ -157,21 +163,23 @@ public:
     void AddInput(const std::string& name, Type type);
     void AddOutput(const std::string& name, Type type);
 
+    void ChangeInputType(uint32_t index, Type type) const;
+    void ChangeOutputType(uint32_t index, Type type) const;
+
     void RemoveInput(uint32_t index);
     void RemoveOutput(uint32_t index);
 
     virtual void ClearInputs();
     virtual void ClearOutputs();
 
-    InputRef GetInput(uint32_t index) { return p_inputs[index]; }
-    OutputRef GetOutput(uint32_t index) { return p_outputs[index]; }
+    InputRef GetInput(uint32_t index) { return p_inputs.size() > index ? p_inputs[index] : nullptr; }
+    OutputRef GetOutput(uint32_t index) { return p_outputs.size() > index ? p_outputs[index] : nullptr; }
 
     Vec2f GetInputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
     Vec2f GetInputPosition(uint32_t index) const;
     Vec2f GetOutputPosition(uint32_t index, const Vec2f& origin, float zoom) const;
     Vec2f GetOutputPosition(uint32_t index) const;
 
-    using LinkWeakRef = std::weak_ptr<struct Link>;
     std::vector<LinkWeakRef> GetLinks() const;
 
     void SetPosition(const Vec2f& position);
@@ -208,9 +216,10 @@ public:
 
     virtual void OnChangeUUID(const UUID& prevUUID, const UUID& newUUID);
 
+    virtual void InitializePreview();
     void OpenPreview(bool open);
 
-    void RecalculateNameSize();
+    void RecalculateWidth();
 protected:
     void SetUUID(const UUID& uuid);
 

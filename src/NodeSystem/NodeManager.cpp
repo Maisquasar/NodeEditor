@@ -567,6 +567,22 @@ std::vector<NodeWeak> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
     return outputs;
 }
 
+bool NodeManager::InputExists(const UUID& uuid, const uint32_t index)
+{
+    auto it = m_nodes.find(uuid);
+    if (it == m_nodes.end())
+        return false;
+    return it->second->p_inputs.size() > index;
+}
+
+bool NodeManager::OutputExists(const UUID& uuid, const uint32_t index)
+{
+    auto it = m_nodes.find(uuid);
+    if (it == m_nodes.end())
+        return false;
+    return it->second->p_outputs.size() > index;
+}
+
 std::vector<LinkWeakRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
     return m_linkManager->GetLinksWithOutput(GetNode(uuid).lock()->GetOutput(index));
@@ -744,11 +760,9 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
         parser.PushDepth();
         TemplateID templateID = parser["TemplateID"].As<uint64_t>();
         NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
-        node->p_nodeManager = this;
         node->Deserialize(parser);
         data.nodes[i] = node;
     }
-
     LinkManager::Deserialize(parser, data.links);
 
     return data;

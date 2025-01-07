@@ -207,15 +207,21 @@ LinkWeakRef LinkManager::AddLink(Link link)
     return sharedPtr;
 }
 
-void LinkManager::AddLink(const LinkRef& link)
+bool LinkManager::AddLink(const LinkRef& link)
 {
-    auto input = m_nodeManager->GetInput(link->toNodeIndex, link->toInputIndex);
-    auto output = m_nodeManager->GetOutput(link->fromNodeIndex, link->fromOutputIndex);
+    InputWeak input = m_nodeManager->GetInput(link->toNodeIndex, link->toInputIndex);
+    OutputWeak output = m_nodeManager->GetOutput(link->fromNodeIndex, link->fromOutputIndex);
 
-    input.lock()->SetLinked(true);
-    output.lock()->SetLinked(true);
+    InputRef inputShared = input.lock();
+    OutputRef outputShared = output.lock();
+    if (!inputShared || !outputShared)
+        return false;
+
+    inputShared->SetLinked(true);
+    outputShared->SetLinked(true);
     
     m_links.push_back(link);
+    return true;
 }
 
 void LinkManager::RemoveLink(uint32_t index, bool removeOnLink /*= true*/)

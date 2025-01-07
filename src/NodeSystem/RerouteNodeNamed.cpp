@@ -3,6 +3,7 @@
 #include <CppSerializer.h>
 #include <imgui_stdlib.h>
 
+#include "NodeWindow.h"
 #include "Actions/Action.h"
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
@@ -230,11 +231,19 @@ std::string RerouteNodeNamed::ToShader(ShaderMaker* shaderMaker, const FuncStruc
 
 void RerouteNodeNamed::SetType(Type type)
 {
-    ClearInputs();
-    ClearOutputs();
-    AddOutput("", type);
-    if (m_definition)
+    ChangeOutputType(0, type);
+    if (!m_definition && !p_inputs.empty())
+    {
+        RemoveInput(0);
+    }
+    else if (m_definition && p_inputs.empty())
+    {
         AddInput("", type);
+    }
+    else if (!p_inputs.empty())
+    {
+        ChangeInputType(0, type);
+    }
     m_type = type;
 }
 
@@ -254,7 +263,8 @@ void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
     auto type = parser["Type"].As<int>();
     auto name = parser["Name"].As<std::string>();
     auto definition = parser["Definition"].As<bool>();
-    m_definition = definition;
+    auto def = RerouteNodeNamedManager::GetDefinitionNode(name);
+    m_definition = definition && (def == nullptr || def == this);
     SetType(static_cast<Type>(type));
     RerouteNodeNamedManager::UpdateKey(p_name, name);
     RerouteNodeNamedManager::UpdateType(p_name, m_type);
@@ -274,6 +284,26 @@ Node* RerouteNodeNamed::Clone() const
     return node;
 }
 
+void RerouteNodeNamed::InitializePreview()
+{
+    if (!m_definition)
+    {
+        auto nodeDefinition = GetDefinitionNode();
+        m_shader = nodeDefinition->m_shader;
+        if (!m_shader)
+        {
+            nodeDefinition->InitializePreview();
+            m_shader = nodeDefinition->m_shader;
+        }
+        m_framebuffer = nodeDefinition->m_framebuffer;
+        p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+    }
+    else
+    {
+        Node::InitializePreview();
+    }
+}
+
 Ref<RerouteNodeNamed> RerouteNodeNamed::GetDefinitionNode() const
 {
     RerouteNodeNamed* rerouteNodeNamed = RerouteNodeNamedManager::GetDefinitionNode(m_name);
@@ -285,12 +315,12 @@ void RerouteNodeNamed::SetRerouteName(const std::string& string)
 {
     m_name = string;
     SetName(string);
-    RecalculateNameSize();
+    RecalculateWidth();
 }
 
 void RerouteNodeNamed::OnCreate()
 {
-    if (m_templateNode || !RerouteNodeNamedManager::HasDefinition(m_name))
+    if (m_templateNode && !RerouteNodeNamedManager::HasDefinition(m_name) || !RerouteNodeNamedManager::HasDefinition(m_name))
     {
         auto templateNode = NodeTemplateHandler::GetFromName(m_name + " (Definition)");
         
@@ -301,7 +331,10 @@ void RerouteNodeNamed::OnCreate()
         std::string defaultName = m_name;
         while (NodeTemplateHandler::IsNameExist(m_name))
         {
-            SetRerouteName(defaultName + "_" + std::to_string(index));
+            auto newName = defaultName + "_" + std::to_string(index);
+            
+            m_name = newName;
+            SetName(newName);
         }
 
         if (!templateNode.node)
@@ -318,8 +351,11 @@ void RerouteNodeNamed::OnCreate()
 
         RerouteNodeNamedManager::AddNode(m_name);
 
-        m_definition = true; 
-        AddInput("", m_type);
+        m_definition = true;
+        if (p_inputs.empty())
+            AddInput("", m_type);
+        else
+            ChangeInputType(0, m_type);
     }
     RerouteNodeNamedManager::AddRef(m_name, this);
 }
