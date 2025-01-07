@@ -320,7 +320,7 @@ void RerouteNodeNamed::SetRerouteName(const std::string& string)
 
 void RerouteNodeNamed::OnCreate()
 {
-    if (m_templateNode && !RerouteNodeNamedManager::HasDefinition(m_name) || !RerouteNodeNamedManager::HasDefinition(m_name))
+    if (m_templateNode || !RerouteNodeNamedManager::HasDefinition(m_name))
     {
         auto templateNode = NodeTemplateHandler::GetFromName(m_name + " (Definition)");
         
