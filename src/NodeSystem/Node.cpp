@@ -75,18 +75,8 @@ void AddColor(uint32_t& color, int value)
     color = IM_COL32(r, g, b, a);
 }
 
-Input::Input(Type type)
+Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) : Stream(_parentUUID, _index, _name, _type)
 {
-    this->index = 0;
-    this->type = type;
-}
-
-Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) : Input(_type)
-{
-    parentUUID = _parentUUID;
-    index = _index;
-    name = _name;
-    type = _type;
 }
 
 #pragma region GetValue
@@ -328,6 +318,63 @@ void Node::DrawPreview(Vec2f pMin, float zoom) const
     drawList->AddImage(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), imageMin, imageMax, ImVec2(0, 1), ImVec2(1, 0));
 }
 
+int Node::FindBestPossibilityForType(Type type, StreamRef stream) const
+{
+    int lessCount = INT_MAX;  
+    int index = -1;
+    for (uint32_t i = 0; i < stream->possibleTypes.size(); i++)
+    {
+        if (stream->possibleTypes[i] == type)
+        {
+            // Check if changing this input type affects the least number of other inputs
+            int changes = 0;
+            for (const auto& input : p_inputs)
+            {
+                if (input == stream)
+                    continue;
+                if (input->type != input->possibleTypes[i])
+                {
+                    changes++;
+                }
+            }
+            for (const auto& output : p_outputs)
+            {
+                if (output == stream)
+                    continue;
+                if (output->type != output->possibleTypes[i])
+                {
+                    changes++;
+                }
+            }
+            if (changes < lessCount)
+            {
+                lessCount = changes;
+                index = i;
+            }
+        }
+    }
+    return index;
+}
+
+void Node::ConvertStream(uint32_t index)
+{
+    for (auto& input : p_inputs)
+    {
+        auto currentType = input->type;
+        if (currentType == input->possibleTypes[index])
+            continue;
+        ChangeInputType(input->index, input->possibleTypes[index]);
+    }
+    for (auto& output : p_outputs)
+    {
+        auto currentType = output->type;
+        if (currentType == output->possibleTypes[index])
+            continue;
+        ChangeOutputType(output->index, output->possibleTypes[index]);
+    }
+    p_currentPossibility = index;
+}
+
 void Node::Draw(float zoom, const Vec2f& origin) const
 {
     const auto drawList = ImGui::GetWindowDrawList();
@@ -507,6 +554,25 @@ auto Node::AddOutput(const std::string& name, Type type) -> void
     int size = CalculateSize(p_outputs.size());
 
     p_size.y = std::max(p_size.y, static_cast<float>(size));
+}
+
+std::vector<std::vector<Type>> Node::GetAllPossibilities() const
+{
+    std::vector<std::vector<Type>> possibilities;
+    for (int i = 0; i < p_possiblityCount; i++)
+    {
+        std::vector<Type> possibility;
+        for (const auto& input : p_inputs)
+        {
+            possibility.push_back(input->possibleTypes[i]);
+        }
+        for (const auto& output : p_outputs)
+        {
+            possibility.push_back(output->possibleTypes[i]);
+        }
+        possibilities.push_back(possibility);
+    }
+    return possibilities;
 }
 
 void Node::ChangeInputType(uint32_t index, Type type) const
@@ -762,7 +828,7 @@ void Node::ShowInInspector()
 
 std::vector<std::string> Node::GetFormatStrings() const
 {
-    return NodeTemplateHandler::GetTemplateFormatStrings(p_templateID);
+    return NodeTemplateHandler::GetTemplateFormatStrings(p_templateID, p_currentPossibility);
 }
 
 void Node::Serialize(CppSer::Serializer& serializer) const
@@ -935,6 +1001,7 @@ void Node::Internal_Clone(Node* node) const
         out = input->Clone();
         input = std::shared_ptr<Input>(out);
         input->parentUUID = node->p_uuid;
+        input->possibleTypes = p_inputs[i]->possibleTypes;
     }
     node->p_outputs = p_outputs;
     for (size_t i = 0; i < node->p_outputs.size(); i++)
@@ -942,10 +1009,12 @@ void Node::Internal_Clone(Node* node) const
         auto& output = node->p_outputs[i];
         output = std::make_shared<Output>(*output);
         output->parentUUID = node->p_uuid;
+        output->possibleTypes = p_outputs[i]->possibleTypes;
     }
     node->p_size = p_size;
     node->p_position = p_position;
     node->p_topColor = p_topColor;
     node->p_allowInteraction = p_allowInteraction;
     node->p_allowPreview = p_allowPreview;
+    node->p_possiblityCount = p_possiblityCount;
 }

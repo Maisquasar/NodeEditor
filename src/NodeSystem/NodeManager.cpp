@@ -12,8 +12,14 @@
 #include "Type.h"
 #include "Actions/Action.h"
 #include "Actions/ActionCreateLink.h"
+#include "Actions/ActionCreateNode.h"
 #include "Actions/ActionDeleteNodesAndLinks.h"
 #include "Actions/ActionMoveNodes.h"
+#include "NodeSystem/CustomNode.h"
+#include "NodeSystem/ParamNode.h"
+#include "NodeSystem/RerouteNodeNamed.h"
+
+class RerouteNodeNamed;
 
 std::string UserInputEnumToString(UserInputState userInputState)
 {
@@ -150,6 +156,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 
 void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
 {
+    bool rightClick = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
     bool altClicked = ImGui::IsKeyDown(ImGuiKey_LeftAlt);
     if (m_currentLink.toNodeIndex == UUID_NULL || altClicked)
     {
@@ -163,6 +170,11 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
                 {
                     OnInputClicked(node, altClicked, i);
                     SetUserInputState(UserInputState::CreateLink);
+                }
+                else if (rightClick)
+                {
+                    m_rightClickedStream = node->p_inputs[i];
+                    m_openRightClickStream = true;
                 }
                 return;
             }
@@ -181,6 +193,11 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
                 {
                     OnOutputClicked(node, altClicked, i);
                     SetUserInputState(UserInputState::CreateLink);
+                }
+                else if (rightClick)
+                {
+                    m_rightClickedStream = node->p_outputs[i];
+                    m_openRightClickStream = true;
                 }
                 return;
             }
@@ -289,10 +306,263 @@ void NodeManager::UpdateSelectionSquare(float zoom, const Vec2f& origin, const V
     }
 }
 
+void NodeManager::CreateNodeMenuUpdate(float zoom, const Vec2f& origin, const Vec2f& mousePos)
+{
+    if (m_rightClickedStream.lock())
+        return;
+    // Context menu (under default mouse threshold)
+    ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+    if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+    {
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            // m_shouldOpenContextMenu = true;
+            m_createNodeMenu.mousePosOnContext = mousePos;
+        }
+        ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+        bool open = ImGui::IsItemClicked(ImGuiPopupFlags_MouseButtonRight);
+        if (m_createNodeMenu.shouldOpenContextMenu == 1 || open)
+        {
+            m_createNodeMenu.shouldOpenContextMenu = -1;
+            m_createNodeMenu.mousePosOnContext = mousePos;
+            m_createNodeMenu.focusInput = true;
+            if (!open)
+                ImGui::OpenPopup("context");
+        }
+    }
+
+    DrawCreateNodeMenu(zoom, origin, mousePos);
+}
+
+void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
+{
+    // Context menu
+    if (m_createNodeMenu.contextOpen = ImGui::BeginPopup("context"); m_createNodeMenu.contextOpen)
+    {
+        
+        static ImGuiTextFilter filter("");
+
+        if (m_createNodeMenu.shouldOpenContextMenu == 0)
+        {
+            m_createNodeMenu.shouldOpenContextMenu = -1;
+            ImGui::CloseCurrentPopup();
+            return;
+        }
+        
+        if (GetUserInputState() == UserInputState::None)
+            SetUserInputState(UserInputState::CreateNode);
+
+        if (m_createNodeMenu.focusInput)
+        {
+            ImGui::SetKeyboardFocusHere();
+            m_createNodeMenu.focusInput = false;
+        }
+        filter.Draw("", ImGui::GetContentRegionAvail().x);
+        NodeTemplateHandler* nodeTemplate = NodeTemplateHandler::GetInstance();
+        TemplateList templates = nodeTemplate->GetTemplates();
+
+        bool isLinking = CurrentLinkIsAlmostLinked();
+
+        StreamRef streamLinking = nullptr;
+        bool isOutput = false;
+        if (isLinking)
+        {
+            Link currentLink = GetCurrentLink();
+            if (currentLink.fromNodeIndex != UUID_NULL && currentLink.fromOutputIndex != UUID_NULL)
+            {
+                streamLinking = GetOutput(currentLink.fromNodeIndex, currentLink.fromOutputIndex).lock();
+                isOutput = true;
+            }
+            else if (currentLink.toNodeIndex != UUID_NULL && currentLink.toInputIndex != UUID_NULL)
+            {
+                streamLinking = GetInput(currentLink.toNodeIndex, currentLink.toInputIndex).lock();
+                isOutput = false;
+            }
+            else
+            {
+                isLinking = false;
+            }
+        }
+
+        ImGui::BeginChild("##context", ImVec2(0, 350));
+        uint32_t j = 0;
+        for (uint32_t i = 0; i < templates.size(); i++)
+        {
+            NodeRef nodeRef = templates[i].node;
+            std::string name = nodeRef->GetName();
+            if (!nodeRef->GetAllowInteraction())
+                continue;
+            bool passFilter = false;
+            if (filter.PassFilter(name.c_str()))
+                passFilter = true;
+            for (uint32_t j = 0; j < templates[i].searchStrings.size(); j++)
+            {
+                if (passFilter)
+                    break;
+                if (filter.PassFilter(templates[i].searchStrings[j].c_str()))
+                {
+                    passFilter = true;
+                    break;
+                }
+            }
+            if (!passFilter)
+                continue;
+            if (isLinking)
+            {
+                if (isOutput && !nodeRef->p_inputs.empty() && !nodeRef->p_inputs[0]->HasType(streamLinking->type) && !nodeRef->p_alwaysVisibleOnContext)
+                    continue;
+                if (!isOutput && !nodeRef->p_outputs.empty() && !nodeRef->p_outputs[0]->HasType(streamLinking->type) && !nodeRef->p_alwaysVisibleOnContext)
+                    continue;
+                if (!isOutput && nodeRef->p_outputs.empty() || isOutput && nodeRef->p_inputs.empty())
+                    continue;
+            }
+            if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+            {
+                const TemplateID templateId = nodeRef->GetTemplateID();
+                
+                NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
+                node->p_nodeManager = this;
+                StreamRef streamToLink;
+                if (isOutput)
+                    streamToLink = node->GetInput(0);
+                else
+                    streamToLink = node->GetOutput(0);
+                if (streamToLink && streamLinking)
+                {
+                    int possibilityIndex = node->FindBestPossibilityForType(streamLinking->type, streamToLink);
+                    node->ConvertStream(possibilityIndex);
+                }
+                    
+                if (isLinking)
+                {
+                    if (CustomNodeRef customNode = std::dynamic_pointer_cast<CustomNode>(node))
+                    {
+                        if (isOutput)
+                        {
+                            customNode->ClearInputs();
+                            customNode->AddInput("In", streamLinking->type);
+                        }
+                        else
+                        {
+                            customNode->ClearOutputs();
+                            customNode->AddOutput("Out", streamLinking->type);
+                        }
+                            customNode->UpdateFunction();
+                    }
+                    else if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node))
+                    {
+                        paramNode->SetType(streamLinking->type);
+                    }
+                    else if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(node))
+                    {
+                        rerouteNode->SetType(streamLinking->type);
+                        RerouteNodeNamedManager::UpdateType(rerouteNode->GetName(), streamLinking->type);
+                    }
+                }
+                
+                auto action = std::make_shared<ActionCreateNode>(this, node);
+                
+                ActionManager::AddAction(action);
+
+                node->SetPosition((m_createNodeMenu.mousePosOnContext - origin) / zoom);
+                if (isLinking)
+                {
+                    Vec2f nodePosition = node->GetPosition();
+                    if (isOutput)
+                    {
+                        nodePosition += nodePosition - node->GetInputPosition(0);
+                    }
+                    else
+                    {
+                        nodePosition += nodePosition - node->GetOutputPosition(0);
+                    }
+                    node->SetPosition(nodePosition);
+                }
+                AddNode(node);
+
+                filter.Clear();
+                if (isLinking)
+                {
+                    Link& link = GetCurrentLink();
+                    if (std::dynamic_pointer_cast<Output>(streamLinking))
+                    {
+                        link.toInputIndex = 0;
+                        link.toNodeIndex = node->GetUUID();
+                    }
+                    else if (std::dynamic_pointer_cast<Input>(streamLinking))
+                    {
+                        link.fromOutputIndex = 0;
+                        link.fromNodeIndex = node->GetUUID();
+                    }
+                }
+                SetUserInputState(UserInputState::None);
+                ImGui::CloseCurrentPopup();
+                break;
+            }
+            j++;
+        }
+        ImGui::EndChild();
+        Vec2f windowPos = ImGui::GetWindowPos();
+        Vec2f windowSize = ImGui::GetWindowSize();
+        if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right)) && !ImGui::IsMouseHoveringRect(windowPos, windowPos + windowSize, false))
+        {
+            filter.Clear();
+            ClearCurrentLink();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+}
+
+void NodeManager::RightClickStreamMenuUpdate()
+{
+    if (m_openRightClickStream)
+    {
+        m_openRightClickStream = false;
+        ImGui::OpenPopup("RightClickStream");
+    }
+    if (ImGui::BeginPopup("RightClickStream"))
+    {
+        StreamRef stream = m_rightClickedStream.lock();
+        NodeRef node = GetNode(stream->parentUUID).lock();
+        
+        if (!stream || node->p_possiblityCount == 0)
+        {
+            ImGui::CloseCurrentPopup();
+            return;
+        }
+        
+        std::set<Type> typesCheck = {};
+        for (int i = 0; i < node->p_possiblityCount; i++)
+        {
+            if (node->p_currentPossibility == i || stream->type == stream->possibleTypes[i])
+                continue;
+            Type type = stream->possibleTypes[i];
+            if (typesCheck.contains(type))
+                continue;
+            typesCheck.insert(type);
+            if (ImGui::Button(("Convert to " + TypeEnumToString(type)).c_str()))
+            {
+                int index = node->FindBestPossibilityForType(type, stream);
+                node->ConvertStream(index);
+                m_rightClickedStream = {};
+                ImGui::CloseCurrentPopup();
+                break;
+            }
+        }
+        ImGui::EndPopup();
+    }
+    else
+    {
+        m_rightClickedStream = {};
+    }
+}
+
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
     if (!m_isGridHovered && !m_firstFrame)
         return;
+    
     SetHoveredStream({});
     m_firstFrame = false;
     UserInputState prevUserInputState = m_userInputState;
@@ -349,7 +619,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
     m_linkManager->UpdateLinkSelection(origin, zoom);
 
-    if (m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !m_parent->IsContextMenuOpen())
+    if (m_userInputState == UserInputState::CreateLink && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !m_createNodeMenu.contextOpen)
     {
         if (m_hoveredStream.lock())
         {
@@ -382,7 +652,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         }
         else
         {
-            m_parent->SetOpenContextMenu(true);
+            m_createNodeMenu.SetOpenContextMenu(true);
         }
     }
     
@@ -393,7 +663,7 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         SetUserInputState(UserInputState::None);
         ClearCurrentLink();
-        m_parent->SetOpenContextMenu(false);
+        m_createNodeMenu.SetOpenContextMenu(false);
     }
     
     if (mouseClicked && !wasNodeClicked && selectedLinkSize == m_linkManager->GetSelectedLinks().size())
@@ -426,6 +696,8 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
     {
         SetUserInputState(UserInputState::SelectingSquare);
     }
+    
+    // CreateNodeMenuUpdate(zoom, origin, mousePos);
 
     UpdateDragging(zoom, origin, mousePos);
 
@@ -449,10 +721,10 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
         Vec2f inPosition = mousePos;
         Vec2f outPosition = mousePos;
 
-        if (GetMainWindow()->IsContextMenuOpen())
+        if (m_createNodeMenu.contextOpen)
         {
-            inPosition = GetMainWindow()->GetMousePosOnContext();
-            outPosition = GetMainWindow()->GetMousePosOnContext();
+            inPosition = m_createNodeMenu.mousePosOnContext;
+            outPosition = m_createNodeMenu.mousePosOnContext;
         }
 
         if (m_currentLink.fromNodeIndex != UUID_NULL)

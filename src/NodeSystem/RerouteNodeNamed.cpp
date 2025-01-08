@@ -164,7 +164,7 @@ void RerouteNodeNamed::ShowInInspector()
         //TODO : Add action
         // Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs.back()->name, p_outputs.back()->name, m_paramName);
         // ActionManager::AddAction(changeInput);
-        if (NodeTemplateHandler::IsNameExist(m_name))
+        if (NodeTemplateHandler::DoesNameExist(m_name))
         {
             std::cerr << "Node with name " << m_name << " already exists\n";
             SetRerouteName(oldName);
@@ -329,7 +329,7 @@ void RerouteNodeNamed::OnCreate()
         SetName(m_name);
 
         std::string defaultName = m_name;
-        while (NodeTemplateHandler::IsNameExist(m_name))
+        while (NodeTemplateHandler::DoesNameExist(m_name))
         {
             auto newName = defaultName + "_" + std::to_string(index);
             

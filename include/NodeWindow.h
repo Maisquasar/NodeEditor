@@ -54,12 +54,6 @@ public:
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
-    void SetOpenContextMenu(bool shouldOpen);
-
-    bool IsContextMenuOpen() const { return m_contextOpen; }
-
-    Vec2f GetMousePosOnContext() const { return m_mousePosOnContext; }
-
     void UpdateShader();
     void UpdateShaders();
 
@@ -81,11 +75,6 @@ private:
 
     ActionManager m_actionManager = {};
     bool m_isFocused = false;
-
-    Vec2f m_mousePosOnContext;
-    bool m_focusInput = false;
-    int m_shouldOpenContextMenu = -1;
-    bool m_contextOpen = false;
 
     Ref<Mesh> m_quad;
     Ref<Shader> m_currentShader;

@@ -40,16 +40,24 @@ struct Stream
     Stream(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) :
         parentUUID(_parentUUID), index(_index), name(_name), type(_type), isLinked(false)
     {
+        possibleTypes.push_back(type);
     }
     virtual ~Stream() = default;
 
     void SetLinked(bool value) { isLinked = value; }
+
+    bool HasType(Type type) const
+    {
+        return std::ranges::find(possibleTypes, type) != possibleTypes.end();
+    }
 
     UUID parentUUID = -1;
     uint32_t index = -1;
     
     std::string name;
     Type type = Type::None;
+
+    std::vector<Type> possibleTypes;
     
     bool isLinked = false;
 
@@ -58,9 +66,8 @@ struct Stream
 
 struct Input : Stream
 {
-    Input(Type type);
+    Input() = default;
     Input(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
-    ~Input() = default;
     
     Vec4f value;
 
@@ -124,6 +131,10 @@ public:
     virtual void Update();
     void GetPreviewRect(const Vec2f& pMin, float zoom, Vec2f& imageMin, Vec2f& imageMax) const;
     void DrawPreview(Vec2f pMin, float zoom) const;
+    
+    int FindBestPossibilityForType(Type type, StreamRef stream) const;
+    
+    void ConvertStream(uint32_t index);
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
@@ -162,6 +173,8 @@ public:
 
     void AddInput(const std::string& name, Type type);
     void AddOutput(const std::string& name, Type type);
+
+    std::vector<std::vector<Type>> GetAllPossibilities() const;
 
     void ChangeInputType(uint32_t index, Type type) const;
     void ChangeOutputType(uint32_t index, Type type) const;
@@ -242,6 +255,9 @@ protected:
     
     std::vector<InputRef> p_inputs;
     std::vector<OutputRef> p_outputs;
+
+    int p_currentPossibility = 0;
+    int p_possiblityCount = 0;
     
     Vec2f p_position;
     Vec2f p_size = {125.0f, c_topSize};

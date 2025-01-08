@@ -42,6 +42,16 @@ struct SerializedData
     std::vector<LinkRef> links;
 };
 
+struct CreateNodeMenu
+{
+    Vec2f mousePosOnContext;
+    bool focusInput = false;
+    int shouldOpenContextMenu = -1;
+    bool contextOpen = false;
+
+    void SetOpenContextMenu(int value) { shouldOpenContextMenu = value; }
+};
+
 class NodeManager
 {
 public:
@@ -63,6 +73,11 @@ public:
     void UpdateNodeSelection(NodeRef node, float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, bool ctrlDown, bool& wasNodeClicked);
     void UpdateDragging(float zoom, const Vec2f& origin, const Vec2f& mousePos);
     void UpdateSelectionSquare(float zoom, const Vec2f& origin, const Vec2f& mousePos);
+    
+    void CreateNodeMenuUpdate(float zoom, const Vec2f& origin, const Vec2f& mousePos);
+    void DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos);
+    void RightClickStreamMenuUpdate();
+
     void UpdateDelete();
 
     void DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos) const;
@@ -132,6 +147,9 @@ private:
     std::vector<NodeWeak> m_selectedNodes;
     Weak<Stream> m_hoveredStream;
 
+    bool m_openRightClickStream = false;
+    Weak<Stream> m_rightClickedStream;
+
     InputWeak m_currentInput;
 
     UserInputState m_userInputState = UserInputState::None;
@@ -141,4 +159,6 @@ private:
     bool m_isGridHovered = true;
     Vec2f m_onClickPos;
     SelectionSquare m_selectionSquare;
+
+    CreateNodeMenu m_createNodeMenu;
 };
