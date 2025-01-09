@@ -575,6 +575,19 @@ void NodeTemplateHandler::UpdateType(const std::string& name, Type type)
     }
 }
 
+void NodeTemplateHandler::UpdateColor(const std::string& name, uint32_t color)
+{
+    auto it = std::ranges::find_if(s_instance->m_templateNodes, [&name](const NodeMethodInfo& node) {
+        return node.node->GetName() == name;
+    });
+    if (it != s_instance->m_templateNodes.end())
+    {
+        it->node->SetTopColor(color);
+        if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(it->node))
+            rerouteNode->SetTopColor(color);
+    }
+}
+
 bool NodeTemplateHandler::DoesNameExist(const std::string& name)
 {
     for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)

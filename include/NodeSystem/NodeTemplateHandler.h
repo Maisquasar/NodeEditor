@@ -63,6 +63,7 @@ public:
 
     static void UpdateKey(const std::string& oldName, const std::string& newName);
     static void UpdateType(const std::string& name, Type type);
+    static void UpdateColor(const std::string& name, uint32_t color);
 
     static bool DoesNameExist(const std::string& name);
 private:

@@ -67,6 +67,18 @@ void RerouteNodeNamedManager::UpdateType(const std::string& name, Type type)
     NodeTemplateHandler::UpdateType(name, type);
 }
 
+void RerouteNodeNamedManager::UpdateColor(const std::string& name, const Vec3f& color)
+{
+    auto it = GetNode(name);
+    if (it == nullptr)
+        return;
+    for (auto& node : it->node)
+    {
+        node->SetColor(color);
+    }
+    NodeTemplateHandler::UpdateColor(name, IM_COL32(color.x * 255.f, color.y * 255.f, color.z * 255.f, 255.f));
+}
+
 void RerouteNodeNamedManager::AddNode(const std::string& name)
 {
     if (s_instance->m_rerouteNamedNodes.contains(name))
@@ -184,6 +196,13 @@ void RerouteNodeNamed::ShowInInspector()
         RerouteNodeNamedManager::UpdateType(p_name, m_type);
         // ActionManager::AddAction(changeType);
     }
+
+    Vec3f color = m_color.value();
+    if (ImGui::ColorEdit3("Node Color", &color.x))
+    {
+        SetColor(color);
+        RerouteNodeNamedManager::UpdateColor(p_name, color);
+    }
 }
 
 std::string RerouteNodeNamed::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const
@@ -217,7 +236,12 @@ std::string RerouteNodeNamed::ToShader(ShaderMaker* shaderMaker, const FuncStruc
         std::string firstHalf = secondHalf.substr(0, index);
         if (index != std::string::npos)
             secondHalf = secondHalf.substr(index);
-        auto parentVariableName = funcStruct.inputs[0];
+        
+        std::string parentVariableName;
+        if (funcStruct.inputs.empty()) // No Definition !
+            variableNames.push_back(ShaderMaker::ToGLSLVariable(p_outputs[0]->type, Vec4f(0)));
+        else
+            parentVariableName = funcStruct.inputs[0];
         if (parentVariableName.empty())
             parentVariableName = variableNames.back();
         toFormat += FormatString(firstHalf, parentVariableName.c_str());
@@ -247,6 +271,12 @@ void RerouteNodeNamed::SetType(Type type)
     m_type = type;
 }
 
+void RerouteNodeNamed::SetColor(const Vec3f& color)
+{
+    m_color = color;
+    SetTopColor(IM_COL32(color.x * 255.f, color.y * 255.f, color.z * 255.f, 255.f));
+}
+
 void RerouteNodeNamed::InternalSerialize(CppSer::Serializer& serializer) const
 {
     Node::InternalSerialize(serializer);
@@ -254,6 +284,7 @@ void RerouteNodeNamed::InternalSerialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "Name" << CppSer::Pair::Value << m_name;
     serializer << CppSer::Pair::Key << "Type" << CppSer::Pair::Value << static_cast<int>(m_type);
     serializer << CppSer::Pair::Key << "Definition" << CppSer::Pair::Value << m_definition;
+    serializer << CppSer::Pair::Key << "Color" << CppSer::Pair::Value << m_color.value();
 }
 
 void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
@@ -270,6 +301,8 @@ void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
     RerouteNodeNamedManager::UpdateType(p_name, m_type);
     SetRerouteName(name);
     SetName(m_name);
+    m_color = parser["Color"].As<Vec3f>();
+    RerouteNodeNamedManager::UpdateColor(p_name, m_color.value());
 }
 
 Node* RerouteNodeNamed::Clone() const
@@ -307,6 +340,8 @@ void RerouteNodeNamed::InitializePreview()
 Ref<RerouteNodeNamed> RerouteNodeNamed::GetDefinitionNode() const
 {
     RerouteNodeNamed* rerouteNodeNamed = RerouteNodeNamedManager::GetDefinitionNode(m_name);
+    if (!rerouteNodeNamed)
+        return nullptr;
     auto lock = p_nodeManager->GetNode(rerouteNodeNamed->p_uuid).lock();
     return std::dynamic_pointer_cast<RerouteNodeNamed>(lock);
 }
@@ -358,6 +393,11 @@ void RerouteNodeNamed::OnCreate()
             ChangeInputType(0, m_type);
     }
     RerouteNodeNamedManager::AddRef(m_name, this);
+    
+    if (!m_color.has_value())
+    {
+        RerouteNodeNamedManager::UpdateColor(m_name, Vec4f(ImGui::ColorConvertU32ToFloat4(p_topColor)));
+    }
 }
 
 void RerouteNodeNamed::OnRemove()

@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <optional>
 
 #include "NodeSystem/Node.h"
 
@@ -23,7 +24,8 @@ public:
 
     static void UpdateKey(std::string oldName, const std::string& newName);
     static void UpdateType(const std::string& name, Type type);
-
+    static void UpdateColor(const std::string& name, const Vec3f& color);
+    
     static void AddNode(const std::string& name);
     static void RemoveNode(const std::string& name);
 
@@ -53,6 +55,7 @@ public:
     std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const override;
     
     void SetType(Type type);
+    void SetColor(const Vec3f& color);
 
     void InternalSerialize(CppSer::Serializer& serializer) const override;
     void InternalDeserialize(CppSer::Parser& parser) override;
@@ -73,6 +76,8 @@ protected:
 private:
     std::string m_name = "Name";
     Type m_type = Type::Float;
+
+    std::optional<Vec3f> m_color;
 
     bool m_templateNode = true; // This is the default template node
 

@@ -331,29 +331,30 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
     }
 }
 
-std::string ShaderMaker::GetValueAsString(InputRef input)
+std::string ShaderMaker::ToGLSLVariable(Type type, const Vec4f& value)
 {
-    switch (input->type)
+    switch (type)
     {
     case Type::Float:
-        return std::to_string(input->GetValue<float>());
+        return std::to_string(value.x);
     case Type::Int:
-        return std::to_string(input->GetValue<int>());
+        return std::to_string(value.x);
     case Type::Bool:
-        return std::to_string(input->GetValue<bool>());
+        return std::to_string(value.x);
     case Type::Vector2:
-        {
-            Vec2f value = input->GetValue<Vec2f>();
-            return "vec2(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ")";
-        }
+        return "vec2(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ")";
     case Type::Vector3:
-        {
-            Vec3f value = input->GetValue<Vec3f>();
-            return "vec3(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ")";
-        }
+        return "vec3(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ")";
+    case Type::Vector4:
+        return "vec4(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ", " + std::to_string(value.w) + ")";
     default:
         return "";
     }
+}
+
+std::string ShaderMaker::GetValueAsString(InputRef input)
+{
+    return ToGLSLVariable(input->type, input->GetValue());
 }
 
 std::string ShaderMaker::GetOutputVariableName(NodeRef currentNode, int j)

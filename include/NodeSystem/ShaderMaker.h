@@ -38,6 +38,7 @@ public:
     void CreateFragmentShader(std::string& content, NodeManager* manager, const NodeRef& endNode);
     void CreateShaderToyShader(NodeManager* manager);
     void SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content);
+    static std::string ToGLSLVariable(Type type, const Vec4f& value);
 
     static std::string GetValueAsString(InputRef input);
 
