@@ -4,6 +4,7 @@
 #include "NodeSystem/NodeTemplateHandler.h"
 
 #include <fstream>
+#include <imgui_internal.h>
 #include <ranges>
 #include <unordered_set>
 
@@ -357,6 +358,8 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
             m_createNodeMenu.focusInput = false;
         }
         filter.Draw("", ImGui::GetContentRegionAvail().x);
+        ImGuiID searchID = ImGui::GetItemID();
+        
         NodeTemplateHandler* nodeTemplate = NodeTemplateHandler::GetInstance();
         TemplateList templates = nodeTemplate->GetTemplates();
 
@@ -383,8 +386,8 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
             }
         }
 
-        ImGui::BeginChild("##context", ImVec2(0, 350));
-        uint32_t j = 0;
+        ImGui::BeginChild("##context", ImVec2(0, 350), ImGuiChildFlags_NavFlattened);
+        uint32_t l = 0;
         for (uint32_t i = 0; i < templates.size(); i++)
         {
             NodeRef nodeRef = templates[i].node;
@@ -415,7 +418,9 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
                 if (!isOutput && nodeRef->p_outputs.empty() || isOutput && nodeRef->p_inputs.empty())
                     continue;
             }
-            if (ImGui::MenuItem(name.c_str()) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+            if (ImGui::MenuItem(name.c_str()) ||
+                (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+                && ImGui::GetFocusID() == searchID)
             {
                 const TemplateID templateId = nodeRef->GetTemplateID();
                 
@@ -501,7 +506,7 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
                 ImGui::CloseCurrentPopup();
                 break;
             }
-            j++;
+            l++;
         }
         ImGui::EndChild();
         Vec2f windowPos = ImGui::GetWindowPos();
@@ -885,7 +890,7 @@ void NodeManager::SetUserInputState(const UserInputState& state)
     if (m_userInputState != state)
     {
         m_userInputState = state;
-        std::cout << "Set User Input -> " << UserInputEnumToString(state) << "\n";
+        // std::cout << "Set User Input -> " << UserInputEnumToString(state) << "\n";
     }
 #else
     m_userInputState = state;
