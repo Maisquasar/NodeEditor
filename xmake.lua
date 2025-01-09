@@ -20,7 +20,7 @@ add_requires("nativefiledialog-extended")
 set_rundir("$(projectdir)")
 
 target("NodeEditor")
-    set_kind("binary")
+    set_kind("static")
     add_files("src/**.cpp")
     add_headerfiles("include/**.h")
     
@@ -40,3 +40,5 @@ target("NodeEditor")
     add_packages("cpp_serializer")
     add_packages("nativefiledialog-extended")
 target_end()
+
+includes("example")

@@ -1,6 +1,6 @@
 ﻿#include "Actions/Action.h"
 
-#include "Application.h"
+#include "NodeWindow.h"
 
 ActionManager* ActionManager::m_current = nullptr;
 

@@ -16,6 +16,9 @@ public:
     static void Destroy() { delete s_instance; }
     
     void Initialize();
+    
+    void DrawMainDock();
+    void DrawMainBar();
 
     void Run();
 

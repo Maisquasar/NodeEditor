@@ -2,9 +2,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <imgui.h>
 #include <glad/glad.h>
-
-#include "Application.h"
 
 Ref<Mesh> Mesh::CreateQuad()
 {
@@ -279,12 +278,17 @@ bool Shader::RecompileFragmentShader(const char* content)
 
 void Shader::UpdateValues() const
 {
+    /*
     // Set time value
     GLint timeLocation = glGetUniformLocation(m_program, "Time");
     if (timeLocation != -1) {
         float time = Application::GetInstance()->GetTime();
         glUniform1f(timeLocation, time);
     }
+    */
+    m_updateValuesFunc();
+
+    //TODO Modify this
 }
 
 Framebuffer::Framebuffer(){}

@@ -3,6 +3,7 @@
 #include <Maths.h>
 #include <vector>
 #include <filesystem>
+#include <functional>
 #include <optional>
 
 template <typename T>
@@ -59,6 +60,8 @@ public:
     bool RecompileFragmentShader(const char* content);
     void UpdateValues() const;
 
+    void SetUpdateValuesFunc(std::function<void()> func) { m_updateValuesFunc = func; }
+
     bool IsLoaded() const { return m_loaded; }
 
 private:
@@ -66,6 +69,8 @@ private:
     uint32_t m_program = -1;
     uint32_t m_vertexShader = -1;
     uint32_t m_fragmentShader = -1;
+
+    std::function<void()> m_updateValuesFunc;
 
     bool m_loaded = false;
 };

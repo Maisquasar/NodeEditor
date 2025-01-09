@@ -44,13 +44,15 @@ public:
 
     void Update() const;
     void Draw();
-    void DrawNodePreview(std::shared_ptr<Node> previewNode);
+    void RenderNodePreview(std::shared_ptr<Node> previewNode);
     void Render();
     void ResetActionManager();
 
+    bool Load(const std::filesystem::path& path);
+    bool Save(const std::filesystem::path& path);
+    bool Save();
+
     void Delete() const;
-    static void DrawMainDock();
-    void DrawContextMenu(float& zoom, Vec2f& origin, ImVec2 mousePos);
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
@@ -61,11 +63,14 @@ public:
     
     void AddPreviewNode(const UUID& uuid) { m_previewNodes.insert(uuid); }
     void RemovePreviewNode(const UUID& uuid) { m_previewNodes.erase(uuid); }
+    void New();
+    
+    NodeManager* GetNodeManager() const { return m_nodeManager; }
+
 private:
     
     void DrawGrid();
     void DrawInspector() const;
-    void DrawMainBar();
 
     void WriteEditorFile(const std::string& path) const;
     void LoadEditorFile(const std::string& path) const;

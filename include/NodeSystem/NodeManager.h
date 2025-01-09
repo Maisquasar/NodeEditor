@@ -5,7 +5,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Event.h"
 #include "LinkManager.h"
 #include "UUID.h"
 
@@ -115,8 +114,8 @@ public:
 
     SelectionSquare GetSelectionSquare() const { return m_selectionSquare; }
 
-    void SaveToFile(const std::string& path);
-    void LoadFromFile(const std::string& path);
+    bool SaveToFile(const std::filesystem::path& path);
+    bool LoadFromFile(const std::filesystem::path& path);
     
     void Serialize(CppSer::Serializer& serializer) const;
     void SerializeSelectedNodes(CppSer::Serializer& serializer) const;
@@ -127,8 +126,6 @@ public:
     void Paste();
     
     void Clean();
-
-    Utils::EventWithID<> EOnDrawEvent;
 
 private:
     void SetHoveredStream(const Weak<Stream>& stream);

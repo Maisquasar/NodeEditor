@@ -897,29 +897,30 @@ void NodeManager::SetUserInputState(const UserInputState& state)
 #endif
 }
 
-void NodeManager::SaveToFile(const std::string& path)
+bool NodeManager::SaveToFile(const std::filesystem::path& path)
 {
     m_savePath = path;
     CppSer::Serializer serializer(path);
     serializer.SetVersion("1.0");
     Serialize(serializer);
+    
+    return std::filesystem::exists(path);
 }
 
-void NodeManager::LoadFromFile(const std::string& filePath)
+bool NodeManager::LoadFromFile(const std::filesystem::path& path)
 {
-    std::filesystem::path path(filePath);
-    m_savePath = filePath;
+    m_savePath = path.generic_string();
     CppSer::Parser parser(path);
     if (!parser.IsFileOpen())
     {
         std::cout << "Failed to open file\n";
-        return;
+        return false;
     }
     
     if (parser.GetVersion() != "1.0")
     {
         std::cout << "Invalid file version\n";
-        return;
+        return false;
     }
 
     // Clean NodeManager
@@ -929,6 +930,8 @@ void NodeManager::LoadFromFile(const std::string& filePath)
     m_firstFrame = true;
 
     m_parent->ShouldUpdateShader();
+
+    return true;
 }
 
 void NodeManager::Serialize(CppSer::Serializer& serializer) const

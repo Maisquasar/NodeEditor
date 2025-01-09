@@ -1,8 +1,10 @@
 ﻿#include "Application.h"
 
+#include <imgui_internal.h>
 #include <galaxymath/Maths.h>
 
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/ShaderMaker.h"
 #include "Render/Font.h"
 #include "Render/Framebuffer.h"
 using namespace GALAXY;
@@ -141,6 +143,152 @@ void Application::Initialize()
     std::cout << "Application initialized" << std::endl;
 }
 
+void Application::DrawMainDock()
+{
+    static bool opt_fullscreen = true;
+    static bool opt_padding = false;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+    if (opt_fullscreen)
+    {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    }
+    else
+    {
+        dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+    }
+
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        window_flags |= ImGuiWindowFlags_NoBackground;
+    ImGui::GetWindowDockID();
+
+    if (!opt_padding)
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red
+    ImGui::Begin("DockSpace", nullptr, window_flags);
+    ImGui::PopStyleColor();
+    if (!opt_padding)
+        ImGui::PopStyleVar();
+
+    if (opt_fullscreen)
+        ImGui::PopStyleVar(2);
+
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    {
+        const ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    }
+    ImGui::End();
+}
+
+void Application::DrawMainBar()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("New", "CTRL+N"))
+            {
+                m_nodeWindow.New();
+            }
+            if (ImGui::MenuItem("Open", "CTRL+O"))
+            {
+                std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
+                if (const std::string path = OpenDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
+                {
+                    m_nodeWindow.Load(path);
+                }
+            }
+            if (ImGui::MenuItem("Save", "CTRL+S"))
+            {
+                m_nodeWindow.Save();
+            }
+            if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S"))
+            {
+                std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
+                if (const std::string path = SaveDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
+                {
+                    m_nodeWindow.Save(path);
+                }
+            }
+            if (ImGui::MenuItem("Export to shaderToy"))
+            {
+                ShaderMaker shaderMaker;
+                shaderMaker.CreateShaderToyShader(m_nodeWindow.GetNodeManager());
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "ALT+F4"))
+            {
+                Application::Exit();
+            }
+            ImGui::EndMenu();
+        }
+        std::string fpsString = std::to_string(static_cast<int>(ImGui::GetIO().Framerate)) + " FPS";
+        if (ImGui::BeginMenu(fpsString.c_str()))
+        {
+            
+            ImGui::EndMenu();
+        }
+
+        /*
+        std::string stateString = "Current State :" + UserInputEnumToString(m_nodeManager->GetUserInputState());
+        if (ImGui::BeginMenu(stateString.c_str()))
+        {
+            ImGui::EndMenu();
+        }
+        */
+
+        if (ImGui::BeginMenu("Debug"))
+        {
+            auto current = ActionManager::GetCurrent();
+            if (current != nullptr)
+            {
+                auto redoneActions = ActionManager::GetRedoneActions();
+                for (auto& redoneAction : redoneActions)
+                {
+                    if (ImGui::MenuItem(redoneAction->ToString().c_str()))
+                    {
+                        
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("%p", redoneAction.get());
+                        ImGui::EndTooltip();
+                    }
+                }
+                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 2);
+                auto undoneActions = ActionManager::GetUndoneActions();
+                for (uint32_t i = 0; i < undoneActions.size(); i++)
+                {
+                    if (ImGui::MenuItem(undoneActions[i]->ToString().c_str()))
+                    {
+                        
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("%p", undoneActions[i].get());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+}
+
+
 void Application::Run()
 {
     // Main loop
@@ -154,6 +302,10 @@ void Application::Run()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        DrawMainDock();
+
+        DrawMainBar();
 
         m_nodeWindow.Draw();
 
