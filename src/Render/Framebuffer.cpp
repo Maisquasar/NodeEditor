@@ -182,6 +182,8 @@ bool Shader::SetFragmentShaderContent(const std::string& string)
     if (!success) {
         glGetShaderInfoLog(m_fragmentShader, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        // TODO : Remove
+        ImGui::SetClipboardText(string.c_str());
         return false;
     }
     
@@ -257,7 +259,6 @@ bool Shader::RecompileFragmentShader(const char* content)
     glShaderSource(newFragmentShader, 1, &content, nullptr);
     glCompileShader(newFragmentShader);
 
-    ImGui::SetClipboardText(content);
     // Check for compilation errors
     GLint success;
     glGetShaderiv(newFragmentShader, GL_COMPILE_STATUS, &success);
@@ -267,6 +268,7 @@ bool Shader::RecompileFragmentShader(const char* content)
         glGetShaderInfoLog(newFragmentShader, 512, nullptr, infoLog);
         std::cerr << "Fragment Shader Compilation Error:\n" << infoLog << std::endl;
         glDeleteShader(newFragmentShader);
+        ImGui::SetClipboardText(content);
         return false;
     }
 

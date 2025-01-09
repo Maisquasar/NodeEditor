@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -8,6 +9,7 @@
 class Node;
 
 using OutputFormatString = std::vector<std::string>;
+
 struct NodeMethodInfo
 {
     NodeMethodInfo() = default;
@@ -18,6 +20,7 @@ struct NodeMethodInfo
     NodeRef node;
     std::vector<OutputFormatString> outputFormatStrings;
     std::vector<std::string> searchStrings;
+    int tabIndex = -1;
 };
 
 using TemplateList = std::vector<NodeMethodInfo>;

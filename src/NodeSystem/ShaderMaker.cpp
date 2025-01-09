@@ -293,7 +293,7 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
     content += outputName + ", 1.0);\n}\n";
     
     // TODO
-    ImGui::SetClipboardText(content.c_str());
+    // ImGui::SetClipboardText(content.c_str());
 
     std::cout << content;
 }
@@ -338,9 +338,9 @@ std::string ShaderMaker::ToGLSLVariable(Type type, const Vec4f& value)
     case Type::Float:
         return std::to_string(value.x);
     case Type::Int:
-        return std::to_string(value.x);
+        return std::to_string(static_cast<int>(value.x));
     case Type::Bool:
-        return std::to_string(value.x);
+        return static_cast<bool>(value.x) ? "true" : "false";
     case Type::Vector2:
         return "vec2(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ")";
     case Type::Vector3:

@@ -339,7 +339,6 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
     // Context menu
     if (m_createNodeMenu.contextOpen = ImGui::BeginPopup("context"); m_createNodeMenu.contextOpen)
     {
-        
         static ImGuiTextFilter filter("");
 
         if (m_createNodeMenu.shouldOpenContextMenu == 0)
@@ -675,12 +674,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         SelectNode(nullptr);
         m_linkManager->ClearSelectedLinks();
     }
-    
-    if (mouseClicked)
-    {
-        Vec2f localMousePos = ToGrid(mousePos, zoom, origin);
-        m_selectionSquare.mousePosOnStart = localMousePos;
-    }
 
     // Update States
     if (m_userInputState == UserInputState::ClickNode
@@ -698,9 +691,9 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
         && CurrentLinkIsNone())
     {
         SetUserInputState(UserInputState::SelectingSquare);
+        Vec2f localMousePos = ToGrid(mousePos, zoom, origin);
+        m_selectionSquare.mousePosOnStart = localMousePos;
     }
-    
-    // CreateNodeMenuUpdate(zoom, origin, mousePos);
 
     UpdateDragging(zoom, origin, mousePos);
 

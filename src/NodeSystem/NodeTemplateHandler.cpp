@@ -113,6 +113,7 @@ void NodeTemplateHandler::Initialize()
     constexpr ImU32 breakColor = IM_COL32(180, 90, 120, 255);       // Muted pink
     constexpr ImU32 customNodeColor = IM_COL32(110, 150, 170, 255); // Soft teal
     constexpr ImU32 paramNodeColor = IM_COL32(160, 120, 180, 255);  // Muted lavender
+    constexpr ImU32 otherNodeColor = IM_COL32(180, 90, 120, 255);   // Muted pink
     
     {
         NodeRef node = std::make_shared<Node>("Material");
@@ -417,27 +418,27 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Float} }, { {"Result", Type::Vector4} }, "vec4(%s)");
     CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector4} }, "vec4(%s, 0.0, 0.0)");
     CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector4} }, "vec4(%s, 1.0)");
-    
-    // Check if there is duplicate name
-    for (uint32_t i = 0; i < m_templateNodes.size(); i++)
-    {
-        for (uint32_t j = i + 1; j < m_templateNodes.size(); j++)
-        {
-            if (m_templateNodes[i].node->GetName() == m_templateNodes[j].node->GetName())
-            {
-                /*
-                std::string type1 = TypeEnumToString(m_templateNodes[i].node->GetInput(0)->type);
-                std::string type2 = TypeEnumToString(m_templateNodes[j].node->GetInput(0)->type);
-                m_templateNodes[i].node->SetName(m_templateNodes[i].node->GetName() + " (" + type1 + ")");
-                m_templateNodes[i].node->p_templateID = TemplateIDFromString(m_templateNodes[i].node->GetName());
-                m_templateNodes[j].node->SetName(m_templateNodes[j].node->GetName() + " (" + type2 + ")");
-                m_templateNodes[j].node->p_templateID = TemplateIDFromString(m_templateNodes[j].node->GetName());
-                */
-                assert(false);
-            }
-        }
-    }
-    
+
+    CreateTemplateNode("If", otherNodeColor, {{"IsA", Type::Bool}, {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s ? %s : %s");
+    CreateTemplateNode("If", otherNodeColor, {{"IsA", Type::Bool}, {"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Vector2} }, "%s ? %s : %s");
+    CreateTemplateNode("If", otherNodeColor, {{"IsA", Type::Bool}, {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s ? %s : %s");
+    CreateTemplateNode("If", otherNodeColor, {{"IsA", Type::Bool}, {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "%s ? %s : %s");
+
+    CreateTemplateNode("Equal", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s == %s", {"=="});
+    CreateTemplateNode("Equal", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "%s == %s", {"=="});
+    CreateTemplateNode("Equal", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "%s == %s", {"=="});
+    CreateTemplateNode("Equal", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "%s == %s", {"=="});
+
+    CreateTemplateNode("Not", otherNodeColor, {{"A", Type::Bool} }, { {"Result", Type::Bool} }, "!%s");
+
+    CreateTemplateNode("Not Equal", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s != %s", {"!="});
+    CreateTemplateNode("Not Equal", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "%s != %s", {"!="});
+    CreateTemplateNode("Not Equal", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "%s != %s", {"!="});
+    CreateTemplateNode("Not Equal", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "%s != %s", {"!="});
+
+    CreateTemplateNode("Inferior", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s < %s", {"<"});
+
+    CreateTemplateNode("Superior", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s > %s", {">"});
 #ifdef _DEBUG
     RunUnitTests();
 #endif
