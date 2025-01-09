@@ -398,6 +398,25 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Distance", functionColor, { {"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Float} }, "distance(%s, %s)");
     CreateTemplateNode("Distance", functionColor, { {"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Float} }, "distance(%s, %s)");
     
+    CreateTemplateNode("Make Vector2", makeColor, { {"X", Type::Float}, {"Y", Type::Float} }, { {"Result", Type::Vector2} }, "vec2(%s, %s)");
+    CreateTemplateNode("Make Vector3", makeColor, { {"X", Type::Float}, {"Y", Type::Float}, {"Z", Type::Float} }, { {"Result", Type::Vector3} }, "vec3(%s, %s, %s)");
+    CreateTemplateNode("Make Vector4", makeColor, { {"X", Type::Float}, {"Y", Type::Float}, {"Z", Type::Float}, {"W", Type::Float} }, { {"Result", Type::Vector4} }, "vec4(%s, %s, %s, %s)");
+
+    CreateTemplateNode("Break Vector2", breakColor, { {"A", Type::Vector2} }, { {"X", Type::Float}, {"Y", Type::Float} }, std::vector<std::string>{"%s.x", "%s.y"});
+    CreateTemplateNode("Break Vector3", breakColor, { {"A", Type::Vector3} }, { {"X", Type::Float}, {"Y", Type::Float}, {"Z", Type::Float} }, std::vector<std::string>{"%s.x", "%s.y", "%s.z"});
+    CreateTemplateNode("Break Vector4", breakColor, { {"A", Type::Vector4} }, { {"X", Type::Float}, {"Y", Type::Float}, {"Z", Type::Float}, {"W", Type::Float} }, std::vector<std::string>{"%s.x", "%s.y", "%s.z", "%s.w"});
+    
+    CreateTemplateNode("To Vector2", functionColor, { {"A", Type::Float} }, { {"Result", Type::Vector2} }, "vec2(%s)");
+    CreateTemplateNode("To Vector2", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector2} }, "vec2(%s.xy)");
+    CreateTemplateNode("To Vector2", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector2} }, "vec2(%s.xy)");
+
+    CreateTemplateNode("To Vector3", functionColor, { {"A", Type::Float} }, { {"Result", Type::Vector3} }, "vec3(%s)");
+    CreateTemplateNode("To Vector3", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector3} }, "vec3(%s, 0.0)");
+    CreateTemplateNode("To Vector3", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector3} }, "vec3(%s.xyz)");
+
+    CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Float} }, { {"Result", Type::Vector4} }, "vec4(%s)");
+    CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector4} }, "vec4(%s, 0.0, 0.0)");
+    CreateTemplateNode("To Vector4", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector4} }, "vec4(%s, 1.0)");
     
     // Check if there is duplicate name
     for (uint32_t i = 0; i < m_templateNodes.size(); i++)
@@ -406,12 +425,15 @@ void NodeTemplateHandler::Initialize()
         {
             if (m_templateNodes[i].node->GetName() == m_templateNodes[j].node->GetName())
             {
+                /*
                 std::string type1 = TypeEnumToString(m_templateNodes[i].node->GetInput(0)->type);
                 std::string type2 = TypeEnumToString(m_templateNodes[j].node->GetInput(0)->type);
                 m_templateNodes[i].node->SetName(m_templateNodes[i].node->GetName() + " (" + type1 + ")");
                 m_templateNodes[i].node->p_templateID = TemplateIDFromString(m_templateNodes[i].node->GetName());
                 m_templateNodes[j].node->SetName(m_templateNodes[j].node->GetName() + " (" + type2 + ")");
                 m_templateNodes[j].node->p_templateID = TemplateIDFromString(m_templateNodes[j].node->GetName());
+                */
+                assert(false);
             }
         }
     }
@@ -509,6 +531,19 @@ NodeMethodInfo& NodeTemplateHandler::GetFromName(const std::string& name)
     }
     assert(false);
     return s_instance->m_templateNodes[0];
+}
+
+NodeRef NodeTemplateHandler::GetNodeFromName(const std::string& name)
+{
+    for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
+    {
+        std::string nodeName = s_instance->m_templateNodes[i].node->GetName();
+        if (nodeName == name)
+        {
+            return s_instance->m_templateNodes[i].node;
+        }
+    }
+    return nullptr;
 }
 
 void NodeTemplateHandler::UpdateKey(const std::string& oldName, const std::string& newName)

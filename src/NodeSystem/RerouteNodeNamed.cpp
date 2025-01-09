@@ -322,7 +322,7 @@ void RerouteNodeNamed::OnCreate()
 {
     if (m_templateNode || !RerouteNodeNamedManager::HasDefinition(m_name))
     {
-        auto templateNode = NodeTemplateHandler::GetFromName(m_name + " (Definition)");
+        NodeRef templateNode = NodeTemplateHandler::GetNodeFromName(m_name + " (Definition)");
         
         m_templateNode = false;
         int index = 0;
@@ -337,7 +337,7 @@ void RerouteNodeNamed::OnCreate()
             SetName(newName);
         }
 
-        if (!templateNode.node)
+        if (!templateNode)
         {
             auto templateHandler = NodeTemplateHandler::GetInstance();
             Node* clone = Clone();
@@ -346,7 +346,7 @@ void RerouteNodeNamed::OnCreate()
         }
         else
         {
-            templateNode.node->SetName(m_name);
+            templateNode->SetName(m_name);
         }
 
         RerouteNodeNamedManager::AddNode(m_name);
@@ -368,7 +368,7 @@ void RerouteNodeNamed::OnRemove()
 
     if (m_definition && RerouteNodeNamedManager::HasNode(m_name))
     {
-        auto templateNode = NodeTemplateHandler::GetFromName(m_name);
-        templateNode.node->SetName(m_name + " (Definition)");
+        NodeRef templateNode = NodeTemplateHandler::GetNodeFromName(m_name);
+        templateNode->SetName(m_name + " (Definition)");
     }
 }

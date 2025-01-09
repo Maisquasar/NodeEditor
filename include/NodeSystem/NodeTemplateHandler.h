@@ -59,6 +59,8 @@ public:
     TemplateList& GetTemplates() { return m_templateNodes; }
     static NodeMethodInfo& GetFromName(const std::string& name);
 
+    static NodeRef GetNodeFromName(const std::string& name);
+
     static void UpdateKey(const std::string& oldName, const std::string& newName);
     static void UpdateType(const std::string& name, Type type);
 

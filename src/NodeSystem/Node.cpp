@@ -364,6 +364,8 @@ void Node::ConvertStream(uint32_t index)
         if (currentType == input->possibleTypes[index])
             continue;
         ChangeInputType(input->index, input->possibleTypes[index]);
+        if (p_nodeManager)
+            p_nodeManager->GetLinkManager()->RemoveLink(input);
     }
     for (auto& output : p_outputs)
     {
@@ -371,6 +373,8 @@ void Node::ConvertStream(uint32_t index)
         if (currentType == output->possibleTypes[index])
             continue;
         ChangeOutputType(output->index, output->possibleTypes[index]);
+        if (p_nodeManager)
+            p_nodeManager->GetLinkManager()->RemoveLinks(output);
     }
     p_currentPossibility = index;
 }
@@ -837,6 +841,7 @@ void Node::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "TemplateID" << CppSer::Pair::Value << p_templateID;
     serializer << CppSer::Pair::Key << "UUID" << CppSer::Pair::Value << p_uuid;
     serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
+    serializer << CppSer::Pair::Key << "Possibility Index" << CppSer::Pair::Value << p_currentPossibility;
     
     for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
@@ -871,6 +876,10 @@ void Node::Deserialize(CppSer::Parser& parser)
         std::string key = "Value " + std::to_string(i);
         input->SetValue(parser[key].As<Vec4f>());
     }
+
+    p_currentPossibility = parser["Possibility Index"].As<int>();
+
+    ConvertStream(p_currentPossibility);
 
     InternalDeserialize(parser);
 }

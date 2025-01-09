@@ -422,16 +422,6 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
                 
                 NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
                 node->p_nodeManager = this;
-                StreamRef streamToLink;
-                if (isOutput)
-                    streamToLink = node->GetInput(0);
-                else
-                    streamToLink = node->GetOutput(0);
-                if (streamToLink && streamLinking)
-                {
-                    int possibilityIndex = node->FindBestPossibilityForType(streamLinking->type, streamToLink);
-                    node->ConvertStream(possibilityIndex);
-                }
                     
                 if (isLinking)
                 {
@@ -457,6 +447,19 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
                     {
                         rerouteNode->SetType(streamLinking->type);
                         RerouteNodeNamedManager::UpdateType(rerouteNode->GetName(), streamLinking->type);
+                    }
+                    else
+                    {
+                        StreamRef streamToLink;
+                        if (isOutput)
+                            streamToLink = node->GetInput(0);
+                        else
+                            streamToLink = node->GetOutput(0);
+                        if (streamToLink && streamLinking)
+                        {
+                            int possibilityIndex = node->FindBestPossibilityForType(streamLinking->type, streamToLink);
+                            node->ConvertStream(possibilityIndex);
+                        }
                     }
                 }
                 
