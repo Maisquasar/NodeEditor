@@ -1,17 +1,26 @@
 ﻿#include "Application.h"
 
+#include <filesystem>
 #include <imgui_internal.h>
 #include <galaxymath/Maths.h>
+#include <cpp_serializer/CppSerializer.h>
 
-#include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeEditor.h"
 #include "NodeSystem/ShaderMaker.h"
-#include "Render/Font.h"
 #include "Render/Framebuffer.h"
+
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <glad/glad.h>
+#include "Serializer.h"
+
+#define EDITOR_FILE_NAME "editor.settings"
+#define TEMP_FOLDER "tmp/"
+#define SAVE_FOLDER "save/"
+
+
 
 Application* Application::s_instance = nullptr;
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -65,6 +74,17 @@ void APIENTRY glDebugOutput(GLenum source,
     } std::cout << std::endl;
     std::cout << std::endl;
 }
+
+void Application::UpdateShadersValues(int program) const
+{
+    // Set time value
+    GLint timeLocation = glGetUniformLocation(program, "Time");
+    if (timeLocation != -1) {
+        float time = GetTime();
+        glUniform1f(timeLocation, time);
+    }
+}
+
 
 void Application::Initialize()
 {
@@ -134,11 +154,14 @@ void Application::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
-    Font::LoadFont();
+    NodeEditor::Initialize();
 
-    m_mesh = Mesh::CreateQuad();
+    UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1);
+    Shader::SetUpdateValuesFunc(updateValuesFunc);
     
     m_nodeWindow.Initialize();
+    
+    LoadEditorFile(EDITOR_FILE_NAME);
 
     std::cout << "Application initialized" << std::endl;
 }
@@ -288,6 +311,27 @@ void Application::DrawMainBar()
     }
 }
 
+void Application::WriteEditorFile(const std::string& path) const
+{
+    CppSer::Serializer serializer(path);
+    serializer.SetVersion("1.0");
+    serializer << CppSer::Pair::BeginMap << "Editor";
+    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeWindow.GetNodeManager()->GetFilePath().string();
+    serializer << CppSer::Pair::EndMap << "Editor";
+}
+
+void Application::LoadEditorFile(const std::string& path) const
+{
+    auto fullPath = std::filesystem::path(path);
+    CppSer::Parser parser(fullPath);
+    if (!parser.IsFileOpen() || parser.GetVersion() != "1.0")
+    {
+        std::cout << "Invalid file" << std::endl;
+        return;
+    }
+    m_nodeWindow.GetNodeManager()->LoadFromFile(parser["Node File"].As<std::string>());
+}
+
 
 void Application::Run()
 {
@@ -343,6 +387,8 @@ void Application::Clean() const
 {
     auto path = TEMP_FOLDER;
     std::filesystem::remove_all(path);
+    
+    WriteEditorFile(EDITOR_FILE_NAME);
     m_nodeWindow.Delete();
     
     // Cleanup
@@ -352,11 +398,6 @@ void Application::Clean() const
 
     glfwDestroyWindow(m_window);
     glfwTerminate();
-}
-
-Ref<Mesh> Application::GetQuad() const
-{
-    return m_mesh;
 }
 
 void Application::Exit()

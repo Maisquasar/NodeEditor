@@ -4,10 +4,6 @@
 #include "NodeSystem/NodeManager.h"
 #include "Actions/Action.h"
 
-#define SAVE_FOLDER "saves/"
-#define EDITOR_FILE_NAME "editor.settings"
-#define TEMP_FOLDER "tmp/"
-
 #pragma region Dialog
 class Framebuffer;
 class Shader;
@@ -72,21 +68,19 @@ private:
     void DrawGrid();
     void DrawInspector() const;
 
-    void WriteEditorFile(const std::string& path) const;
-    void LoadEditorFile(const std::string& path) const;
-
 private:
     NodeManager* m_nodeManager = nullptr;
 
     ActionManager m_actionManager = {};
     bool m_isFocused = false;
 
-    Ref<Mesh> m_quad;
     Ref<Shader> m_currentShader;
     Ref<Framebuffer> m_framebuffer;
     bool m_shouldUpdateShader = true;
 
     std::set<UUID> m_previewNodes;
+
+    Ref<Mesh> m_quad;
 
     struct GridWindow
     {

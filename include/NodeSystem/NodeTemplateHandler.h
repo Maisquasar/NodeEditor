@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <filesystem>
 #include <memory>
 #include <set>
 #include <string>
@@ -40,6 +41,9 @@ public:
 
     static NodeTemplateHandler* Create() { return (s_instance = std::make_unique<NodeTemplateHandler>()).get(); }
     static NodeTemplateHandler* GetInstance() { return s_instance.get(); }
+    
+    static void SetTempPath(const std::filesystem::path& path) { s_instance->m_tempPath = path; }
+    static std::filesystem::path GetTempPath() {return s_instance->m_tempPath; }
 
     void RunUnitTests();
     bool RunUnitTest(const NodeMethodInfo& info);
@@ -84,4 +88,6 @@ private:
     TemplateList m_templateNodes;
 
     bool m_computed = false;
+    
+    std::filesystem::path m_tempPath;
 };

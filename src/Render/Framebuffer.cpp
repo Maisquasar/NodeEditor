@@ -2,14 +2,19 @@
 
 #include <filesystem>
 #include <fstream>
+using namespace GALAXY;
 #include <imgui.h>
 #include <glad/glad.h>
 
+UpdateValuesFunc Shader::m_updateValuesFunc = nullptr;
+
+Ref<Mesh> Mesh::s_quad = nullptr;
+
 Ref<Mesh> Mesh::CreateQuad()
 {
-    Ref<Mesh> mesh = std::make_shared<Mesh>();
-    mesh->Initialize(s_quadVertices);
-    return mesh;
+    s_quad = std::make_shared<Mesh>();
+    s_quad->Initialize(s_quadVertices);
+    return s_quad;
 }
 
 bool Mesh::Initialize(const std::vector<float> vertices)
@@ -20,7 +25,7 @@ bool Mesh::Initialize(const std::vector<float> vertices)
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-    m_count = vertices.size() / 4;
+    m_count = vertices.size() * 0.25f;
 
     // Use correct size calculation and pass vertex data pointer
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
@@ -286,7 +291,7 @@ void Shader::UpdateValues() const
         glUniform1f(timeLocation, time);
     }
     */
-    m_updateValuesFunc();
+    m_updateValuesFunc(m_program);
 
     //TODO Modify this
 }

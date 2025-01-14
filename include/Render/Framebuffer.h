@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <Maths.h>
+#include <galaxymath/Maths.h>
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -20,6 +20,7 @@ static std::vector s_quadVertices = { // vertex attributes for a quad that fills
      1.0f,  1.0f,  1.0f, 1.0f
 };
 
+
 class Mesh
 {
 public:
@@ -28,18 +29,23 @@ public:
 
     static Ref<Mesh> CreateQuad();
 
+    static Ref<Mesh> GetQuad() { if (!s_quad) return CreateQuad(); return s_quad; }
+
     bool Initialize(const std::vector<float> vertices);
 
     void Draw() const;
 
     uint32_t GetVAO() const { return m_vao; }
 private:
+    static Ref<Mesh> s_quad;
+    
     uint32_t m_vao = -1;
     uint32_t m_vbo = -1;
 
     uint32_t m_count;
 };
 
+using UpdateValuesFunc = std::function<void(int)>;
 class Shader
 {
 public:
@@ -60,7 +66,7 @@ public:
     bool RecompileFragmentShader(const char* content);
     void UpdateValues() const;
 
-    void SetUpdateValuesFunc(std::function<void()> func) { m_updateValuesFunc = func; }
+    static void SetUpdateValuesFunc(const UpdateValuesFunc& func) { m_updateValuesFunc = func; }
 
     bool IsLoaded() const { return m_loaded; }
 
@@ -70,7 +76,7 @@ private:
     uint32_t m_vertexShader = -1;
     uint32_t m_fragmentShader = -1;
 
-    std::function<void()> m_updateValuesFunc;
+    static UpdateValuesFunc m_updateValuesFunc;
 
     bool m_loaded = false;
 };

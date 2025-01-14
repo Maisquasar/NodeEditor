@@ -2,11 +2,13 @@
 
 #include <complex>
 #include <algorithm>
+#include <CppSerializer.h>
 #include <filesystem>
 #include <map>
 #include <set>
 
 #include <galaxymath/Maths.h>
+using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <nfd.hpp>
@@ -108,10 +110,8 @@ void NodeWindow::Initialize()
     templateHandler->Initialize();
     
     m_nodeManager = new NodeManager(this);
-    
-    LoadEditorFile(EDITOR_FILE_NAME);
 
-    m_quad = Application::GetInstance()->GetQuad(); //TODO : Fix this
+    m_quad = Mesh::GetQuad();
     m_currentShader = std::make_shared<Shader>();
     m_currentShader->LoadDefaultShader();
 
@@ -175,7 +175,6 @@ void NodeWindow::Update() const
 
 void NodeWindow::Delete() const
 {
-    WriteEditorFile(EDITOR_FILE_NAME);
     m_nodeManager->Clean();
     delete m_nodeManager;
 }
@@ -256,27 +255,6 @@ bool NodeWindow::Save(const std::filesystem::path& path)
 bool NodeWindow::Save()
 {
     return m_nodeManager->SaveToFile(m_nodeManager->GetFilePath());
-}
-
-void NodeWindow::WriteEditorFile(const std::string& path) const
-{
-    CppSer::Serializer serializer(path);
-    serializer.SetVersion("1.0");
-    serializer << CppSer::Pair::BeginMap << "Editor";
-    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeManager->GetFilePath().string();
-    serializer << CppSer::Pair::EndMap << "Editor";
-}
-
-void NodeWindow::LoadEditorFile(const std::string& path) const
-{
-    auto fullPath = std::filesystem::path(path);
-    CppSer::Parser parser(fullPath);
-    if (!parser.IsFileOpen() || parser.GetVersion() != "1.0")
-    {
-        std::cout << "Invalid file" << std::endl;
-        return;
-    }
-    m_nodeManager->LoadFromFile(parser["Node File"].As<std::string>());
 }
 
 void NodeWindow::DrawInspector() const
@@ -424,10 +402,8 @@ void NodeWindow::DrawGrid()
         draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y), ImVec2(canvas_p0.x + x, canvas_p1.y), IM_COL32(200, 200, 200, 40));
     for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y; y += GRID_STEP)
         draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y), ImVec2(canvas_p1.x, canvas_p0.y + y), IM_COL32(200, 200, 200, 40));
-
-
+    
     m_nodeManager->DrawNodes(zoom, origin, mousePos);
-    m_nodeManager->EOnDrawEvent.Invoke();
     
     draw_list->PopClipRect();
 

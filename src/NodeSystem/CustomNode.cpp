@@ -84,7 +84,7 @@ void CustomNode::UpdateFunction()
 
 std::filesystem::path CustomNode::GetTempPath() const
 {
-    return TEMP_FOLDER + (std::to_string(p_uuid) + ".frag");
+    return NodeTemplateHandler::GetTempPath() / (std::to_string(p_uuid) + ".frag");
 }
 
 void CustomNode::ShowInInspector()

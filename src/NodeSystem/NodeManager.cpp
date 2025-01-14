@@ -1,4 +1,7 @@
 ﻿#include "NodeSystem/NodeManager.h"
+
+#include <CppSerializer.h>
+
 #include "NodeSystem/LinkManager.h"
 #include "NodeSystem/Node.h"
 #include "NodeSystem/NodeTemplateHandler.h"

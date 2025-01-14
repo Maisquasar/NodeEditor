@@ -24,7 +24,6 @@ target("NodeEditor")
     add_files("src/**.cpp")
     add_headerfiles("include/**.h")
     
-    
     if is_mode("debug") then
         add_defines("_DEBUG")
     end
@@ -39,6 +38,20 @@ target("NodeEditor")
     add_packages("galaxymath")
     add_packages("cpp_serializer")
     add_packages("nativefiledialog-extended")
-target_end()
 
-includes("example")
+target("example")
+    add_deps("NodeEditor")
+    set_default(true)
+    set_kind("binary")
+    add_files("example/src/**.cpp")
+    add_headerfiles("example/src/**.hpp")
+    
+    add_includedirs("include")
+    
+    add_defines("IMGUI_IMPLEMENTATION", "IMGUI_DEFINE_MATH_OPERATORS")
+    
+    add_packages("galaxymath")
+    add_packages("glfw")
+    add_packages("imgui")
+    add_packages("glad")
+    add_packages("cpp_serializer")

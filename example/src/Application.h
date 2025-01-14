@@ -20,6 +20,9 @@ public:
     void DrawMainDock();
     void DrawMainBar();
 
+    void WriteEditorFile(const std::string& path) const;
+    void LoadEditorFile(const std::string& path) const;
+
     void Run();
 
     void Render();
@@ -35,6 +38,8 @@ public:
 
     Vec2f GetWindowSize() const;
 
+    void UpdateShadersValues(int program) const;
+
 private:
     static Application* s_instance;
 
@@ -45,7 +50,5 @@ private:
     NodeWindow m_nodeWindow;
 
     uint64_t m_frameCount = 0;
-
-    Ref<Mesh> m_mesh; // to move to a resource manager
     
 };

@@ -6,6 +6,7 @@
 #include "NodeWindow.h"
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/ParamNode.h"
 #include "NodeSystem/RerouteNodeNamed.h"
 #include "Render/Framebuffer.h"
 
@@ -183,7 +184,20 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
     
     FillFunctionList(manager, endNode);
 
-    content += "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n";
+    std::cout << "ShaderMaker::CreateFragmentShader()\n";
+
+    content += "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n\n";
+    std::set<UUID> paramNodeDone;
+    for (const auto& currentNode : m_nodesToSerialize)
+    {
+        if (Ref<ParamNode> paramNode = std::dynamic_pointer_cast<ParamNode>(currentNode.lock()))
+        {
+            if (paramNodeDone.contains(paramNode->p_uuid))
+                continue;
+            paramNodeDone.insert(paramNode->p_uuid);
+            content += "uniform " + TypeToGLSLType(paramNode->GetType()) + " " + paramNode->GetParamName() + ";\n";
+        }
+    }
 
     std::set<UUID> customNodesDone;
     for (const auto& currentNode : m_nodesToSerialize)

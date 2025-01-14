@@ -20,7 +20,9 @@ public:
     void SetParamName(std::string name) { m_paramName = name; }
     void SetType(Type type);
 
-    void SetEditable(bool editable) { m_editable = editable; }
+    void SetEditable(bool editable) { m_editable = editable;}
+    std::string GetParamName() const { return m_paramName;}
+    Type GetType() const { return m_paramType;}
 
 private:
     std::string m_paramName = "None";
