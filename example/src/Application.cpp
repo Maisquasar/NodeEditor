@@ -149,6 +149,7 @@ void Application::Initialize()
     
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);

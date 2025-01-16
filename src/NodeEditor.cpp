@@ -4,5 +4,5 @@
 
 void NodeEditor::Initialize()
 {
-    Font::LoadFont();
+     Font::LoadFont();
 }

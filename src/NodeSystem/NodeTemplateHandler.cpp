@@ -147,6 +147,7 @@ void NodeTemplateHandler::Initialize()
         node->SetType(Type::Vector2);
         node->SetParamName("TexCoords");
         node->SetEditable(false);
+        node->m_serialize = false;
         
         NodeMethodInfo info{node};
         AddTemplateNode(info);
@@ -158,6 +159,7 @@ void NodeTemplateHandler::Initialize()
         node->SetType(Type::Float);
         node->SetParamName("Time");
         node->SetEditable(false);
+        node->m_serialize = false;
         
         NodeMethodInfo info{node};
         AddTemplateNode(info);

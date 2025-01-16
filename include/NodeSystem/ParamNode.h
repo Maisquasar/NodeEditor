@@ -24,9 +24,14 @@ public:
     std::string GetParamName() const { return m_paramName;}
     Type GetType() const { return m_paramType;}
 
+    bool ShouldSerialize() const { return m_serialize; }
 private:
+    friend class NodeTemplateHandler;
     std::string m_paramName = "None";
     Type m_paramType;
 
     bool m_editable = true;
+
+    // If true, the node will create a uniform on the shader
+    bool m_serialize = true;
 };

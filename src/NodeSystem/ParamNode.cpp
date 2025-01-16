@@ -65,6 +65,7 @@ Node* ParamNode::Clone() const
     p_outputs.back()->name = m_paramName;
     node->m_paramType = m_paramType;
     node->m_editable = m_editable;
+    node->m_serialize = m_serialize;
     Internal_Clone(node);
     return node;
 }

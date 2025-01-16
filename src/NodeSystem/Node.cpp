@@ -315,7 +315,7 @@ void Node::DrawPreview(Vec2f pMin, float zoom) const
         m_framebuffer->SetNewSize(imageMax - imageMin);
     }
 
-    drawList->AddImage(reinterpret_cast<ImTextureID>(m_framebuffer->GetRenderTexture()), imageMin, imageMax, ImVec2(0, 1), ImVec2(1, 0));
+    drawList->AddImage(reinterpret_cast<ImTextureID>(static_cast<size_t>(m_framebuffer->GetRenderTexture())), imageMin, imageMax, ImVec2(0, 1), ImVec2(1, 0));
 }
 
 int Node::FindBestPossibilityForType(Type type, StreamRef stream) const
