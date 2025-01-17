@@ -149,18 +149,42 @@ void Application::Initialize()
     
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
     NodeEditor::Initialize();
-
     UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1);
-    Shader::SetUpdateValuesFunc(updateValuesFunc);
+    NodeEditor::SetShaderUpdateFunction(updateValuesFunc);
+
+    NodeEditor::SetMaterialNodeInputs({
+        {"FragColor", Type::Vector3},
+        {"Metallic", Type::Float},
+        {"Roughness", Type::Float},
+        {"Specular", Type::Float}
+    });
+
+    NodeEditor::SetShaderHeader(
+        "#version 330 core\n"
+        "in vec2 TexCoords;\n"
+        "uniform float Time;\n"
+        "out vec4 FragColor;\n"
+        "\n");
+
+    NodeEditor::SetShaderMainHeader(
+        "void main()\n"
+        "{\n");
     
-    m_nodeWindow.Initialize();
+    NodeEditor::SetShaderFooter(
+        "\t// Output to screen\n"
+        "\tFragColor = vec4(%s, 1.0);\n"
+        "\tfloat Metallic = %s;\n"
+        "\tfloat Roughness = %s;\n"
+        "\tfloat Specular = %s;\n"
+        "}\n");
+    
+    m_nodeWindow = NodeEditor::CreateNodeWindow();
     
     LoadEditorFile(EDITOR_FILE_NAME);
 
@@ -222,32 +246,32 @@ void Application::DrawMainBar()
         {
             if (ImGui::MenuItem("New", "CTRL+N"))
             {
-                m_nodeWindow.New();
+                m_nodeWindow->NewScene();
             }
             if (ImGui::MenuItem("Open", "CTRL+O"))
             {
                 std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
                 if (const std::string path = OpenDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
-                    m_nodeWindow.Load(path);
+                    m_nodeWindow->LoadScene(path);
                 }
             }
             if (ImGui::MenuItem("Save", "CTRL+S"))
             {
-                m_nodeWindow.Save();
+                m_nodeWindow->SaveScene();
             }
             if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S"))
             {
                 std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
                 if (const std::string path = SaveDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
-                    m_nodeWindow.Save(path);
+                    m_nodeWindow->SaveScene(path);
                 }
             }
             if (ImGui::MenuItem("Export to shaderToy"))
             {
                 ShaderMaker shaderMaker;
-                shaderMaker.CreateShaderToyShader(m_nodeWindow.GetNodeManager());
+                shaderMaker.CreateShaderToyShader(m_nodeWindow->GetNodeManager());
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "ALT+F4"))
@@ -317,7 +341,7 @@ void Application::WriteEditorFile(const std::string& path) const
     CppSer::Serializer serializer(path);
     serializer.SetVersion("1.0");
     serializer << CppSer::Pair::BeginMap << "Editor";
-    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeWindow.GetNodeManager()->GetFilePath().string();
+    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeWindow->GetNodeManager()->GetFilePath().string();
     serializer << CppSer::Pair::EndMap << "Editor";
 }
 
@@ -330,7 +354,7 @@ void Application::LoadEditorFile(const std::string& path) const
         std::cout << "Invalid file" << std::endl;
         return;
     }
-    m_nodeWindow.GetNodeManager()->LoadFromFile(parser["Node File"].As<std::string>());
+    m_nodeWindow->GetNodeManager()->LoadFromFile(parser["Node File"].As<std::string>());
 }
 
 
@@ -352,16 +376,16 @@ void Application::Run()
 
         DrawMainBar();
 
-        m_nodeWindow.Draw();
+        m_nodeWindow->Draw();
 
-        m_nodeWindow.Update();
+        m_nodeWindow->Update();
 
         ImGui::Render();
 
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        m_nodeWindow.Render();
+        m_nodeWindow->Render();
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -379,18 +403,13 @@ void Application::Run()
         
 }
 
-void Application::Render()
-{
-    
-}
-
 void Application::Clean() const
 {
     auto path = TEMP_FOLDER;
     std::filesystem::remove_all(path);
     
     WriteEditorFile(EDITOR_FILE_NAME);
-    m_nodeWindow.Delete();
+    NodeEditor::DeleteNodeWindow(m_nodeWindow);
     
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

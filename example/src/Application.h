@@ -25,8 +25,6 @@ public:
 
     void Run();
 
-    void Render();
-
     void Clean() const;
 
     Ref<Mesh> GetQuad() const;
@@ -47,7 +45,7 @@ private:
     
     GLFWwindow* m_window = nullptr;
 
-    NodeWindow m_nodeWindow;
+    NodeWindow* m_nodeWindow;
 
     uint64_t m_frameCount = 0;
     

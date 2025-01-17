@@ -12,6 +12,10 @@
 
 class RerouteNodeNamed;
 
+std::string ShaderMaker::s_shaderHeader = "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n\n";;
+std::string ShaderMaker::s_shaderMainHeader = "void main()\n{\n";
+std::string ShaderMaker::s_shaderFooter = "\tFragColor = vec4(%s, 1.0);\n}\n";
+
 void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::string firstHalf)
 {
     switch (input->type)
@@ -53,11 +57,16 @@ void ShaderMaker::FormatWithType(std::string& toFormat, InputRef input, std::str
     }
 }
 
-void ShaderMaker::CleanString(std::string& name) {
-    for (char& c : name) {
-        if (c == ' ') {
+void ShaderMaker::CleanString(std::string& name)
+{
+    for (char& c : name)
+    {
+        if (c == ' ')
+        {
             c = '_'; // Replace space with underscore
-        } else if (c == '(' || c == ')') {
+        }
+        else if (c == '(' || c == ')')
+        {
             c = '\0'; // Mark parentheses for removal
         }
     }
@@ -142,7 +151,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
 
 
 void ShaderMaker::DoWork(NodeManager* manager)
-{    
+{
     auto endNode = manager->GetNodeWithName("Material").lock();
     FillFunctionList(manager, endNode);
 
@@ -153,7 +162,7 @@ void ShaderMaker::DoWork(NodeManager* manager)
         if (!node || !node->p_preview)
             continue;
         std::string content;
-        
+
         CreateFragmentShader(content, manager, node);
 
         node->m_shader->RecompileFragmentShader(content.c_str());
@@ -181,12 +190,12 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
 void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manager, const NodeRef& endNode)
 {
     content.clear();
-    
+
     FillFunctionList(manager, endNode);
 
     std::cout << "ShaderMaker::CreateFragmentShader()\n";
 
-    content += "#version 330 core\nin vec2 TexCoords;\nuniform float Time;\nout vec4 FragColor;\n\n";
+    content = s_shaderHeader;
     std::set<std::string> paramNodeDone;
     for (const auto& currentNode : m_nodesToSerialize)
     {
@@ -194,7 +203,7 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
         {
             if (!paramNode->ShouldSerialize() || paramNodeDone.contains(paramNode->GetParamName()))
                 continue;
-            
+
             paramNodeDone.insert(paramNode->GetParamName());
             content += "uniform " + TypeToGLSLType(paramNode->GetType()) + " " + paramNode->GetParamName() + ";\n";
         }
@@ -212,53 +221,90 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
         }
     }
 
-    content += "void main()\n{\n";
-    
+    content += s_shaderMainHeader;
+
     auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
-        
+
     SerializeFunctions(manager, endNode, content);
 
     FuncStruct& funcStruct = m_functions[endNode->p_uuid];
-    
-    content += endNode->ToShader(this, funcStruct);     
 
-    content += "\n// Output to screen\n";
-    if (!endNode->GetOutputs().empty())
+    content += endNode->ToShader(this, funcStruct);
+
+    bool isMaterial = endNode->GetName() == "Material";
+    // If it's not a material node, display only the plane texture on the preview,
+    // else display the full shader
+    if (!isMaterial)
     {
-        auto output = endNode->GetOutputs()[0];
-        switch (output->type)
+        content += "\n// Output to screen\n";
+        if (!endNode->GetOutputs().empty())
         {
-        case Type::Float:
-        case Type::Int:
-        case Type::Bool:
-            content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 0.0, 1.0);\n}\n";
-            break;
-        case Type::Vector2:
-            content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 1.0);\n}\n";
-            break;
-        case Type::Vector3:
-            content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 1.0);\n}\n";
-            break;
-        default: ;
+            auto output = endNode->GetOutputs()[0];
+            switch (output->type)
+            {
+            case Type::Float:
+            case Type::Int:
+            case Type::Bool:
+                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 0.0, 1.0);\n}\n";
+                break;
+            case Type::Vector2:
+                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 1.0);\n}\n";
+                break;
+            case Type::Vector3:
+                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 1.0);\n}\n";
+                break;
+            default: ;
+            }
+        }
+        else
+        {
+            // When the node is not the material node
+            content += "FragColor = vec4(";
+            std::vector<LinkWeakRef> links = endNode->GetLinks();
+            std::string outputName;
+            if (links.empty())
+            {
+                outputName = GetValueAsString(endNode->GetInput(0));
+            }
+            else
+            {
+                Ref<Link> firstLink = links[0].lock();
+                outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
+            }
+            content += outputName + ", 1.0);\n}\n";
         }
     }
     else
     {
-        content += "FragColor = vec4(";
-        std::vector<LinkWeakRef> links = endNode->GetLinks();
-        std::string outputName;
-        if (links.empty())
+        std::vector<std::string> variableNames;
+        // It's the material node, apply the custom shader designed by the user;
+        std::string footer = s_shaderFooter;
+
+        std::string toFormat = footer;
+        std::string secondHalf = toFormat;
+        toFormat.clear();
+        for (int j = 0; j < endNode->p_inputs.size(); j++)
         {
-            outputName = GetValueAsString(endNode->GetInput(0));
+            InputRef input = endNode->p_inputs[j];
+            size_t findFirst = secondHalf.find_first_of("%");
+            size_t index = findFirst + 2;
+            if (findFirst == std::string::npos)
+                break;
+            std::string firstHalf = secondHalf.substr(0, index);
+            if (index != std::string::npos)
+                secondHalf = secondHalf.substr(index);
+            if (!input->isLinked)
+            {
+                variableNames.push_back(ShaderMaker::GetValueAsString(input));
+            }
+            auto parentVariableName = funcStruct.inputs[j];
+            if (parentVariableName.empty() && !variableNames.empty())
+                parentVariableName = variableNames.back();
+            toFormat += FormatString(firstHalf, parentVariableName.c_str());
         }
-        else
-        {
-            Ref<Link> firstLink = links[0].lock();
-            outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
-        }
-        content += outputName + ", 1.0);\n}\n";
+        content += toFormat + secondHalf + "\n";
     }
-    
+
     m_allVariableNames.clear();
     m_functions.clear();
     m_variablesNames.clear();
@@ -271,7 +317,7 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
     NodeRef endNode = manager->GetNodeWithName("Material").lock();
 
     TemplateList& templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
-    
+
     std::string content;
 
     FillFunctionList(manager, endNode);
@@ -299,14 +345,15 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
         }
     }
 
-    content += "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n// Normalized pixel coordinates (from 0 to 1)\nvec2 uv = fragCoord/iResolution.xy;\n";
-    
+    content +=
+        "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n// Normalized pixel coordinates (from 0 to 1)\nvec2 uv = fragCoord/iResolution.xy;\n";
+
     SerializeFunctions(manager, endNode, content);
     content += "\n// Output to screen\nfragColor = vec4(";
     auto firstLink = endNode->GetLinks()[0].lock();
     auto outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
     content += outputName + ", 1.0);\n}\n";
-    
+
     // TODO
     // ImGui::SetClipboardText(content.c_str());
 
@@ -337,12 +384,12 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
                 currentNode = isReroute->GetDefinitionNode();
             }
         }
-        
+
         SerializeFunctions(manager, currentNode, content);
 
         FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
-        
-        content += currentNode->ToShader(this, funcStruct);        
+
+        content += currentNode->ToShader(this, funcStruct);
     }
 }
 
@@ -359,9 +406,11 @@ std::string ShaderMaker::ToGLSLVariable(Type type, const Vec4f& value)
     case Type::Vector2:
         return "vec2(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ")";
     case Type::Vector3:
-        return "vec3(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ")";
+        return "vec3(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) +
+            ")";
     case Type::Vector4:
-        return "vec4(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) + ", " + std::to_string(value.w) + ")";
+        return "vec4(" + std::to_string(value.x) + ", " + std::to_string(value.y) + ", " + std::to_string(value.z) +
+            ", " + std::to_string(value.w) + ")";
     default:
         return "";
     }

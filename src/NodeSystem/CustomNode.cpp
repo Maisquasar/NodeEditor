@@ -363,7 +363,7 @@ std::string CustomNode::ToShader(ShaderMaker* shaderMaker, const FuncStruct& fun
         if (allVariableNames.contains(variableName))
             continue;
         allVariableNames.insert(variableName);
-        std::string thisContent = glslType + " " + variableName + ";\n";
+        std::string thisContent = "\t" + glslType + " " + variableName + ";\n";
         content += thisContent;
     }
         
@@ -400,7 +400,7 @@ std::string CustomNode::ToShader(ShaderMaker* shaderMaker, const FuncStruct& fun
         auto parentVariableName = funcStruct.outputs[j];
         toFormat += FormatString(firstHalf, parentVariableName.c_str());
     }
-    content += toFormat + secondHalf + ";\n";
+    content += "\t" + toFormat + secondHalf + ";\n";
     
     return content;
 }

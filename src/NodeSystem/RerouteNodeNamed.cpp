@@ -220,7 +220,7 @@ std::string RerouteNodeNamed::ToShader(ShaderMaker* shaderMaker, const FuncStruc
         std::string variableName = funcStruct.outputs[k];
         std::string glslType = ShaderMaker::TypeToGLSLType(p_outputs[k]->type);
         
-        std::string thisContent = glslType + " " + variableName + " = ";
+        std::string thisContent = "\t" + glslType + " " + variableName + " = ";
         if (allVariableNames.contains(variableName))
             continue;
         allVariableNames.insert(variableName);

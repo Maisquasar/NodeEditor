@@ -105,9 +105,6 @@ std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPa
 void NodeWindow::Initialize()
 {
     m_actionManager.SetContext(this);
-    auto templateHandler = NodeTemplateHandler::Create();
-
-    templateHandler->Initialize();
     
     m_nodeManager = new NodeManager(this);
 
@@ -183,6 +180,7 @@ void NodeWindow::Draw()
 {
     if (ImGui::Begin("Node Editor", nullptr))
     {
+        m_ImGuiWindow = ImGui::GetCurrentWindow();
         m_isFocused = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) || ImGui::IsWindowFocused(ImGuiHoveredFlags_RootAndChildWindows);
         // ImGui::SetWindowPos({ 0, 0 });
         // Vec2f windowSize = Application::GetInstance()->GetWindowSize();
@@ -237,7 +235,7 @@ void NodeWindow::ResetActionManager()
     m_actionManager.SetContext(this);
 }
 
-bool NodeWindow::Load(const std::filesystem::path& path)
+bool NodeWindow::LoadScene(const std::filesystem::path& path)
 {
     if (m_nodeManager->LoadFromFile(path))
     {
@@ -247,12 +245,12 @@ bool NodeWindow::Load(const std::filesystem::path& path)
     return false;
 }
 
-bool NodeWindow::Save(const std::filesystem::path& path)
+bool NodeWindow::SaveScene(const std::filesystem::path& path)
 {
     return m_nodeManager->SaveToFile(path);
 }
 
-bool NodeWindow::Save()
+bool NodeWindow::SaveScene()
 {
     return m_nodeManager->SaveToFile(m_nodeManager->GetFilePath());
 }
@@ -310,13 +308,15 @@ void NodeWindow::UpdateShaders()
         
         shaderMaker.CreateFragmentShader(content, m_nodeManager);
         
+        ImGui::SetClipboardText(content.c_str());
+        
         m_currentShader->RecompileFragmentShader(content.c_str());
         
         m_shouldUpdateShader = false;
     }
 }
 
-void NodeWindow::New()
+void NodeWindow::NewScene()
 {
     m_nodeManager->Clean();
     delete m_nodeManager;

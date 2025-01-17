@@ -61,7 +61,7 @@ bool NodeTemplateHandler::RunUnitTest(const NodeMethodInfo& info)
             std::string variableName = node->p_outputs[k]->name + "_" + std::to_string(k);
             std::string glslType = ShaderMaker::TypeToGLSLType(node->p_outputs[k]->possibleTypes[l]);
             
-            std::string thisContent = glslType + " " + variableName + " = ";
+            std::string thisContent = "\t" + glslType + " " + variableName + " = ";
             std::string toFormat = formatList[k];
             std::string secondHalf = toFormat;
             toFormat.clear();
@@ -122,8 +122,8 @@ void NodeTemplateHandler::Initialize()
             
         node->AddInput("Base Color", Type::Vector3);
         node->AddInput("Metallic", Type::Float);
-        node->AddInput("Specular", Type::Float);
         node->AddInput("Roughness", Type::Float);
+        node->AddInput("Specular", Type::Float);
         NodeMethodInfo info = node;
         info.outputFormatStrings.push_back({"%s"});
         AddTemplateNode(info);

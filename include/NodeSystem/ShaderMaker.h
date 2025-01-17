@@ -45,10 +45,19 @@ public:
     static void CleanString(std::string& name);
     static std::string GetOutputVariableName(NodeRef currentNode, int j);
     static std::string TypeToGLSLType(Type type);
+
+    static void SetShaderHeader(const std::string& header) { s_shaderHeader = header; }
+    static void SetShaderMainHeader(const std::string& mainHeader) { s_shaderMainHeader = mainHeader; }
+    static void SetShaderFooter(const std::string& footer) { s_shaderFooter = footer; }
 private:
     friend class RerouteNodeNamed;
     friend class Node;
     friend class CustomNode;
+
+    static std::string s_shaderHeader;
+    static std::string s_shaderMainHeader;
+    static std::string s_shaderFooter;
+    
     std::unordered_map<UUID, FuncStruct> m_functions;
 
     std::deque<std::string> m_variablesNames;

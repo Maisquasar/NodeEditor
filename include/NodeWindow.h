@@ -28,12 +28,17 @@ class LinkManager;
 
 class Context
 {
+public:
+    virtual ~Context() = default;
     virtual void Initialize() = 0;
 };
 
 class NodeWindow : public Context
 {
 public:
+    NodeWindow() = default;
+    ~NodeWindow() override = default;
+    
     void Initialize() override;
     
     void PasteNode() const;
@@ -44,9 +49,9 @@ public:
     void Render();
     void ResetActionManager();
 
-    bool Load(const std::filesystem::path& path);
-    bool Save(const std::filesystem::path& path);
-    bool Save();
+    bool LoadScene(const std::filesystem::path& path);
+    bool SaveScene(const std::filesystem::path& path);
+    bool SaveScene();
 
     void Delete() const;
 
@@ -59,10 +64,11 @@ public:
     
     void AddPreviewNode(const UUID& uuid) { m_previewNodes.insert(uuid); }
     void RemovePreviewNode(const UUID& uuid) { m_previewNodes.erase(uuid); }
-    void New();
+    void NewScene();
     
     NodeManager* GetNodeManager() const { return m_nodeManager; }
 
+    void* GetIMGUIWindow() const { return m_ImGuiWindow; }
 private:
     
     void DrawGrid();
@@ -81,6 +87,8 @@ private:
     std::set<UUID> m_previewNodes;
 
     Ref<Mesh> m_quad;
+
+    void* m_ImGuiWindow = nullptr;
 
     struct GridWindow
     {
