@@ -33,8 +33,8 @@ public:
 
     std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const override;
 
-    void ClearInputs();
-    void ClearOutputs();
+    void ClearInputs() override;
+    void ClearOutputs() override;
 private:
     std::string m_content;
     std::filesystem::file_time_type m_lastWriteTime;

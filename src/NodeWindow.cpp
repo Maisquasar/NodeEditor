@@ -205,12 +205,11 @@ void NodeWindow::RenderNodePreview(const std::shared_ptr<Node> previewNode)
 
 void NodeWindow::Render()
 {
-    // UpdateShader();
     UpdateShaders();
 
     for (auto it = m_previewNodes.begin(); it != m_previewNodes.end();)
     {
-        const auto previewNode = m_nodeManager->GetNode(*it).lock();
+        const NodeRef previewNode = m_nodeManager->GetNode(*it).lock();
 
         if (!previewNode || !previewNode->p_preview)
         {

@@ -1,6 +1,7 @@
 #include "NodeEditor.h"
 
 #include "NodeWindow.h"
+#include "NodeSystem/ParamNode.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Font.h"
 #include "Render/Framebuffer.h"
@@ -56,3 +57,38 @@ void NodeEditor::SetMaterialNodeInputs(const std::vector<MaterialNodeInput>& inp
         materialNode->AddInput(input.name, input.type);
     }
 }
+
+void NodeEditor::SetEditCustomNodeOutputPath(const std::filesystem::path& path)
+{
+    NodeTemplateHandler::SetTempPath(path);
+}
+
+void NodeEditor::AddInVariableNode(const std::string& name, Type type, std::string variableName)
+{
+    if (variableName.empty())
+        variableName = name;
+    Ref<ParamNode> node = std::make_shared<ParamNode>(name);
+    node->SetTopColor(NodeTemplateHandler::GetNodeColor(NodeColorType::ParamNodeColor));
+    node->SetType(type);
+    node->SetParamName(variableName);
+    node->SetEditable(false);
+    node->SetSerialize(false);
+        
+    NodeMethodInfo info{node};
+    NodeTemplateHandler::GetInstance()->AddTemplateNode(info);
+}
+
+void NodeEditor::AddUniformNode(const std::string& name, Type type, std::string variableName)
+{
+    if (variableName.empty())
+        variableName = name;
+    Ref<ParamNode> node = std::make_shared<ParamNode>(name);
+    node->SetTopColor(NodeTemplateHandler::GetNodeColor(NodeColorType::ParamNodeColor));
+    node->SetType(type);
+    node->SetParamName(variableName);
+    node->SetEditable(false);
+        
+    NodeMethodInfo info{node};
+    NodeTemplateHandler::GetInstance()->AddTemplateNode(info);
+}
+

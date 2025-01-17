@@ -24,6 +24,8 @@ public:
     std::string GetParamName() const { return m_paramName;}
     Type GetType() const { return m_paramType;}
 
+    void SetSerialize(bool serialize) { m_serialize = serialize; }
+    
     bool ShouldSerialize() const { return m_serialize; }
 private:
     friend class NodeTemplateHandler;

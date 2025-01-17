@@ -78,10 +78,16 @@ void APIENTRY glDebugOutput(GLenum source,
 void Application::UpdateShadersValues(int program) const
 {
     // Set time value
-    GLint timeLocation = glGetUniformLocation(program, "Time");
+    GLint timeLocation = glGetUniformLocation(program, "iTime");
     if (timeLocation != -1) {
         float time = GetTime();
         glUniform1f(timeLocation, time);
+    }
+    GLint mouseLocation = glGetUniformLocation(program, "iMouse");
+    if (mouseLocation != -1)
+    {
+        Vec2f mousePos = ImGui::GetMousePos();
+        glUniform2fv(mouseLocation, 1, mousePos.GetNormalize().Data());
     }
 }
 
@@ -154,6 +160,7 @@ void Application::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
+    // Initialize Node Editor
     NodeEditor::Initialize();
     UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1);
     NodeEditor::SetShaderUpdateFunction(updateValuesFunc);
@@ -164,11 +171,10 @@ void Application::Initialize()
         {"Roughness", Type::Float},
         {"Specular", Type::Float}
     });
-
+    
     NodeEditor::SetShaderHeader(
         "#version 330 core\n"
         "in vec2 TexCoords;\n"
-        "uniform float Time;\n"
         "out vec4 FragColor;\n"
         "\n");
 
@@ -183,6 +189,13 @@ void Application::Initialize()
         "\tfloat Roughness = %s;\n"
         "\tfloat Specular = %s;\n"
         "}\n");
+    
+    NodeEditor::AddInVariableNode("TexCoords", Type::Vector2, "TexCoords");
+    
+    NodeEditor::AddUniformNode("Time", Type::Float, "iTime");
+    NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
+    
+    NodeEditor::SetEditCustomNodeOutputPath(TEMP_FOLDER);
     
     m_nodeWindow = NodeEditor::CreateNodeWindow();
     

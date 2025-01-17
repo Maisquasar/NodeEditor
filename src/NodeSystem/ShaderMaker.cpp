@@ -193,8 +193,6 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
 
     FillFunctionList(manager, endNode);
 
-    std::cout << "ShaderMaker::CreateFragmentShader()\n";
-
     content = s_shaderHeader;
     std::set<std::string> paramNodeDone;
     for (const auto& currentNode : m_nodesToSerialize)

@@ -34,6 +34,18 @@ struct StreamNameType
     std::string name;
     Type type;
 };
+
+enum class NodeColorType
+{
+    EndColor,
+    FunctionColor,
+    MakeColor,
+    BreakColor,
+    CustomNodeColor,
+    ParamNodeColor,
+    OtherNodeColor,
+};
+
 class NodeTemplateHandler
 {
 public:
@@ -45,6 +57,8 @@ public:
     static void SetTempPath(const std::filesystem::path& path) { s_instance->m_tempPath = path; }
     static std::filesystem::path GetTempPath() {return s_instance->m_tempPath; }
 
+    static uint32_t GetNodeColor(NodeColorType type);
+    
     void RunUnitTests();
     bool RunUnitTest(const NodeMethodInfo& info);
     

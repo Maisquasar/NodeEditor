@@ -1,4 +1,7 @@
 ﻿#include "NodeSystem/NodeTemplateHandler.h"
+
+#include <map>
+
 #include "NodeSystem/Node.h"
 
 #include <ranges>
@@ -16,6 +19,29 @@ std::unique_ptr<NodeTemplateHandler> NodeTemplateHandler::s_instance;
 NodeMethodInfo::NodeMethodInfo(NodeRef ref, std::vector<std::string> _formatStrings): node(ref)
 {
     outputFormatStrings.push_back(_formatStrings);
+}
+
+constexpr ImU32 endColor = IM_COL32(170, 120, 70, 255);         // Muted tan
+constexpr ImU32 functionColor = IM_COL32(90, 130, 180, 255);    // Muted blue
+constexpr ImU32 makeColor = IM_COL32(130, 160, 90, 255);        // Muted olive green
+constexpr ImU32 breakColor = IM_COL32(180, 90, 120, 255);       // Muted pink
+constexpr ImU32 customNodeColor = IM_COL32(110, 150, 170, 255); // Soft teal
+constexpr ImU32 paramNodeColor = IM_COL32(160, 120, 180, 255);  // Muted lavender
+constexpr ImU32 otherNodeColor = IM_COL32(180, 90, 120, 255);   // Muted pink
+
+const std::map<NodeColorType, uint32_t> nodeColors = {
+    {NodeColorType::EndColor, endColor},
+    {NodeColorType::FunctionColor, functionColor},
+    {NodeColorType::MakeColor, makeColor},
+    {NodeColorType::BreakColor, breakColor},
+    {NodeColorType::CustomNodeColor, customNodeColor},
+    {NodeColorType::ParamNodeColor, paramNodeColor},
+    {NodeColorType::OtherNodeColor, otherNodeColor}
+};
+
+uint32_t NodeTemplateHandler::GetNodeColor(const NodeColorType type)
+{
+    return nodeColors.at(type);
 }
 
 void NodeTemplateHandler::RunUnitTests()
@@ -107,13 +133,6 @@ bool NodeTemplateHandler::RunUnitTest(const NodeMethodInfo& info)
 
 void NodeTemplateHandler::Initialize()
 {
-    constexpr ImU32 endColor = IM_COL32(170, 120, 70, 255);         // Muted tan
-    constexpr ImU32 functionColor = IM_COL32(90, 130, 180, 255);    // Muted blue
-    constexpr ImU32 makeColor = IM_COL32(130, 160, 90, 255);        // Muted olive green
-    constexpr ImU32 breakColor = IM_COL32(180, 90, 120, 255);       // Muted pink
-    constexpr ImU32 customNodeColor = IM_COL32(110, 150, 170, 255); // Soft teal
-    constexpr ImU32 paramNodeColor = IM_COL32(160, 120, 180, 255);  // Muted lavender
-    constexpr ImU32 otherNodeColor = IM_COL32(180, 90, 120, 255);   // Muted pink
     
     {
         NodeRef node = std::make_shared<Node>("Material");
@@ -137,30 +156,6 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(paramNodeColor);
         node->SetType(Type::Float);
         node->p_alwaysVisibleOnContext = true;
-        NodeMethodInfo info{node};
-        AddTemplateNode(info);
-    }
-
-    {
-        Ref<ParamNode> node = std::make_shared<ParamNode>("TexCoords");
-        node->SetTopColor(paramNodeColor);
-        node->SetType(Type::Vector2);
-        node->SetParamName("TexCoords");
-        node->SetEditable(false);
-        node->m_serialize = false;
-        
-        NodeMethodInfo info{node};
-        AddTemplateNode(info);
-    }
-
-    {
-        Ref<ParamNode> node = std::make_shared<ParamNode>("Time");
-        node->SetTopColor(paramNodeColor);
-        node->SetType(Type::Float);
-        node->SetParamName("Time");
-        node->SetEditable(false);
-        node->m_serialize = false;
-        
         NodeMethodInfo info{node};
         AddTemplateNode(info);
     }
