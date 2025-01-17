@@ -148,8 +148,6 @@ void NodeTemplateHandler::Initialize()
         AddTemplateNode(info);
     }
 
-    // TODO : Reed the file with all the templates nodes
-
 #pragma region Custom 
     {
         Ref<ParamNode> node = std::make_shared<ParamNode>("Param");
@@ -177,7 +175,6 @@ void NodeTemplateHandler::Initialize()
         node->SetTopColor(customNodeColor);
         node->AddInput("", Type::Float);
         node->AddOutput("", Type::Float);
-        // node->p_allowPreview = false;
         node->p_alwaysVisibleOnContext = true;
         
         NodeMethodInfo info{node};

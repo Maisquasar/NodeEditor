@@ -283,17 +283,7 @@ bool Shader::RecompileFragmentShader(const char* content)
 
 void Shader::UpdateValues() const
 {
-    /*
-    // Set time value
-    GLint timeLocation = glGetUniformLocation(m_program, "Time");
-    if (timeLocation != -1) {
-        float time = Application::GetInstance()->GetTime();
-        glUniform1f(timeLocation, time);
-    }
-    */
     m_updateValuesFunc(m_program);
-
-    //TODO Modify this
 }
 
 Framebuffer::Framebuffer(){}

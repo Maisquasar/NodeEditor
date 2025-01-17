@@ -166,7 +166,7 @@ void Application::Initialize()
     NodeEditor::SetShaderUpdateFunction(updateValuesFunc);
 
     NodeEditor::SetMaterialNodeInputs({
-        {"FragColor", Type::Vector3},
+        {"Base Color", Type::Vector3},
         {"Metallic", Type::Float},
         {"Roughness", Type::Float},
         {"Specular", Type::Float}

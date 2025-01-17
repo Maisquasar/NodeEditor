@@ -311,6 +311,7 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
 
 void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 {
+    //TODO : Fix this function
     // Get all nodes connected to the end node
     NodeRef endNode = manager->GetNodeWithName("Material").lock();
 
@@ -352,8 +353,7 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
     auto outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
     content += outputName + ", 1.0);\n}\n";
 
-    // TODO
-    // ImGui::SetClipboardText(content.c_str());
+    ImGui::SetClipboardText(content.c_str());
 
     std::cout << content;
 }
