@@ -21,16 +21,21 @@ public:
     void SetType(Type type);
 
     void SetEditable(bool editable) { m_editable = editable;}
+    
     std::string GetParamName() const { return m_paramName;}
     Type GetType() const { return m_paramType;}
+    Vec4f GetPreviewValue() const { return m_previewValue;}
 
     void SetSerialize(bool serialize) { m_serialize = serialize; }
-    
+
+    std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const override;
+
     bool ShouldSerialize() const { return m_serialize; }
 private:
     friend class NodeTemplateHandler;
     std::string m_paramName = "None";
     Type m_paramType;
+    Vec4f m_previewValue;
 
     bool m_editable = true;
 

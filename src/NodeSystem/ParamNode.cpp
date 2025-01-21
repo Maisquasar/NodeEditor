@@ -3,6 +3,8 @@
 #include <CppSerializer.h>
 #include <imgui_stdlib.h>
 
+#include "NodeEditor.h"
+#include "NodeWindow.h"
 #include "Type.h"
 #include "Actions/Action.h"
 #include "Actions/ActionChangeInput.h"
@@ -33,11 +35,87 @@ void ParamNode::ShowInInspector()
         SetType(static_cast<Type>(type + 1));
         ActionManager::AddAction(changeType);
     }
+
+    const char* InputName = "Preview Value";
+    //TODO Add action for each type
+    switch (m_paramType)
+    {
+    case Type::None:
+        assert(false);
+        break;
+    case Type::Float:
+        {
+            float val = m_previewValue.x;
+            if (ImGui::DragFloat(InputName, &val, 0.1f))
+            {
+                m_previewValue.x = val;
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Int:
+        {
+            int val = static_cast<int>(m_previewValue.x);
+            if (ImGui::DragInt(InputName, &val, 1))
+            {
+                m_previewValue.x = static_cast<float>(val);
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Bool:
+        {
+            bool val = m_previewValue.x > 0.0f;
+            if (ImGui::Checkbox(InputName, &val))
+            {
+                m_previewValue.x = val ? 1.0f : 0.0f;
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Vector2:
+        {
+            Vec2f val = Vec2f(m_previewValue.x, m_previewValue.y);
+            if (ImGui::DragFloat2(InputName, &val.x, 0.1f))
+            {
+                m_previewValue.x = val.x;
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Vector3:
+        {
+            Vec3f val = Vec3f(m_previewValue.x, m_previewValue.y, m_previewValue.z);
+            if (ImGui::ColorEdit3(InputName, &val.x, 0.1f))
+            {
+                m_previewValue.x = val.x;
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Vector4:
+        {
+            if (ImGui::ColorEdit4(InputName, &m_previewValue.x, 0.1f))
+            {
+                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+            }
+        }
+        break;
+    case Type::Sampler2D:
+        {
+            //TODO
+        }
+        break;
+    default: ;
+    }
+    
     ImGui::EndDisabled();
 }
 
 std::vector<std::string> ParamNode::GetFormatStrings() const
 {
+    if (m_paramType == Type::Sampler2D)
+        return {"texture2D(" + m_paramName + ", " + NodeEditor::TexCoordsVariableName + ")"};
     return {m_paramName};
 }
 
@@ -73,6 +151,13 @@ Node* ParamNode::Clone() const
 void ParamNode::SetType(Type type)
 {
     ClearOutputs();
-    AddOutput(m_paramName, type);
     m_paramType = type;
+    if (type == Type::Sampler2D)
+        type = Type::Vector4;
+    AddOutput(m_paramName, type);
+}
+
+std::string ParamNode::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const
+{
+    return Node::ToShader(shaderMaker, funcStruct);
 }

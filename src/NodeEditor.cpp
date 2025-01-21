@@ -91,4 +91,3 @@ void NodeEditor::AddUniformNode(const std::string& name, Type type, std::string 
     NodeMethodInfo info{node};
     NodeTemplateHandler::GetInstance()->AddTemplateNode(info);
 }
-

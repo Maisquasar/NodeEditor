@@ -32,12 +32,10 @@ target("NodeEditor")
 
     add_includedirs("include")
 
-    add_packages("glfw")
     add_packages("imgui")
     add_packages("glad")
     add_packages("galaxymath")
     add_packages("cpp_serializer")
-    add_packages("nativefiledialog-extended")
 
 target("example")
     add_deps("NodeEditor")
@@ -55,3 +53,4 @@ target("example")
     add_packages("imgui")
     add_packages("glad")
     add_packages("cpp_serializer")
+    add_packages("nativefiledialog-extended")

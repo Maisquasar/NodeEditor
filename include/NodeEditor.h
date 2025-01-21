@@ -2,6 +2,7 @@
 #include <functional>
 #include <string>
 #include <filesystem>
+#include <utility>
 
 #include "NodeSystem/Node.h"
 
@@ -20,6 +21,7 @@ struct MaterialNodeInput
 
 namespace NodeEditor
 {
+    inline extern std::string TexCoordsVariableName = "TexCoords";
     /**
      * @brief Initializes the NodeEditor system.
      * This function must be called before using any other functions in the NodeEditor namespace.
@@ -96,4 +98,7 @@ namespace NodeEditor
      * However, you need to send the value to the shader with the ShaderUpdateFunction
      */
     void AddUniformNode(const std::string& name, Type type, std::string variableName = "");
+
+    inline void SetTexCoordsVariableName(std::string name) { TexCoordsVariableName = std::move(name); }
+
 };

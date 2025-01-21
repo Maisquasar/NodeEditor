@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 
+enum class Type;
 template <typename T>
 using Ref = std::shared_ptr<T>;
 
@@ -65,6 +66,8 @@ public:
     bool RecompileFragmentShader();
     bool RecompileFragmentShader(const char* content);
     void UpdateValues() const;
+
+    void SendValue(const char* name, Vec4f value, Type type);
 
     static void SetUpdateValuesFunc(const UpdateValuesFunc& func) { m_updateValuesFunc = func; }
 

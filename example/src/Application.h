@@ -17,8 +17,8 @@ public:
     
     void Initialize();
     
-    void DrawMainDock();
-    void DrawMainBar();
+    static void DrawMainDock();
+    void DrawMainBar() const;
 
     void WriteEditorFile(const std::string& path) const;
     void LoadEditorFile(const std::string& path) const;

@@ -165,7 +165,17 @@ void ShaderMaker::DoWork(NodeManager* manager)
 
         CreateFragmentShader(content, manager, node);
 
-        node->m_shader->RecompileFragmentShader(content.c_str());
+        bool success = node->m_shader->RecompileFragmentShader(content.c_str());
+        if (!success)
+            continue;
+        
+        for (auto& val : manager->m_nodes | std::views::values)
+        {
+            if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(val))
+            {
+                node->m_shader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
+            }
+        }
     }
 }
 
@@ -251,6 +261,8 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
             case Type::Vector3:
                 content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 1.0);\n}\n";
                 break;
+            case Type::Vector4:
+                content += "FragColor = " + GetOutputVariableName(endNode, 0) + ";\n}\n";
             default: ;
             }
         }
@@ -414,12 +426,12 @@ std::string ShaderMaker::ToGLSLVariable(Type type, const Vec4f& value)
     }
 }
 
-std::string ShaderMaker::GetValueAsString(InputRef input)
+std::string ShaderMaker::GetValueAsString(const InputRef& input)
 {
     return ToGLSLVariable(input->type, input->GetValue());
 }
 
-std::string ShaderMaker::GetOutputVariableName(NodeRef currentNode, int j)
+std::string ShaderMaker::GetOutputVariableName(const NodeRef& currentNode, int j)
 {
     auto name = currentNode->GetName();
     CleanString(name);
@@ -442,6 +454,8 @@ std::string ShaderMaker::TypeToGLSLType(Type type)
         return "vec3";
     case Type::Vector4:
         return "vec4";
+    case Type::Sampler2D:
+        return "sampler2D";
     default:
         return "void";
     }

@@ -11,7 +11,6 @@
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <nfd.hpp>
 
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/LinkManager.h"
@@ -29,78 +28,6 @@ using namespace GALAXY;
 #include "NodeSystem/RerouteNodeNamed.h"
 class ParamNode;
 using namespace GALAXY;
-
-std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath)
-{
-    std::string resultString;
-
-    NFD::Guard nfdGuard;
-
-    NFD::UniquePath outPath;
-
-    const size_t count = filters.size();
-    std::vector<nfdfilteritem_t> filterItems(count);
-
-    for (size_t i = 0; i < count; i++)
-    {
-        filterItems[i].name = filters[i].name.c_str();
-        filterItems[i].spec = filters[i].spec.c_str();
-    }
-
-    // show the dialog
-    const nfdresult_t result = NFD::SaveDialog(outPath, filterItems.data(), static_cast<uint32_t>(count), defaultPath);
-    if (result == NFD_OKAY)
-    {
-        resultString = std::string(outPath.get());
-    }
-    else if (result == NFD_CANCEL)
-    {
-    }
-    else
-    {
-    }
-
-    // NFD::Guard will automatically quit NFD.
-    return resultString;
-}
-
-std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath)
-{
-    std::string resultString;
-
-    // initialize NFD
-    NFD::Guard nfdGuard;
-
-    // auto-freeing memory
-    NFD::UniquePath outPath;
-
-    const size_t count = filters.size();
-    // prepare filters for the dialog
-    std::vector<nfdfilteritem_t> filterItems(count);
-
-    for (size_t i = 0; i < count; i++)
-    {
-        filterItems[i].name = filters[i].name.c_str();
-        filterItems[i].spec = filters[i].spec.c_str();
-    }
-
-    // show the dialog
-
-    const nfdresult_t result = NFD::OpenDialog(outPath, filterItems.data(), static_cast<uint32_t>(count), defaultPath);
-    if (result == NFD_OKAY)
-    {
-        resultString = std::string(outPath.get());
-    }
-    else if (result == NFD_CANCEL)
-    {
-    }
-    else
-    {
-    }
-
-    // NFD::Guard will automatically quit NFD.
-    return resultString;
-}
 
 void NodeWindow::Initialize()
 {
@@ -310,6 +237,14 @@ void NodeWindow::UpdateShaders()
         ImGui::SetClipboardText(content.c_str());
         
         m_currentShader->RecompileFragmentShader(content.c_str());
+
+        for (auto& node : m_nodeManager->m_nodes)
+        {
+            if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node.second))
+            {
+                m_currentShader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
+            }
+        }
         
         m_shouldUpdateShader = false;
     }

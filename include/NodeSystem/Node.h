@@ -27,7 +27,8 @@ enum class Type
     Bool,
     Vector2,
     Vector3,
-    Vector4
+    Vector4,
+    Sampler2D,
 };
 
 const char* SerializeTypeEnum();
@@ -215,6 +216,8 @@ public:
     static void GetPreviewButtonRect(Vec2f& outMin, Vec2f& outMax, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom);
     
     virtual void ShowInInspector();
+
+    virtual void ShowInputInspector(uint32_t index);;
 
     virtual std::vector<std::string> GetFormatStrings() const;
 

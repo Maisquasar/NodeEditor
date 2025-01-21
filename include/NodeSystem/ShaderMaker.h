@@ -40,10 +40,10 @@ public:
     void SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content);
     static std::string ToGLSLVariable(Type type, const Vec4f& value);
 
-    static std::string GetValueAsString(InputRef input);
+    static std::string GetValueAsString(const InputRef& input);
 
     static void CleanString(std::string& name);
-    static std::string GetOutputVariableName(NodeRef currentNode, int j);
+    static std::string GetOutputVariableName(const NodeRef& currentNode, int j);
     static std::string TypeToGLSLType(Type type);
 
     static void SetShaderHeader(const std::string& header) { s_shaderHeader = header; }

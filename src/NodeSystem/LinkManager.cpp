@@ -315,7 +315,7 @@ bool LinkManager::CanCreateLink(const Link& link) const
     InputRef toInput = toNode->GetInput(link.toInputIndex);
 
     // Check if nodes are valid, not the same and the same input and output type
-    if (!fromOutput || !toInput || fromNode == toNode || fromOutput->type != toInput->type)
+    if (!fromOutput || !toInput || fromNode == toNode || (fromOutput->type != toInput->type))
         return false;
 
     /*

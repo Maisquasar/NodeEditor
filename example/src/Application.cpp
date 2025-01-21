@@ -18,8 +18,85 @@ using namespace GALAXY;
 
 #define EDITOR_FILE_NAME "editor.settings"
 #define TEMP_FOLDER "tmp/"
-#define SAVE_FOLDER "save/"
+#define SAVE_FOLDER "saves/"
 
+#pragma region Dialog
+
+#include <nfd.hpp>
+
+
+std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath)
+{
+    std::string resultString;
+
+    NFD::Guard nfdGuard;
+
+    NFD::UniquePath outPath;
+
+    const size_t count = filters.size();
+    std::vector<nfdfilteritem_t> filterItems(count);
+
+    for (size_t i = 0; i < count; i++)
+    {
+        filterItems[i].name = filters[i].name.c_str();
+        filterItems[i].spec = filters[i].spec.c_str();
+    }
+
+    // show the dialog
+    const nfdresult_t result = NFD::SaveDialog(outPath, filterItems.data(), static_cast<uint32_t>(count), defaultPath);
+    if (result == NFD_OKAY)
+    {
+        resultString = std::string(outPath.get());
+    }
+    else if (result == NFD_CANCEL)
+    {
+    }
+    else
+    {
+    }
+
+    // NFD::Guard will automatically quit NFD.
+    return resultString;
+}
+
+std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath)
+{
+    std::string resultString;
+
+    // initialize NFD
+    NFD::Guard nfdGuard;
+
+    // auto-freeing memory
+    NFD::UniquePath outPath;
+
+    const size_t count = filters.size();
+    // prepare filters for the dialog
+    std::vector<nfdfilteritem_t> filterItems(count);
+
+    for (size_t i = 0; i < count; i++)
+    {
+        filterItems[i].name = filters[i].name.c_str();
+        filterItems[i].spec = filters[i].spec.c_str();
+    }
+
+    // show the dialog
+
+    const nfdresult_t result = NFD::OpenDialog(outPath, filterItems.data(), static_cast<uint32_t>(count), defaultPath);
+    if (result == NFD_OKAY)
+    {
+        resultString = std::string(outPath.get());
+    }
+    else if (result == NFD_CANCEL)
+    {
+    }
+    else
+    {
+    }
+
+    // NFD::Guard will automatically quit NFD.
+    return resultString;
+}
+#pragma endregion 
 
 
 Application* Application::s_instance = nullptr;
@@ -114,9 +191,6 @@ void Application::Initialize()
         return;
     }
 
-    // Maximize the window
-    // glfwMaximizeWindow(m_window);
-
     // Make the window's context current
     glfwMakeContextCurrent(m_window);
     glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
@@ -191,6 +265,7 @@ void Application::Initialize()
         "}\n");
     
     NodeEditor::AddInVariableNode("TexCoords", Type::Vector2, "TexCoords");
+    NodeEditor::SetTexCoordsVariableName("TexCoords");
     
     NodeEditor::AddUniformNode("Time", Type::Float, "iTime");
     NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
@@ -251,7 +326,7 @@ void Application::DrawMainDock()
     ImGui::End();
 }
 
-void Application::DrawMainBar()
+void Application::DrawMainBar() const
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -418,7 +493,7 @@ void Application::Run()
 
 void Application::Clean() const
 {
-    auto path = TEMP_FOLDER;
+    std::filesystem::path path = TEMP_FOLDER;
     std::filesystem::remove_all(path);
     
     WriteEditorFile(EDITOR_FILE_NAME);

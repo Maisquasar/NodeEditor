@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <fstream>
+
+#include "NodeSystem/Node.h"
 using namespace GALAXY;
 #include <imgui.h>
 #include <glad/glad.h>
@@ -284,6 +286,41 @@ bool Shader::RecompileFragmentShader(const char* content)
 void Shader::UpdateValues() const
 {
     m_updateValuesFunc(m_program);
+}
+
+void Shader::SendValue(const char* name, Vec4f value, Type type)
+{
+    Use();
+    GLint location = glGetUniformLocation(m_program, name);
+    if (location == -1)
+        return;
+    switch (type)
+    {
+    case Type::None:
+        assert(false);
+        break;
+    case Type::Float:
+        glUniform1f(location, value.x);
+        break;
+    case Type::Int:
+        glUniform1i(location, value.x);
+        break;
+    case Type::Bool:
+        glUniform1i(location, value.x);
+        break;
+    case Type::Vector2:
+        glUniform2f(location, value.x, value.y);
+        break;
+    case Type::Vector3:
+        glUniform3f(location, value.x, value.y, value.z);
+        break;
+    case Type::Vector4:
+        glUniform4f(location, value.x, value.y, value.z, value.w);
+        break;
+    case Type::Sampler2D:
+        glUniform1i(location, value.x);
+        break;
+    }
 }
 
 Framebuffer::Framebuffer(){}
