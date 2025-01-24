@@ -105,14 +105,10 @@ void NodeWindow::Delete() const
 
 void NodeWindow::Draw()
 {
-    if (ImGui::Begin("Node Editor", nullptr))
+    if (ImGui::Begin(m_windowName.c_str(), nullptr))
     {
         m_ImGuiWindow = ImGui::GetCurrentWindow();
         m_isFocused = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) || ImGui::IsWindowFocused(ImGuiHoveredFlags_RootAndChildWindows);
-        // ImGui::SetWindowPos({ 0, 0 });
-        // Vec2f windowSize = Application::GetInstance()->GetWindowSize();
-        // ImGui::SetWindowSize({ windowSize.x, windowSize.y });
-        // ImGui::SetWindowCollapsed(false);
 
         DrawInspector();
         ImGui::SameLine();
@@ -234,7 +230,7 @@ void NodeWindow::UpdateShaders()
         
         shaderMaker.CreateFragmentShader(content, m_nodeManager);
         
-        ImGui::SetClipboardText(content.c_str());
+        // ImGui::SetClipboardText(content.c_str());
         
         m_currentShader->RecompileFragmentShader(content.c_str());
 

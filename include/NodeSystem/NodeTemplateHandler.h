@@ -71,7 +71,7 @@ public:
     void AddTemplateNode(const NodeMethodInfo& info);
     static TemplateID TemplateIDFromString(const std::string& name);
 
-    static std::shared_ptr<Node> CreateFromTemplate(TemplateID templateID);
+    static std::shared_ptr<Node> CreateFromTemplate(TemplateID templateID, NodeManager* nodeManager);
 
     static std::shared_ptr<Node> CreateFromTemplateName(const std::string& name);
 

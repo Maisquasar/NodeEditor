@@ -45,7 +45,7 @@ private:
     
     GLFWwindow* m_window = nullptr;
 
-    NodeWindow* m_nodeWindow;
+    std::vector<NodeWindow*> m_nodeWindows;
 
     uint64_t m_frameCount = 0;
     

@@ -50,11 +50,14 @@ NodeManager::NodeManager(NodeWindow* window) : m_parent(window)
 {
     m_linkManager = new LinkManager(this);
 
+    m_rerouteManager = new RerouteNodeNamedManager();
+
     AddNode(NodeTemplateHandler::CreateFromTemplateName("Material"));
 }
 
 NodeManager::~NodeManager()
 {
+    delete m_rerouteManager;
     delete m_linkManager;
 }
 
@@ -394,6 +397,10 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
         for (uint32_t i = 0; i < templates.size(); i++)
         {
             NodeRef nodeRef = templates[i].node;
+            if (nodeRef->GetNodeManager() && nodeRef->GetNodeManager() != this)
+            {
+                continue;
+            }
             std::string name = nodeRef->GetName();
             if (!nodeRef->GetAllowInteraction())
                 continue;
@@ -427,8 +434,7 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
             {
                 const TemplateID templateId = nodeRef->GetTemplateID();
                 
-                NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId);
-                node->p_nodeManager = this;
+                NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateId, this);
                     
                 if (isLinking)
                 {
@@ -453,7 +459,7 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
                     else if (auto rerouteNode = std::dynamic_pointer_cast<RerouteNodeNamed>(node))
                     {
                         rerouteNode->SetType(streamLinking->type);
-                        RerouteNodeNamedManager::UpdateType(rerouteNode->GetName(), streamLinking->type);
+                        GetRerouteManager()->UpdateType(rerouteNode->GetName(), streamLinking->type);
                     }
                     else
                     {
@@ -789,6 +795,11 @@ void NodeManager::ClearSelectedNodes()
     m_selectedNodes.clear();
 }
 
+RerouteNodeNamedManager* NodeManager::GetRerouteManager() const
+{
+    return m_rerouteManager;
+}
+
 NodeWeak NodeManager::GetNode(const UUID& uuid) const
 {
     if (m_nodes.find(uuid) == m_nodes.end())
@@ -1015,13 +1026,12 @@ void NodeManager::Deserialize(CppSer::Parser& parser)
     {
         parser.PushDepth();
         TemplateID templateID = parser["TemplateID"].As<uint64_t>();
-        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
+        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID, this);
         if (!node)
         {
             std::cout << "Failed to create node\n";
             continue;
         }
-        node->p_nodeManager = this;
         node->Deserialize(parser);
         AddNode(node);
     }
@@ -1038,8 +1048,8 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
     {
         parser.PushDepth();
         TemplateID templateID = parser["TemplateID"].As<uint64_t>();
-        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID);
-        node->Deserialize(parser);
+        NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID, this);
+        node->Deserialize(parser, false);
         data.nodes[i] = node;
     }
     LinkManager::Deserialize(parser, data.links);
@@ -1051,6 +1061,7 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
 void NodeManager::Clean()
 {
     m_linkManager->Clean();
+    m_rerouteManager->Clean();
     m_selectedNodes.clear();
     m_nodes.clear();
     m_currentLink = Link();

@@ -135,7 +135,7 @@ public:
     
     int FindBestPossibilityForType(Type type, StreamRef stream) const;
     
-    void ConvertStream(uint32_t index);
+    void ConvertStream(uint32_t index, bool removeLinks = true);
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
@@ -223,7 +223,7 @@ public:
 
     virtual void Serialize(CppSer::Serializer& serializer) const;
     virtual void InternalSerialize(CppSer::Serializer& serializer) const;
-    virtual void Deserialize(CppSer::Parser& parser);
+    virtual void Deserialize(CppSer::Parser& parser, bool removeLinks = true);
     virtual void InternalDeserialize(CppSer::Parser& parser);
 
     virtual std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const;

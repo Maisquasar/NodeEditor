@@ -16,28 +16,27 @@ class RerouteNodeNamedManager
 {
 public:
     RerouteNodeNamedManager() = default;
-    ~RerouteNodeNamedManager() = default;
+    ~RerouteNodeNamedManager();
 
-    static RerouteNodeNamedManager* GetInstance();
+    RerouteNodeNamedData* GetNode(const std::string& name);
 
-    static RerouteNodeNamedData* GetNode(const std::string& name);
-
-    static void UpdateKey(std::string oldName, const std::string& newName);
-    static void UpdateType(const std::string& name, Type type);
-    static void UpdateColor(const std::string& name, const Vec3f& color);
+    void UpdateKey(std::string oldName, const std::string& newName);
+    void UpdateType(const std::string& name, Type type);
+    void UpdateColor(const std::string& name, const Vec3f& color);
     
-    static void AddNode(const std::string& name);
-    static void RemoveNode(const std::string& name);
+    void AddNode(const std::string& name);
+    void RemoveNode(const std::string& name);
 
-    static void AddRef(const std::string& name, RerouteNodeNamed* node);
-    static void RemoveRef(const std::string& name, RerouteNodeNamed* node);
+    void AddRef(const std::string& name, RerouteNodeNamed* node);
+    void RemoveRef(const std::string& name, RerouteNodeNamed* node);
 
-    static RerouteNodeNamed* GetDefinitionNode(const std::string& name);
+    RerouteNodeNamed* GetDefinitionNode(const std::string& name);
 
-    static bool HasDefinition(const std::string& name);
-    static bool HasNode(const std::string& name);
+    bool HasDefinition(const std::string& name);
+    bool HasNode(const std::string& name);
+    void Clean();
+
 private:
-    static std::unique_ptr<RerouteNodeNamedManager> s_instance;
 
     std::unordered_map<std::string, RerouteNodeNamedData> m_rerouteNamedNodes;
 };

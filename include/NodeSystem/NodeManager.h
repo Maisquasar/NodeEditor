@@ -12,6 +12,7 @@
 #include "Type.h"
 
 
+class RerouteNodeNamedManager;
 class NodeWindow;
 class LinkManager;
 using NodeList = std::pmr::unordered_map<UUID, NodeRef>;
@@ -88,6 +89,7 @@ public:
     void ClearSelectedNodes();
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
+    RerouteNodeNamedManager* GetRerouteManager() const;
     NodeWeak GetNode(const UUID& uuid) const;
     NodeWeak GetNodeWithTemplate(TemplateID templateID);
     NodeWeak GetNodeWithName(const std::string& name);
@@ -138,6 +140,7 @@ private:
     
     NodeWindow* m_parent;
     LinkManager* m_linkManager = nullptr;
+    RerouteNodeNamedManager* m_rerouteManager = nullptr;
     NodeList m_nodes;
     
     Link m_currentLink; // The link when creating a new link

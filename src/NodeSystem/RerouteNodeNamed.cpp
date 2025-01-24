@@ -11,33 +11,41 @@
 
 class ActionChangeType;
 
-std::unique_ptr<RerouteNodeNamedManager> RerouteNodeNamedManager::s_instance = std::make_unique<RerouteNodeNamedManager>();
-
-RerouteNodeNamedManager* RerouteNodeNamedManager::GetInstance()
+RerouteNodeNamedManager::~RerouteNodeNamedManager()
 {
-    return s_instance.get();
+    Clean();
+}
+
+void RerouteNodeNamedManager::Clean()
+{
+    auto instance = NodeTemplateHandler::GetInstance();
+    for (auto& [name, nodeData] : m_rerouteNamedNodes)
+    {
+        instance->RemoveTemplateNode(name);
+    }
+    m_rerouteNamedNodes.clear();
 }
 
 RerouteNodeNamedData* RerouteNodeNamedManager::GetNode(const std::string& name)
 {
-    auto it = s_instance->m_rerouteNamedNodes.find(name);
-    if (it == s_instance->m_rerouteNamedNodes.end())
+    auto it = m_rerouteNamedNodes.find(name);
+    if (it == m_rerouteNamedNodes.end())
     {
         std::cerr << "Node with name " << name << " does not exist\n";
         return nullptr;
     }
-    return &s_instance->m_rerouteNamedNodes[name];
+    return &m_rerouteNamedNodes[name];
 }
 
 void RerouteNodeNamedManager::UpdateKey(std::string oldName, const std::string& newName)
 {
-    auto it = s_instance->m_rerouteNamedNodes.find(oldName);
-    if (it == s_instance->m_rerouteNamedNodes.end())
+    auto it = m_rerouteNamedNodes.find(oldName);
+    if (it == m_rerouteNamedNodes.end())
     {
         std::cerr << "Node with old name " << oldName << " does not exist\n";
         return;
     }
-    if (s_instance->m_rerouteNamedNodes.contains(newName))
+    if (m_rerouteNamedNodes.contains(newName))
     {
         std::cerr << "Node with new name " << newName << " already exists\n";
         return;
@@ -45,8 +53,8 @@ void RerouteNodeNamedManager::UpdateKey(std::string oldName, const std::string& 
 
     auto nodeData = std::move(it->second);
     nodeData.name = newName;
-    s_instance->m_rerouteNamedNodes.erase(it);
-    s_instance->m_rerouteNamedNodes[newName] = nodeData;
+    m_rerouteNamedNodes.erase(it);
+    m_rerouteNamedNodes[newName] = nodeData;
     
     for (RerouteNodeNamed*& node : nodeData.node)
     {
@@ -81,19 +89,19 @@ void RerouteNodeNamedManager::UpdateColor(const std::string& name, const Vec3f& 
 
 void RerouteNodeNamedManager::AddNode(const std::string& name)
 {
-    if (s_instance->m_rerouteNamedNodes.contains(name))
+    if (m_rerouteNamedNodes.contains(name))
     {
         std::cerr << "Node with name " << name << " already exists\n";
         return;
     }
-    s_instance->m_rerouteNamedNodes[name] = {.name= name};
+    m_rerouteNamedNodes[name] = {.name= name};
 }
 
 void RerouteNodeNamedManager::RemoveNode(const std::string& name)
 {
     if (RerouteNodeNamedData* node = GetNode(name))
     {
-        s_instance->m_rerouteNamedNodes.erase(name);
+        m_rerouteNamedNodes.erase(name);
         NodeTemplateHandler::GetInstance()->RemoveTemplateNode(name);
     }
 }
@@ -150,7 +158,7 @@ bool RerouteNodeNamedManager::HasDefinition(const std::string& name)
 
 bool RerouteNodeNamedManager::HasNode(const std::string& name)
 {
-    return s_instance->m_rerouteNamedNodes.contains(name);
+    return m_rerouteNamedNodes.contains(name);
 }
 
 RerouteNodeNamed::RerouteNodeNamed(const std::string& name): Node(name)
@@ -183,7 +191,7 @@ void RerouteNodeNamed::ShowInInspector()
         }
         else
         {
-            RerouteNodeNamedManager::UpdateKey(oldName, m_name);
+            p_nodeManager->GetRerouteManager()->UpdateKey(oldName, m_name);
         }
     }
     
@@ -193,7 +201,7 @@ void RerouteNodeNamed::ShowInInspector()
         //TODO : Add action
         // Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, static_cast<Type>(type + 1), m_paramType);
         SetType(static_cast<Type>(type + 1));
-        RerouteNodeNamedManager::UpdateType(p_name, m_type);
+        p_nodeManager->GetRerouteManager()->UpdateType(p_name, m_type);
         // ActionManager::AddAction(changeType);
     }
 
@@ -201,7 +209,7 @@ void RerouteNodeNamed::ShowInInspector()
     if (ImGui::ColorEdit3("Node Color", &color.x))
     {
         SetColor(color);
-        RerouteNodeNamedManager::UpdateColor(p_name, color);
+        p_nodeManager->GetRerouteManager()->UpdateColor(p_name, color);
     }
 }
 
@@ -294,15 +302,15 @@ void RerouteNodeNamed::InternalDeserialize(CppSer::Parser& parser)
     auto type = parser["Type"].As<int>();
     auto name = parser["Name"].As<std::string>();
     auto definition = parser["Definition"].As<bool>();
-    auto def = RerouteNodeNamedManager::GetDefinitionNode(name);
+    auto def = p_nodeManager->GetRerouteManager()->GetDefinitionNode(name);
     m_definition = definition && (def == nullptr || def == this);
     SetType(static_cast<Type>(type));
-    RerouteNodeNamedManager::UpdateKey(p_name, name);
-    RerouteNodeNamedManager::UpdateType(p_name, m_type);
+    p_nodeManager->GetRerouteManager()->UpdateKey(p_name, name);
+    p_nodeManager->GetRerouteManager()->UpdateType(p_name, m_type);
     SetRerouteName(name);
     SetName(m_name);
     m_color = parser["Color"].As<Vec3f>();
-    RerouteNodeNamedManager::UpdateColor(p_name, m_color.value());
+    p_nodeManager->GetRerouteManager()->UpdateColor(p_name, m_color.value());
 }
 
 Node* RerouteNodeNamed::Clone() const
@@ -321,7 +329,7 @@ void RerouteNodeNamed::InitializePreview()
 {
     if (!m_definition)
     {
-        auto nodeDefinition = GetDefinitionNode();
+        Ref<RerouteNodeNamed> nodeDefinition = GetDefinitionNode();
         m_shader = nodeDefinition->m_shader;
         if (!m_shader)
         {
@@ -339,7 +347,7 @@ void RerouteNodeNamed::InitializePreview()
 
 Ref<RerouteNodeNamed> RerouteNodeNamed::GetDefinitionNode() const
 {
-    RerouteNodeNamed* rerouteNodeNamed = RerouteNodeNamedManager::GetDefinitionNode(m_name);
+    RerouteNodeNamed* rerouteNodeNamed = p_nodeManager->GetRerouteManager()->GetDefinitionNode(m_name);
     if (!rerouteNodeNamed)
         return nullptr;
     auto lock = p_nodeManager->GetNode(rerouteNodeNamed->p_uuid).lock();
@@ -355,7 +363,7 @@ void RerouteNodeNamed::SetRerouteName(const std::string& string)
 
 void RerouteNodeNamed::OnCreate()
 {
-    if (m_templateNode || !RerouteNodeNamedManager::HasDefinition(m_name))
+    if (m_templateNode || !p_nodeManager->GetRerouteManager()->HasDefinition(m_name))
     {
         NodeRef templateNode = NodeTemplateHandler::GetNodeFromName(m_name + " (Definition)");
         
@@ -375,7 +383,8 @@ void RerouteNodeNamed::OnCreate()
         if (!templateNode)
         {
             auto templateHandler = NodeTemplateHandler::GetInstance();
-            Node* clone = Clone();
+            RerouteNodeNamed* clone = dynamic_cast<RerouteNodeNamed*>(Clone());
+            clone->p_nodeManager = p_nodeManager;
             const NodeMethodInfo info(clone);
             templateHandler->AddTemplateNode(info);
         }
@@ -384,7 +393,7 @@ void RerouteNodeNamed::OnCreate()
             templateNode->SetName(m_name);
         }
 
-        RerouteNodeNamedManager::AddNode(m_name);
+        p_nodeManager->GetRerouteManager()->AddNode(m_name);
 
         m_definition = true;
         if (p_inputs.empty())
@@ -392,11 +401,11 @@ void RerouteNodeNamed::OnCreate()
         else
             ChangeInputType(0, m_type);
     }
-    RerouteNodeNamedManager::AddRef(m_name, this);
+    p_nodeManager->GetRerouteManager()->AddRef(m_name, this);
     
     if (!m_color.has_value())
     {
-        RerouteNodeNamedManager::UpdateColor(m_name, Vec4f(ImGui::ColorConvertU32ToFloat4(p_topColor)));
+        p_nodeManager->GetRerouteManager()->UpdateColor(m_name, Vec4f(ImGui::ColorConvertU32ToFloat4(p_topColor)));
     }
 }
 
@@ -404,9 +413,9 @@ void RerouteNodeNamed::OnRemove()
 {
     Node::OnRemove();
     
-    RerouteNodeNamedManager::RemoveRef(m_name, this);
+    p_nodeManager->GetRerouteManager()->RemoveRef(m_name, this);
 
-    if (m_definition && RerouteNodeNamedManager::HasNode(m_name))
+    if (m_definition && p_nodeManager->GetRerouteManager()->HasNode(m_name))
     {
         NodeRef templateNode = NodeTemplateHandler::GetNodeFromName(m_name);
         templateNode->SetName(m_name + " (Definition)");

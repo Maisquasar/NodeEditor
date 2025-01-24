@@ -65,6 +65,8 @@ public:
     void AddPreviewNode(const UUID& uuid) { m_previewNodes.insert(uuid); }
     void RemovePreviewNode(const UUID& uuid) { m_previewNodes.erase(uuid); }
     void NewScene();
+
+    void SetWindowName(const std::string& name) { m_windowName = name; }
     
     NodeManager* GetNodeManager() const { return m_nodeManager; }
 
@@ -76,6 +78,8 @@ private:
 
 private:
     NodeManager* m_nodeManager = nullptr;
+
+    std::string m_windowName;
 
     ActionManager m_actionManager = {};
     bool m_isFocused = false;

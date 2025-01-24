@@ -262,7 +262,7 @@ void CustomNode::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::EndMap << "Node";
 }
 
-void CustomNode::Deserialize(CppSer::Parser& parser)
+void CustomNode::Deserialize(CppSer::Parser& parser, bool removeLinks)
 {
     p_uuid = parser["UUID"].As<uint64_t>();
     SetUUID(p_uuid);

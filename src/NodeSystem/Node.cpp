@@ -359,7 +359,7 @@ int Node::FindBestPossibilityForType(Type type, StreamRef stream) const
     return index;
 }
 
-void Node::ConvertStream(uint32_t index)
+void Node::ConvertStream(uint32_t index, bool removeLinks)
 {
     for (auto& input : p_inputs)
     {
@@ -367,8 +367,10 @@ void Node::ConvertStream(uint32_t index)
         if (currentType == input->possibleTypes[index])
             continue;
         ChangeInputType(input->index, input->possibleTypes[index]);
-        if (p_nodeManager)
+        if (p_nodeManager && removeLinks)
+        {
             p_nodeManager->GetLinkManager()->RemoveLink(input);
+        }
     }
     for (auto& output : p_outputs)
     {
@@ -376,8 +378,10 @@ void Node::ConvertStream(uint32_t index)
         if (currentType == output->possibleTypes[index])
             continue;
         ChangeOutputType(output->index, output->possibleTypes[index]);
-        if (p_nodeManager)
+        if (p_nodeManager && removeLinks)
+        {
             p_nodeManager->GetLinkManager()->RemoveLinks(output);
+        }
     }
     p_currentPossibility = index;
 }
@@ -874,7 +878,7 @@ void Node::InternalSerialize(CppSer::Serializer& serializer) const
 {
 }
 
-void Node::Deserialize(CppSer::Parser& parser)
+void Node::Deserialize(CppSer::Parser& parser, bool removeLinks /*= true*/)
 {
     p_uuid = parser["UUID"].As<uint64_t>();
     SetUUID(p_uuid);
@@ -892,7 +896,7 @@ void Node::Deserialize(CppSer::Parser& parser)
 
     p_currentPossibility = parser["Possibility Index"].As<int>();
 
-    ConvertStream(p_currentPossibility);
+    ConvertStream(p_currentPossibility, removeLinks);
 
     InternalDeserialize(parser);
 }

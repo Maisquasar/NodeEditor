@@ -478,7 +478,7 @@ TemplateID NodeTemplateHandler::TemplateIDFromString(const std::string& name)
     return std::hash<std::string>{}(name);
 }
 
-NodeRef NodeTemplateHandler::CreateFromTemplate(size_t templateID)
+NodeRef NodeTemplateHandler::CreateFromTemplate(size_t templateID, NodeManager* nodeManager)
 {
     for (size_t i = 0; i < s_instance->m_templateNodes.size(); i++)
     {
@@ -487,6 +487,7 @@ NodeRef NodeTemplateHandler::CreateFromTemplate(size_t templateID)
         if (hash == templateID)
         {
             NodeRef node(nodeToClone->Clone());
+            node->p_nodeManager = nodeManager;
             node->OnCreate();
             return node;
         }   

@@ -105,13 +105,13 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void APIENTRY glDebugOutput(GLenum source, 
-                            GLenum type, 
-                            unsigned int id, 
-                            GLenum severity, 
-                            GLsizei length, 
-                            const char *message, 
-                            const void *userParam)
+static void APIENTRY glDebugOutput(GLenum source, 
+                                   GLenum type, 
+                                   unsigned int id, 
+                                   GLenum severity, 
+                                   GLsizei length, 
+                                   const char *message, 
+                                   const void *userParam)
 {
     // ignore non-significant error/warning codes
     if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return; 
@@ -271,8 +271,12 @@ void Application::Initialize()
     NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
     
     NodeEditor::SetEditCustomNodeOutputPath(TEMP_FOLDER);
-    
-    m_nodeWindow = NodeEditor::CreateNodeWindow();
+
+    for (int i = 0; i < 2; i++)
+    {
+        m_nodeWindows.push_back(NodeEditor::CreateNodeWindow());
+        m_nodeWindows[i]->SetWindowName("Node Window " + std::to_string(i));
+    }
     
     LoadEditorFile(EDITOR_FILE_NAME);
 
@@ -328,38 +332,49 @@ void Application::DrawMainDock()
 
 void Application::DrawMainBar() const
 {
+    NodeWindow* nodeWindow = nullptr;
+    int focusOrder = -1;
+    for (NodeWindow* const& _nodeWindow : m_nodeWindows)
+    {
+        ImGuiWindow* imGuiWindow = (ImGuiWindow*)_nodeWindow->GetIMGUIWindow();
+        if (imGuiWindow && focusOrder < imGuiWindow->FocusOrder)
+        {
+            focusOrder = imGuiWindow->FocusOrder;
+            nodeWindow = _nodeWindow;
+        }
+    }
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("New", "CTRL+N"))
             {
-                m_nodeWindow->NewScene();
+                nodeWindow->NewScene();
             }
             if (ImGui::MenuItem("Open", "CTRL+O"))
             {
                 std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
                 if (const std::string path = OpenDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
-                    m_nodeWindow->LoadScene(path);
+                    nodeWindow->LoadScene(path);
                 }
             }
             if (ImGui::MenuItem("Save", "CTRL+S"))
             {
-                m_nodeWindow->SaveScene();
+                nodeWindow->SaveScene();
             }
             if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S"))
             {
                 std::filesystem::path savePath = std::filesystem::current_path() / SAVE_FOLDER;
                 if (const std::string path = SaveDialog({ { "Node Editor", "node" } }, savePath.string().c_str()); !path.empty())
                 {
-                    m_nodeWindow->SaveScene(path);
+                    nodeWindow->SaveScene(path);
                 }
             }
             if (ImGui::MenuItem("Export to shaderToy"))
             {
                 ShaderMaker shaderMaker;
-                shaderMaker.CreateShaderToyShader(m_nodeWindow->GetNodeManager());
+                shaderMaker.CreateShaderToyShader(nodeWindow->GetNodeManager());
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "ALT+F4"))
@@ -429,7 +444,7 @@ void Application::WriteEditorFile(const std::string& path) const
     CppSer::Serializer serializer(path);
     serializer.SetVersion("1.0");
     serializer << CppSer::Pair::BeginMap << "Editor";
-    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeWindow->GetNodeManager()->GetFilePath().string();
+    serializer << CppSer::Pair::Key << "Node File" << CppSer::Pair::Value << m_nodeWindows[0]->GetNodeManager()->GetFilePath().string();
     serializer << CppSer::Pair::EndMap << "Editor";
 }
 
@@ -442,7 +457,7 @@ void Application::LoadEditorFile(const std::string& path) const
         std::cout << "Invalid file" << std::endl;
         return;
     }
-    m_nodeWindow->GetNodeManager()->LoadFromFile(parser["Node File"].As<std::string>());
+    m_nodeWindows[0]->GetNodeManager()->LoadFromFile(parser["Node File"].As<std::string>());
 }
 
 
@@ -464,16 +479,22 @@ void Application::Run()
 
         DrawMainBar();
 
-        m_nodeWindow->Draw();
+        for (auto& nodeWindow : m_nodeWindows)
+        {
+            nodeWindow->Draw();
 
-        m_nodeWindow->Update();
+            nodeWindow->Update();
+        }
 
         ImGui::Render();
 
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        m_nodeWindow->Render();
+        for (auto& nodeWindow : m_nodeWindows)
+        {
+            nodeWindow->Render();
+        }
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -497,7 +518,10 @@ void Application::Clean() const
     std::filesystem::remove_all(path);
     
     WriteEditorFile(EDITOR_FILE_NAME);
-    NodeEditor::DeleteNodeWindow(m_nodeWindow);
+    for (auto& nodeWindow : m_nodeWindows)
+    {
+        NodeEditor::DeleteNodeWindow(nodeWindow);
+    }
     
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
