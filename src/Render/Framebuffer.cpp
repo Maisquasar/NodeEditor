@@ -283,8 +283,9 @@ bool Shader::RecompileFragmentShader(const char* content)
     return Link();
 }
 
-void Shader::UpdateValues() const
+void Shader::UpdateValues()
 {
+    m_index = 0;
     m_updateValuesFunc(m_program);
 }
 
@@ -318,7 +319,10 @@ void Shader::SendValue(const char* name, Vec4f value, Type type)
         glUniform4f(location, value.x, value.y, value.z, value.w);
         break;
     case Type::Sampler2D:
-        glUniform1i(location, value.x);
+        glActiveTexture(GL_TEXTURE0 + m_index);
+        glBindTexture(GL_TEXTURE_2D, value.x);
+        glUniform1i(location, m_index);
+        m_index++;
         break;
     }
 }

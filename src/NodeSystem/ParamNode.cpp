@@ -103,7 +103,13 @@ void ParamNode::ShowInInspector()
         break;
     case Type::Sampler2D:
         {
-            //TODO
+            Vec4f value = m_previewValue;
+            int valueInt = static_cast<int>(value.x);
+            if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
+            {
+                value.x = static_cast<float>(valueInt);
+                m_previewValue = value;
+            }
         }
         break;
     default: ;
@@ -134,6 +140,9 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
     m_paramName = parser["Param Name"].As<std::string>();
     // Do not use the method to not remove links associate to it, force the type set
     m_paramType = static_cast<Type>(parser["Param Type"].As<int>());
+
+    // if (m_paramType == Type::Sampler2D)
+    SetType(m_paramType);
 }
 
 Node* ParamNode::Clone() const

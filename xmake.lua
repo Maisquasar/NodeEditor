@@ -16,6 +16,7 @@ add_requires("glad", {configs = { extensions = "GL_KHR_debug"}})
 add_requires("galaxymath")
 add_requires("cpp_serializer")
 add_requires("nativefiledialog-extended")
+add_requires("stb")
 
 set_rundir("$(projectdir)")
 
@@ -43,6 +44,7 @@ target("example")
     set_kind("binary")
     add_files("example/src/**.cpp")
     add_headerfiles("example/src/**.hpp")
+    add_headerfiles("example/src/**.h")
     
     add_includedirs("include")
     
@@ -54,3 +56,4 @@ target("example")
     add_packages("glad")
     add_packages("cpp_serializer")
     add_packages("nativefiledialog-extended")
+    add_packages("stb")

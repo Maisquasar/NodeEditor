@@ -3,6 +3,7 @@
 #include <CppSerializer.h>
 #include <imgui_internal.h>
 
+#include "NodeEditor.h"
 #include "NodeWindow.h"
 #include "Actions/Action.h"
 #include "Actions/ActionChangeValue.h"
@@ -40,14 +41,15 @@ std::string TypeEnumToString(Type type)
 
 std::unordered_map<Type, uint32_t> colorForType
 {
-        { Type::Float, IM_COL32(90, 120, 255, 255) },    // Soft blue
-        { Type::Int, IM_COL32(255, 100, 100, 255) },     // Soft red
-        { Type::Bool, IM_COL32(100, 255, 100, 255) },    // Soft green
-        { Type::Vector2, IM_COL32(180, 90, 255, 255) },  // Soft purple
-        { Type::Vector3, IM_COL32(255, 255, 90, 255) },  // Soft yellow
-        { Type::Vector4, IM_COL32(90, 255, 255, 255) },  // Soft cyan
-        { Type::Sampler2D, IM_COL32(255, 180, 90, 255) },  // Soft orange
+    { Type::Float, IM_COL32(90, 120, 255, 255) },    // Soft blue
+    { Type::Int, IM_COL32(255, 100, 100, 255) },     // Soft red
+    { Type::Bool, IM_COL32(100, 255, 100, 255) },    // Soft green
+    { Type::Vector2, IM_COL32(180, 90, 255, 255) },  // Soft purple
+    { Type::Vector3, IM_COL32(255, 255, 90, 255) },  // Soft yellow
+    { Type::Vector4, IM_COL32(70, 200, 255, 255) },  // Soft teal (new color)
+    { Type::Sampler2D, IM_COL32(255, 180, 90, 255) },  // Soft orange
 };
+
 
 uint32_t GetColorFromType(Type type)
 {
@@ -839,6 +841,12 @@ void Node::ShowInputInspector(uint32_t index)
     case Type::Sampler2D:
         {
             Vec4f value = input->GetValue<Vec4f>();
+            int valueInt = static_cast<int>(value.x);
+            if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
+            {
+                value.x = static_cast<float>(valueInt);
+                input->SetValue<Vec4f>(value);
+            }
         }
     default:
         ImGui::Text("Unknown type");

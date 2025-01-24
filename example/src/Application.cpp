@@ -6,6 +6,7 @@
 #include <cpp_serializer/CppSerializer.h>
 
 #include "NodeEditor.h"
+#include "ResourceManager.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Framebuffer.h"
 
@@ -234,6 +235,8 @@ void Application::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init("#version 330"); // Adjust version as needed
 
+    ResourceManager::Create();
+
     // Initialize Node Editor
     NodeEditor::Initialize();
     UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1);
@@ -271,6 +274,22 @@ void Application::Initialize()
     NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
     
     NodeEditor::SetEditCustomNodeOutputPath(TEMP_FOLDER);
+
+    NodeEditor::SetTextureSelectorFunction([](const char* str, int* valueInt)
+    {
+        Weak<Texture> texture = ResourceManager::GetTextureWithID(*valueInt);
+        if (ImGui::ImageButton(str, reinterpret_cast<ImTextureID>(*valueInt), ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
+        {
+            std::string texturePath = OpenDialog({{"Images", "png"}});
+            if (!texturePath.empty())
+            {
+                auto texture = ResourceManager::GetOrLoadTexture(texturePath);
+                *valueInt = texture.lock()->GetID();
+            }
+            return true;
+        }
+        return false; 
+    });
 
     for (int i = 0; i < 2; i++)
     {
@@ -343,6 +362,8 @@ void Application::DrawMainBar() const
             nodeWindow = _nodeWindow;
         }
     }
+    if (!nodeWindow)
+        return;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -390,13 +411,11 @@ void Application::DrawMainBar() const
             ImGui::EndMenu();
         }
 
-        /*
-        std::string stateString = "Current State :" + UserInputEnumToString(m_nodeManager->GetUserInputState());
+        std::string stateString = "Current State :" + UserInputEnumToString(nodeWindow->GetNodeManager()->GetUserInputState());
         if (ImGui::BeginMenu(stateString.c_str()))
         {
             ImGui::EndMenu();
         }
-        */
 
         if (ImGui::BeginMenu("Debug"))
         {
@@ -522,6 +541,8 @@ void Application::Clean() const
     {
         NodeEditor::DeleteNodeWindow(nodeWindow);
     }
+
+    ResourceManager::Destroy();
     
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

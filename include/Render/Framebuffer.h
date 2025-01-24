@@ -65,7 +65,7 @@ public:
     void Use() const;
     bool RecompileFragmentShader();
     bool RecompileFragmentShader(const char* content);
-    void UpdateValues() const;
+    void UpdateValues();
 
     void SendValue(const char* name, Vec4f value, Type type);
 
@@ -82,6 +82,8 @@ private:
     static UpdateValuesFunc m_updateValuesFunc;
 
     bool m_loaded = false;
+
+    int m_index = 0;
 };
 
 class Framebuffer

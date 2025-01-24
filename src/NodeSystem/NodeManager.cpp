@@ -163,14 +163,14 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 
 void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const Vec2f& mousePos, bool mouseClicked, const NodeRef& node)
 {
-    bool rightClick = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+    bool rightClick = ImGui::IsMouseReleased(ImGuiMouseButton_Right);
     bool altClicked = ImGui::IsKeyDown(ImGuiKey_LeftAlt);
     if (m_currentLink.toNodeIndex == UUID_NULL || altClicked)
     {
         for (uint32_t i = 0; i < node->p_inputs.size(); i++)
         {
             Vec2f circlePos = node->GetInputPosition(i, origin, zoom);
-            if (node->IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
+            if (Node::IsPointHoverCircle(mousePos, circlePos, origin, zoom, i))
             {
                 SetHoveredStream(node->p_inputs[i]);
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
@@ -357,6 +357,14 @@ void NodeManager::DrawCreateNodeMenu(float zoom, Vec2f origin, Vec2f mousePos)
         
         if (GetUserInputState() == UserInputState::None)
             SetUserInputState(UserInputState::CreateNode);
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+        {
+            SetUserInputState(UserInputState::None);
+            ClearCurrentLink();
+            ImGui::CloseCurrentPopup();
+            return;
+        }
 
         if (m_createNodeMenu.focusInput)
         {
@@ -577,7 +585,9 @@ void NodeManager::RightClickStreamMenuUpdate()
 void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mousePos)
 {
     if (!m_isGridHovered && !m_firstFrame)
+    {
         return;
+    }
     
     SetHoveredStream({});
     m_firstFrame = false;
