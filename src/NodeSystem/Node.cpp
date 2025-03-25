@@ -2,6 +2,7 @@
 
 #include <CppSerializer.h>
 #include <imgui_internal.h>
+#include <glad/glad.h>
 
 #include "NodeEditor.h"
 #include "NodeWindow.h"

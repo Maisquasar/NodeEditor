@@ -37,6 +37,7 @@ void ParamNode::ShowInInspector()
     }
 
     const char* InputName = "Preview Value";
+    Vec4f previewValue = GetPreviewValue();
     //TODO Add action for each type
     switch (m_paramType)
     {
@@ -45,70 +46,77 @@ void ParamNode::ShowInInspector()
         break;
     case Type::Float:
         {
-            float val = m_previewValue.x;
+            float val = previewValue.x;
             if (ImGui::DragFloat(InputName, &val, 0.1f))
             {
-                m_previewValue.x = val;
+                previewValue.x = val;
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Int:
         {
-            int val = static_cast<int>(m_previewValue.x);
+            int val = static_cast<int>(previewValue.x);
             if (ImGui::DragInt(InputName, &val, 1))
             {
-                m_previewValue.x = static_cast<float>(val);
+                previewValue.x = static_cast<float>(val);
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Bool:
         {
-            bool val = m_previewValue.x > 0.0f;
+            bool val = previewValue.x > 0.0f;
             if (ImGui::Checkbox(InputName, &val))
             {
-                m_previewValue.x = val ? 1.0f : 0.0f;
+                previewValue.x = val ? 1.0f : 0.0f;
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Vector2:
         {
-            Vec2f val = Vec2f(m_previewValue.x, m_previewValue.y);
+            Vec2f val = Vec2f(previewValue.x, previewValue.y);
             if (ImGui::DragFloat2(InputName, &val.x, 0.1f))
             {
-                m_previewValue.x = val.x;
+                previewValue.x = val.x;
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Vector3:
         {
-            Vec3f val = Vec3f(m_previewValue.x, m_previewValue.y, m_previewValue.z);
-            if (ImGui::ColorEdit3(InputName, &val.x, 0.1f))
+            Vec3f val = previewValue;
+            if (ImGui::ColorEdit3(InputName, &val.x))
             {
-                m_previewValue.x = val.x;
+                previewValue.x = val.x;
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Vector4:
         {
-            if (ImGui::ColorEdit4(InputName, &m_previewValue.x, 0.1f))
+            if (ImGui::ColorEdit4(InputName, &previewValue.x))
             {
                 p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+                m_previewValue = previewValue;
             }
         }
         break;
     case Type::Sampler2D:
         {
-            Vec4f value = m_previewValue;
+            Vec4f value = previewValue;
             int valueInt = static_cast<int>(value.x);
             if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
             {
                 value.x = static_cast<float>(valueInt);
-                m_previewValue = value;
+                previewValue = value;
+                m_previewValue = previewValue;
             }
         }
         break;
@@ -131,7 +139,8 @@ void ParamNode::InternalSerialize(CppSer::Serializer& serializer) const
 
     serializer << CppSer::Pair::Key << "Param Name" << CppSer::Pair::Value << m_paramName;
     serializer << CppSer::Pair::Key << "Param Type" << CppSer::Pair::Value << static_cast<int>(m_paramType);
-    serializer << CppSer::Pair::Key << "Preview Value" << CppSer::Pair::Value << m_previewValue;
+    if (m_previewValue.has_value())
+        serializer << CppSer::Pair::Key << "Preview Value" << CppSer::Pair::Value << m_previewValue.value();
 }
 
 void ParamNode::InternalDeserialize(CppSer::Parser& parser)
@@ -145,7 +154,8 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
     // if (m_paramType == Type::Sampler2D)
     SetType(m_paramType);
 
-    m_previewValue = parser["Preview Value"].As<Vec4f>();
+    if (parser.HasKey("Preview Value"))
+        m_previewValue = parser["Preview Value"].As<Vec4f>();
 }
 
 Node* ParamNode::Clone() const

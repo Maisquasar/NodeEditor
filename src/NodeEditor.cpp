@@ -5,11 +5,13 @@
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Font.h"
 #include "Render/Framebuffer.h"
+#include "Render/RenderDocAPI.h"
 
 void NodeEditor::Initialize()
 {
     Font::LoadFont();
 
+    RenderDocAPI::Initialize();
     NodeTemplateHandler* templateHandler = NodeTemplateHandler::Create();
     templateHandler->Initialize();
 }

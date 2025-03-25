@@ -9,6 +9,7 @@
 #include "ResourceManager.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Framebuffer.h"
+#include "Render/RenderDocAPI.h"
 
 using namespace GALAXY;
 #include <imgui.h>
@@ -278,13 +279,14 @@ void Application::Initialize()
     NodeEditor::SetTextureSelectorFunction([](const char* str, int* valueInt)
     {
         Weak<Texture> texture = ResourceManager::GetTextureWithID(*valueInt);
-        if (ImGui::ImageButton(str, reinterpret_cast<ImTextureID>(*valueInt), ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
+        if (ImGui::ImageButton(str, reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(*valueInt)), ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
         {
             std::string texturePath = OpenDialog({{"Images", "png"}});
             if (!texturePath.empty())
             {
-                auto texture = ResourceManager::GetOrLoadTexture(texturePath);
-                *valueInt = texture.lock()->GetID();
+                Shared textureWithPath = ResourceManager::GetOrLoadTexture(texturePath).lock();
+                assert(textureWithPath != nullptr);
+                *valueInt = textureWithPath->GetID();
             }
             return true;
         }
@@ -407,7 +409,6 @@ void Application::DrawMainBar() const
         std::string fpsString = std::to_string(static_cast<int>(ImGui::GetIO().Framerate)) + " FPS";
         if (ImGui::BeginMenu(fpsString.c_str()))
         {
-            
             ImGui::EndMenu();
         }
 
@@ -419,6 +420,11 @@ void Application::DrawMainBar() const
 
         if (ImGui::BeginMenu("Debug"))
         {
+            bool captureFrame = RenderDocAPI::ShouldCaptureFrame();
+            if (ImGui::Checkbox("Capture Frame", &captureFrame))
+            {
+                RenderDocAPI::SetShouldCaptureFrame(captureFrame);
+            }
             auto current = ActionManager::GetCurrent();
             if (current != nullptr)
             {

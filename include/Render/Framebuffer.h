@@ -62,6 +62,8 @@ public:
     bool SetFragmentShaderContent(const std::string& string);
     bool Link();
 
+    std::filesystem::path GetPath() const { return m_path; }
+    
     void ComputeUniforms();
     using UniformMap = std::unordered_map<int /* location */, int /* bind */>;
     UniformMap GetUniforms() const { return m_uniform; }
@@ -72,7 +74,8 @@ public:
     void UpdateValues();
 
     void SendValue(const char* name, Vec4f value, Type type);
-
+    
+    //TODO: Fix update values not called every frames
     static void SetUpdateValuesFunc(const UpdateValuesFunc& func) { m_updateValuesFunc = func; }
 
     bool IsLoaded() const { return m_loaded; }

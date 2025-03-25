@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "Node.h"
 
 class ParamNode : public Node
@@ -24,7 +25,8 @@ public:
     
     std::string GetParamName() const { return m_paramName;}
     Type GetType() const { return m_paramType;}
-    Vec4f GetPreviewValue() const { return m_previewValue;}
+    bool HasPreviewValue() const { return m_previewValue.has_value(); }
+    Vec4f GetPreviewValue() const { return m_previewValue.value_or(Vec4f(0));}
 
     void SetSerialize(bool serialize) { m_serialize = serialize; }
 
@@ -35,7 +37,8 @@ private:
     friend class NodeTemplateHandler;
     std::string m_paramName = "None";
     Type m_paramType;
-    Vec4f m_previewValue;
+
+    std::optional<Vec4f> m_previewValue;
 
     bool m_editable = true;
 

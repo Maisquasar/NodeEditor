@@ -9,6 +9,7 @@
 #include "NodeSystem/ParamNode.h"
 #include "NodeSystem/RerouteNodeNamed.h"
 #include "Render/Framebuffer.h"
+#include "Render/RenderDocAPI.h"
 
 class RerouteNodeNamed;
 
@@ -152,6 +153,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
 
 void ShaderMaker::DoWork(NodeManager* manager)
 {
+    RenderDocAPI::StartFrameCapture();
     auto endNode = manager->GetNodeWithName("Material").lock();
     FillFunctionList(manager, endNode);
 
@@ -171,14 +173,18 @@ void ShaderMaker::DoWork(NodeManager* manager)
         
         for (auto& val : manager->m_nodes | std::views::values)
         {
-            if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(val))
+            if (Shared paramNode = std::dynamic_pointer_cast<ParamNode>(val))
             {
-                node->m_shader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
+                Vec4f previewValue = paramNode->GetPreviewValue();
+                std::string name = paramNode->GetParamName();
+                Type type = paramNode->GetType();
+                node->m_shader->SendValue(name.c_str(), previewValue, type);
             }
         }
         
         node->RenderPreview(manager->GetMainWindow()->GetQuad());
     }
+    RenderDocAPI::EndFrameCapture();
 }
 
 void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manager)
@@ -246,7 +252,7 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
     // else display the full shader
     if (!isMaterial)
     {
-        content += "\n// Output to screen\n";
+        content += "\n\t// Output to screen\n";
         if (!endNode->GetOutputs().empty())
         {
             auto output = endNode->GetOutputs()[0];
@@ -255,16 +261,16 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
             case Type::Float:
             case Type::Int:
             case Type::Bool:
-                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 0.0, 1.0);\n}\n";
+                content += "\tFragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 0.0, 1.0);\n}\n";
                 break;
             case Type::Vector2:
-                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 1.0);\n}\n";
+                content += "\tFragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 0.0, 1.0);\n}\n";
                 break;
             case Type::Vector3:
-                content += "FragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 1.0);\n}\n";
+                content += "\tFragColor = vec4(" + GetOutputVariableName(endNode, 0) + ", 1.0);\n}\n";
                 break;
             case Type::Vector4:
-                content += "FragColor = " + GetOutputVariableName(endNode, 0) + ";\n}\n";
+                content += "\tFragColor = " + GetOutputVariableName(endNode, 0) + ";\n}\n";
             default: ;
             }
         }
@@ -362,7 +368,7 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
         "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n// Normalized pixel coordinates (from 0 to 1)\nvec2 uv = fragCoord/iResolution.xy;\n";
 
     SerializeFunctions(manager, endNode, content);
-    content += "\n// Output to screen\nfragColor = vec4(";
+    content += "\n\t// Output to screen\n\tfragColor = vec4(";
     auto firstLink = endNode->GetLinks()[0].lock();
     auto outputName = m_functions[firstLink->fromNodeIndex].outputs[firstLink->fromOutputIndex];
     content += outputName + ", 1.0);\n}\n";
