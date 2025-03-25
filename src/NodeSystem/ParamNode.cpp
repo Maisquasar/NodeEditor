@@ -131,6 +131,7 @@ void ParamNode::InternalSerialize(CppSer::Serializer& serializer) const
 
     serializer << CppSer::Pair::Key << "Param Name" << CppSer::Pair::Value << m_paramName;
     serializer << CppSer::Pair::Key << "Param Type" << CppSer::Pair::Value << static_cast<int>(m_paramType);
+    serializer << CppSer::Pair::Key << "Preview Value" << CppSer::Pair::Value << m_previewValue;
 }
 
 void ParamNode::InternalDeserialize(CppSer::Parser& parser)
@@ -143,6 +144,8 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
 
     // if (m_paramType == Type::Sampler2D)
     SetType(m_paramType);
+
+    m_previewValue = parser["Preview Value"].As<Vec4f>();
 }
 
 Node* ParamNode::Clone() const
@@ -153,6 +156,7 @@ Node* ParamNode::Clone() const
     node->m_paramType = m_paramType;
     node->m_editable = m_editable;
     node->m_serialize = m_serialize;
+    node->m_previewValue = m_previewValue;
     Internal_Clone(node);
     return node;
 }

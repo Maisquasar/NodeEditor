@@ -756,6 +756,11 @@ void Node::ShowInInspector()
     {
         ShowInputInspector(i);
     }
+    if (m_shader)
+    {
+        std::string content = m_shader->GetFragmentSource();
+        ImGui::InputTextMultiline("Content", &content[0], content.size() + 1);
+    }
     ImGui::PopID();
 }
 

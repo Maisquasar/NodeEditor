@@ -291,7 +291,7 @@ void Application::Initialize()
         return false; 
     });
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
     {
         m_nodeWindows.push_back(NodeEditor::CreateNodeWindow());
         m_nodeWindows[i]->SetWindowName("Node Window " + std::to_string(i));

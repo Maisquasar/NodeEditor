@@ -1,164 +1,35 @@
 v1.0
  ------------- Nodes ------------- 
-[Node Count] : 12
+[Node Count] : 3
    ------------- Node ------------- 
   [TemplateID] : 12798265388312005056
-  [UUID] : 1580015993650404421
-  [Position] : 213.710266, -17.809189
+  [UUID] : 15621771104502410721
+  [Position] : 0.000000, 0.000000
   [Possibility Index] : 0
+  [Value 0] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
   [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
    ============= Node ============= 
    ------------- Node ------------- 
-  [TemplateID] : 9657547218617834872
-  [UUID] : 5312599599370757778
-  [Position] : -270.759888, 139.220673
+  [TemplateID] : 14686373685247804210
+  [UUID] : 13931287858135791931
+  [Position] : -308.703094, -113.313004
   [Possibility Index] : 0
+  [Param Name] : None
+  [Param Type] : 7
+  [Preview Value] : 5.000000, 0.000000, 0.000000, 0.000000
    ============= Node ============= 
    ------------- Node ------------- 
-  [TemplateID] : 5251627053891867748
-  [UUID] : 10668396562615232599
-  [Position] : -795.424133, 222.608475
+  [TemplateID] : 14686373685247804210
+  [UUID] : 4326815730035941652
+  [Position] : -333.314972, 150.823990
   [Possibility Index] : 0
-  [Param Name] : iTime
-  [Param Type] : 1
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 17983610179050168517
-  [UUID] : 1162442029570592179
-  [Position] : -546.663147, -301.893188
-  [Possibility Index] : 1
-  [Value 1] : 2.000000, 0.000000, 0.000000, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 7914862670581146976
-  [UUID] : 10541178568750523401
-  [Position] : -729.955994, -313.119202
-  [Possibility Index] : 0
-  [Param Name] : TexCoords
-  [Param Type] : 4
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 18195853051418024993
-  [UUID] : 16233359902670997582
-  [Position] : -384.788971, -299.161133
-  [Possibility Index] : 4
-  [Value 1] : 1.000000, 0.000000, 0.000000, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 10327275955282710464
-  [UUID] : 4464775399234712282
-  [Position] : -213.344177, -296.277313
-  [Possibility Index] : 0
-  [Name] : UV
-  [Type] : 4
-  [Definition] : 1
-  [Color] : 0.698842, 0.307598, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 16263434952350913734
-  [UUID] : 1747196995850545320
-  [Position] : -278.146454, -5.069207
-  [Input Count] : 1
-  [Input Name 0] : uv
-  [Input Type 0] : 4
-  [Output Count] : 1
-  [Output Name 0] : Out
-  [Output Type 0] : 5
-  [Content] : vec3 palette( float t ) {\n    vec3 a = vec3(0.5, 0.5, 0.5);\n    vec3 b = vec3(0.5, 0.5, 0.5);\n    vec3 c = vec3(1.0, 1.0, 1.0);\n    vec3 d = vec3(0.263,0.416,0.557);\n\n    return a + b*cos( 6.28318*(c*t+d) );\n}\n\nvoid Custom_Node_1747196995850545320_Func(in vec2 uv, out vec3 Out)\n{\n    vec2 uv0 = uv;\n    vec2 newUV = uv;\n    \n    for (float i = 0.0; i < 4.0; i++) {\n        newUV = fract(newUV * 1.5) - 0.5;\n\n        float d = length(newUV) * exp(-length(uv0));\n\n        vec3 col = palette(length(uv0) + i*.4 + iTime*.4);\n\n        d = sin(d*8. + iTime)/8.;\n        d = abs(d);\n\n        d = pow(0.01 / d, 1.2);\n\n        Out += col * d;\n    }\n}\n
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 662345837686521650
-  [UUID] : 821034203359334984
-  [Position] : -565.147827, -13.715112
-  [Possibility Index] : 0
-  [Name] : UV
-  [Type] : 4
-  [Definition] : 0
-  [Color] : 0.698842, 0.307598, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 868662674693194556
-  [UUID] : 880838967151131773
-  [Position] : -638.216858, 218.189407
-  [Possibility Index] : 0
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 7942211228350165767
-  [UUID] : 12782377007895594655
-  [Position] : -115.798767, 80.946533
-  [Possibility Index] : 2
-  [Value 1] : 1.000000, 1.000000, 1.000000, 0.000000
-   ============= Node ============= 
-   ------------- Node ------------- 
-  [TemplateID] : 18195853051418024993
-  [UUID] : 5955173403796054786
-  [Position] : -444.306122, 118.863335
-  [Possibility Index] : 0
-  [Value 1] : 0.500000, 0.000000, 0.000000, 0.000000
+  [Param Name] : None2
+  [Param Type] : 7
+  [Preview Value] : 1.000000, 0.000000, 0.000000, 0.000000
    ============= Node ============= 
  ============= Nodes ============= 
  ------------- Links ------------- 
-[Link Count] : 10
-   ------------- Link ------------- 
-  [From Node Index] : 10541178568750523401
-  [From Output Index] : 0
-  [To Node Index] : 1162442029570592179
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 1162442029570592179
-  [From Output Index] : 0
-  [To Node Index] : 16233359902670997582
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 16233359902670997582
-  [From Output Index] : 0
-  [To Node Index] : 4464775399234712282
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 821034203359334984
-  [From Output Index] : 0
-  [To Node Index] : 1747196995850545320
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 10668396562615232599
-  [From Output Index] : 0
-  [To Node Index] : 880838967151131773
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 880838967151131773
-  [From Output Index] : 0
-  [To Node Index] : 5955173403796054786
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 1747196995850545320
-  [From Output Index] : 0
-  [To Node Index] : 12782377007895594655
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 5955173403796054786
-  [From Output Index] : 0
-  [To Node Index] : 5312599599370757778
-  [To Input Index] : 0
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 5312599599370757778
-  [From Output Index] : 0
-  [To Node Index] : 12782377007895594655
-  [To Input Index] : 2
-   ============= Link ============= 
-   ------------- Link ------------- 
-  [From Node Index] : 12782377007895594655
-  [From Output Index] : 0
-  [To Node Index] : 1580015993650404421
-  [To Input Index] : 0
-   ============= Link ============= 
+[Link Count] : 0
  ============= Links ============= 

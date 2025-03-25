@@ -176,6 +176,8 @@ void ShaderMaker::DoWork(NodeManager* manager)
                 node->m_shader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
             }
         }
+        
+        node->RenderPreview(manager->GetMainWindow()->GetQuad());
     }
 }
 

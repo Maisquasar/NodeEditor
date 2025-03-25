@@ -62,6 +62,10 @@ public:
     bool SetFragmentShaderContent(const std::string& string);
     bool Link();
 
+    void ComputeUniforms();
+    using UniformMap = std::unordered_map<int /* location */, int /* bind */>;
+    UniformMap GetUniforms() const { return m_uniform; }
+
     void Use() const;
     bool RecompileFragmentShader();
     bool RecompileFragmentShader(const char* content);
@@ -73,6 +77,8 @@ public:
 
     bool IsLoaded() const { return m_loaded; }
 
+    std::string GetFragmentSource() const { return m_fragSource; }
+
 private:
     std::filesystem::path m_path;
     uint32_t m_program = -1;
@@ -83,7 +89,9 @@ private:
 
     bool m_loaded = false;
 
-    int m_index = 0;
+    std::string m_fragSource = "";
+
+    UniformMap m_uniform;
 };
 
 class Framebuffer

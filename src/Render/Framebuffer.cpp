@@ -1,5 +1,6 @@
 #include "Render/Framebuffer.h"
 
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 
@@ -192,6 +193,7 @@ bool Shader::SetFragmentShaderContent(const std::string& string)
         ImGui::SetClipboardText(string.c_str());
         return false;
     }
+    m_fragSource = string.c_str();
     
     glAttachShader(m_program, m_fragmentShader);
 
@@ -211,8 +213,34 @@ bool Shader::Link()
         m_loaded = false;
         return false;
     }
+    ComputeUniforms();
+
+    
     m_loaded = true;
     return true;
+}
+
+void Shader::ComputeUniforms()
+{
+    int numUniforms = 0;
+    glGetProgramiv(m_program, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+    int binding = 0;
+    for (GLint i = 0; i < numUniforms; ++i) {
+        constexpr GLsizei bufSize = 256; // Maximum name length
+        GLchar name[bufSize];
+        GLsizei length;
+        GLint size;
+        GLenum type; 
+        glGetActiveUniform(m_program, i, bufSize, &length, &size, &type, name);
+
+        if (type != GL_SAMPLER_2D)
+            continue;
+			
+        GLint location = glGetUniformLocation(m_program, name); // Get the location of the uniform
+			
+        m_uniform[location] = ++binding;
+    }
 }
 
 void Shader::Use() const
@@ -277,6 +305,7 @@ bool Shader::RecompileFragmentShader(const char* content)
         ImGui::SetClipboardText(content);
         return false;
     }
+    m_fragSource = content;
 
     // Attach the new shader and relink the program
     glAttachShader(m_program, newFragmentShader);
@@ -285,7 +314,6 @@ bool Shader::RecompileFragmentShader(const char* content)
 
 void Shader::UpdateValues()
 {
-    m_index = 0;
     m_updateValuesFunc(m_program);
 }
 
@@ -319,11 +347,13 @@ void Shader::SendValue(const char* name, Vec4f value, Type type)
         glUniform4f(location, value.x, value.y, value.z, value.w);
         break;
     case Type::Sampler2D:
-        glActiveTexture(GL_TEXTURE0 + m_index);
-        glBindTexture(GL_TEXTURE_2D, value.x);
-        glUniform1i(location, m_index);
-        m_index++;
-        break;
+        {
+            int binding = m_uniform[location];
+            glActiveTexture(GL_TEXTURE0 + binding);
+            glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(value.x));
+            glUniform1i(location, binding);
+            break;
+        }
     }
 }
 

@@ -69,10 +69,10 @@ public:
     void SetWindowName(const std::string& name) { m_windowName = name; }
 
     std::string GetWindowName() const { return m_windowName; }
-    
     NodeManager* GetNodeManager() const { return m_nodeManager; }
-
     void* GetIMGUIWindow() const { return m_ImGuiWindow; }
+
+    Ref<Mesh> GetQuad() const { return m_quad; }
 private:
     
     void DrawGrid();

@@ -205,7 +205,9 @@ void NodeWindow::UpdateShaders()
         ShaderMaker shaderMaker;
         
         shaderMaker.DoWork(m_nodeManager);
-        
+
+
+        // Material Node Shader
         std::string content;
         
         shaderMaker.CreateFragmentShader(content, m_nodeManager);
@@ -220,19 +222,6 @@ void NodeWindow::UpdateShaders()
             {
                 m_currentShader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
             }
-        }
-        
-        for (auto it = m_previewNodes.begin(); it != m_previewNodes.end();)
-        {
-            const NodeRef previewNode = m_nodeManager->GetNode(*it).lock();
-
-            if (!previewNode || !previewNode->p_preview)
-            {
-                it = m_previewNodes.erase(it); // Erase returns the next valid iterator
-                continue;
-            }
-            previewNode->RenderPreview(m_quad);
-            ++it;
         }
 
         m_framebuffer->Update();
