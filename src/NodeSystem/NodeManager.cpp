@@ -51,6 +51,7 @@ NodeManager::NodeManager(NodeWindow* window) : m_parent(window)
     m_linkManager = new LinkManager(this);
 
     m_rerouteManager = new RerouteNodeNamedManager();
+    m_paramManager = new ParamNodeManager();
 
     AddNode(NodeTemplateHandler::CreateFromTemplateName("Material"));
 }
@@ -58,6 +59,7 @@ NodeManager::NodeManager(NodeWindow* window) : m_parent(window)
 NodeManager::~NodeManager()
 {
     delete m_rerouteManager;
+    delete m_paramManager;
     delete m_linkManager;
 }
 
@@ -808,6 +810,11 @@ void NodeManager::ClearSelectedNodes()
 RerouteNodeNamedManager* NodeManager::GetRerouteManager() const
 {
     return m_rerouteManager;
+}
+
+ParamNodeManager* NodeManager::GetParamManager() const
+{
+    return m_paramManager;
 }
 
 NodeWeak NodeManager::GetNode(const UUID& uuid) const

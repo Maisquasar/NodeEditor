@@ -170,7 +170,8 @@ void ShaderMaker::DoWork(NodeManager* manager)
         bool success = node->m_shader->RecompileFragmentShader(content.c_str());
         if (!success)
             continue;
-        
+
+        node->m_shader->Use();
         for (auto& val : manager->m_nodes | std::views::values)
         {
             if (Shared paramNode = std::dynamic_pointer_cast<ParamNode>(val))

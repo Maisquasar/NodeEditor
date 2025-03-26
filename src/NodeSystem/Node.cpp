@@ -1,5 +1,6 @@
 #include "NodeSystem/Node.h"
 
+#include <ranges>
 #include <CppSerializer.h>
 #include <imgui_internal.h>
 #include <glad/glad.h>
@@ -10,6 +11,7 @@
 #include "Actions/ActionChangeValue.h"
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
+#include "NodeSystem/ParamNode.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Font.h"
 #include "Render/Framebuffer.h"
@@ -280,11 +282,22 @@ void Node::DrawButtonPreview(float zoom, const Vec2f& origin, Vec2f pMin, Vec2f 
     }
     DrawTriangle(drawList, p_preview ? ImGuiDir_Up : ImGuiDir_Down, trianglePos, triangleSize);
 }
-
-void Node::RenderPreview(std::shared_ptr<Mesh> quad) const
+void Node::RenderPreview(std::shared_ptr<Mesh> quad) const  
 {
     m_framebuffer->Update();
     m_framebuffer->Bind();
+    
+
+    for (auto& val : p_nodeManager->GetNodes() | std::views::values)
+    {
+        if (Shared paramNode = std::dynamic_pointer_cast<ParamNode>(val))
+        {
+            Vec4f previewValue = paramNode->GetPreviewValue();
+            std::string name = paramNode->GetParamName();
+            Type type = paramNode->GetType();
+            m_shader->SendValue(name.c_str(), previewValue, type);
+        }
+    }
     m_shader->Use();
     m_shader->UpdateValues();
     quad->Draw();

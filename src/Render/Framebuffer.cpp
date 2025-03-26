@@ -296,6 +296,7 @@ bool Shader::RecompileFragmentShader(const char* content)
     // Check for compilation errors
     GLint success;
     glGetShaderiv(newFragmentShader, GL_COMPILE_STATUS, &success);
+    m_fragSource = content;
     if (!success)
     {
         char infoLog[512];
@@ -305,7 +306,6 @@ bool Shader::RecompileFragmentShader(const char* content)
         ImGui::SetClipboardText(content);
         return false;
     }
-    m_fragSource = content;
 
     // Attach the new shader and relink the program
     glAttachShader(m_program, newFragmentShader);
@@ -319,7 +319,6 @@ void Shader::UpdateValues()
 
 void Shader::SendValue(const char* name, Vec4f value, Type type)
 {
-    Use();
     GLint location = glGetUniformLocation(m_program, name);
     if (location == -1)
         return;

@@ -12,6 +12,7 @@
 #include "Type.h"
 
 
+class ParamNodeManager;
 class RerouteNodeNamedManager;
 class NodeWindow;
 class LinkManager;
@@ -90,6 +91,7 @@ public:
     
     LinkManager* GetLinkManager() const { return m_linkManager; }
     RerouteNodeNamedManager* GetRerouteManager() const;
+    ParamNodeManager* GetParamManager() const;
     NodeWeak GetNode(const UUID& uuid) const;
     NodeWeak GetNodeWithTemplate(TemplateID templateID);
     NodeWeak GetNodeWithName(const std::string& name);
@@ -129,6 +131,7 @@ public:
     
     void Clean();
 
+    const NodeList& GetNodes() const { return m_nodes; }
 private:
     void SetHoveredStream(const Weak<Stream>& stream);
 
@@ -141,6 +144,7 @@ private:
     NodeWindow* m_parent;
     LinkManager* m_linkManager = nullptr;
     RerouteNodeNamedManager* m_rerouteManager = nullptr;
+    ParamNodeManager* m_paramManager = nullptr;
     NodeList m_nodes;
     
     Link m_currentLink; // The link when creating a new link

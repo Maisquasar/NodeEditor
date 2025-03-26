@@ -116,19 +116,29 @@ void NodeWindow::Draw()
     }
 }
 
-void NodeWindow::RenderNodePreview(const std::shared_ptr<Node> previewNode)
-{
-    previewNode->m_framebuffer->Update();
-    previewNode->m_framebuffer->Bind();
-    previewNode->m_shader->Use();
-    previewNode->m_shader->UpdateValues();
-    m_quad->Draw();
-    previewNode->m_framebuffer->Unbind();
-}
-
 void NodeWindow::Render()
 {
     UpdateShaders();
+    
+    for (auto it = m_previewNodes.begin(); it != m_previewNodes.end();)
+    {
+        const auto previewNode = m_nodeManager->GetNode(*it).lock();
+
+        if (!previewNode || !previewNode->p_preview)
+        {
+            it = m_previewNodes.erase(it); // Erase returns the next valid iterator
+            continue;
+        }
+        previewNode->RenderPreview(m_quad);
+        ++it;
+    }
+
+    m_framebuffer->Update();
+    m_framebuffer->Bind();
+    m_currentShader->Use();
+    m_currentShader->UpdateValues();
+    m_quad->Draw();
+    m_framebuffer->Unbind();
 }
 
 void NodeWindow::ResetActionManager()
@@ -205,31 +215,12 @@ void NodeWindow::UpdateShaders()
         ShaderMaker shaderMaker;
         
         shaderMaker.DoWork(m_nodeManager);
-
-
-        // Material Node Shader
+        
         std::string content;
         
         shaderMaker.CreateFragmentShader(content, m_nodeManager);
         
-        // ImGui::SetClipboardText(content.c_str());
-        
         m_currentShader->RecompileFragmentShader(content.c_str());
-
-        for (auto& node : m_nodeManager->m_nodes)
-        {
-            if (auto paramNode = std::dynamic_pointer_cast<ParamNode>(node.second))
-            {
-                m_currentShader->SendValue(paramNode->GetParamName().c_str(), paramNode->GetPreviewValue(), paramNode->GetType());
-            }
-        }
-
-        m_framebuffer->Update();
-        m_framebuffer->Bind();
-        m_currentShader->Use();
-        m_currentShader->UpdateValues();
-        m_quad->Draw();
-        m_framebuffer->Unbind();
         
         m_shouldUpdateShader = false;
     }

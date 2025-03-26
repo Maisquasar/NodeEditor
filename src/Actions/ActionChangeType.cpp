@@ -35,6 +35,7 @@ void ActionChangeType::Do()
     if (m_paramNode)
     {
         m_paramNode->SetType(m_type);
+        m_paramNode->GetNodeManager()->GetParamManager()->UpdateType(m_paramNode->GetParamName(), m_type);
     }
     else if (m_customNode)
     {
@@ -58,6 +59,7 @@ void ActionChangeType::Undo()
     {
         node = m_paramNode;
         m_paramNode->SetType(m_oldType);
+        m_paramNode->GetNodeManager()->GetParamManager()->UpdateType(m_paramNode->GetParamName(), m_oldType);
     }
     else if (m_customNode)
     {

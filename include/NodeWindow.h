@@ -45,7 +45,6 @@ public:
 
     void Update() const;
     void Draw();
-    void RenderNodePreview(std::shared_ptr<Node> previewNode);
     void Render();
     void ResetActionManager();
 

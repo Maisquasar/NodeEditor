@@ -10,6 +10,76 @@
 #include "Actions/ActionChangeInput.h"
 #include "Actions/ActionChangeType.h"
 
+void ParamNodeManager::AddParamNode(ParamNode* node, const std::string& name)
+{
+    auto it = m_paramNodes.find(name);
+    if (it == m_paramNodes.end())
+    {
+        std::vector<ParamNode*> nodes;
+        nodes.push_back(node);
+        m_paramNodes[name] = nodes;
+    }
+    else
+    {
+        it->second.push_back(node);
+    }
+}
+
+void ParamNodeManager::RemoveParamNode(ParamNode* node, const std::string& name)
+{
+    auto it = m_paramNodes.find(name);
+    assert(it != m_paramNodes.end());
+    std::vector<ParamNode*>& nodes = it->second;
+    auto nodeIt = std::ranges::find(nodes, node);
+    if (nodeIt != nodes.end())
+    {
+        nodes.erase(nodeIt);
+        if (nodes.empty())
+        {
+            m_paramNodes.erase(it);
+        }
+    }
+}
+
+bool ParamNodeManager::Exist(const std::string& name) const
+{
+    return m_paramNodes.contains(name);
+}
+
+void ParamNodeManager::UpdateValue(const std::string& name, Vec4f value)
+{
+    auto list = m_paramNodes.find(name);
+    assert(list != m_paramNodes.end());
+
+    for (ParamNode* node : list->second)
+    {
+        node->SetPreviewValue(value);
+    }
+}
+
+void ParamNodeManager::UpdateType(const std::string& name, Type type)
+{
+    auto list = m_paramNodes.find(name);
+    assert(list != m_paramNodes.end());
+
+    for (ParamNode* node : list->second)
+    {
+        node->SetType(type);
+    }
+}
+
+void ParamNodeManager::OnUpdateName(ParamNode* node, const std::string& prevName, const std::string& newName)
+{
+    auto prevList = m_paramNodes.find(prevName);
+    assert(prevList != m_paramNodes.end());
+
+    // Remove from previous list
+    RemoveParamNode(node, prevName);
+
+    // Add to new list
+    AddParamNode(node, newName);
+}
+
 void ParamNode::ShowInInspector()
 {
     Node::ShowInInspector();
@@ -22,7 +92,8 @@ void ParamNode::ShowInInspector()
     {
         Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs.back()->name, p_outputs.back()->name, m_paramName);
         ActionManager::AddAction(changeInput);
-        
+
+        p_nodeManager->GetParamManager()->OnUpdateName(this, p_outputs.back()->name, m_paramName);
         p_outputs.back()->name = m_paramName;
     }
 
@@ -31,13 +102,16 @@ void ParamNode::ShowInInspector()
     int type = static_cast<int>(m_paramType) - 1;
     if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
     {
-        Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, static_cast<Type>(type + 1), m_paramType);
-        SetType(static_cast<Type>(type + 1));
+        Type realType = static_cast<Type>(type + 1);
+        Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, realType, m_paramType);
+        SetType(realType);
+        p_nodeManager->GetParamManager()->UpdateType(m_paramName, realType);
         ActionManager::AddAction(changeType);
     }
 
     const char* InputName = "Preview Value";
     Vec4f previewValue = GetPreviewValue();
+    bool valueChanged = false;
     //TODO Add action for each type
     switch (m_paramType)
     {
@@ -49,9 +123,8 @@ void ParamNode::ShowInInspector()
             float val = previewValue.x;
             if (ImGui::DragFloat(InputName, &val, 0.1f))
             {
+                valueChanged = true;
                 previewValue.x = val;
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
             }
         }
         break;
@@ -61,8 +134,7 @@ void ParamNode::ShowInInspector()
             if (ImGui::DragInt(InputName, &val, 1))
             {
                 previewValue.x = static_cast<float>(val);
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
+                valueChanged = true;
             }
         }
         break;
@@ -72,8 +144,7 @@ void ParamNode::ShowInInspector()
             if (ImGui::Checkbox(InputName, &val))
             {
                 previewValue.x = val ? 1.0f : 0.0f;
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
+                valueChanged = true;
             }
         }
         break;
@@ -83,8 +154,7 @@ void ParamNode::ShowInInspector()
             if (ImGui::DragFloat2(InputName, &val.x, 0.1f))
             {
                 previewValue.x = val.x;
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
+                valueChanged = true;
             }
         }
         break;
@@ -94,8 +164,7 @@ void ParamNode::ShowInInspector()
             if (ImGui::ColorEdit3(InputName, &val.x))
             {
                 previewValue.x = val.x;
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
+                valueChanged = true;
             }
         }
         break;
@@ -103,27 +172,32 @@ void ParamNode::ShowInInspector()
         {
             if (ImGui::ColorEdit4(InputName, &previewValue.x))
             {
-                p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-                m_previewValue = previewValue;
+                valueChanged = true;
             }
         }
         break;
     case Type::Sampler2D:
         {
-            Vec4f value = previewValue;
-            int valueInt = static_cast<int>(value.x);
+            int valueInt = static_cast<int>(previewValue.x);
             if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
             {
-                value.x = static_cast<float>(valueInt);
-                previewValue = value;
-                m_previewValue = previewValue;
+                previewValue.x = static_cast<float>(valueInt);
+                valueChanged = true;
             }
         }
         break;
-    default: ;
+    default:
+        break;
     }
     
     ImGui::EndDisabled();
+
+    if (valueChanged)
+    {
+        SetPreviewValue(previewValue);
+        p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+        p_nodeManager->GetParamManager()->UpdateValue(m_paramName, previewValue);
+    }
 }
 
 std::vector<std::string> ParamNode::GetFormatStrings() const
@@ -169,6 +243,38 @@ Node* ParamNode::Clone() const
     node->m_previewValue = m_previewValue;
     Internal_Clone(node);
     return node;
+}
+
+void ParamNode::OnCreate()
+{
+    if (!m_editable)
+        return;
+    std::string paramName;
+    int index = 0;
+    do
+    {
+        if (index == 0)
+            paramName = "None";
+        else
+            paramName = "None" + std::to_string(index);
+        index++;
+    }
+    while (p_nodeManager->GetParamManager()->Exist(paramName));
+    SetParamName(paramName);
+    p_nodeManager->GetParamManager()->AddParamNode(this, GetParamName());
+}
+
+void ParamNode::OnRemove()
+{
+    if (!m_editable)
+        return;
+    p_nodeManager->GetParamManager()->RemoveParamNode(this, GetParamName());
+}
+
+void ParamNode::SetParamName(std::string name)
+{
+    m_paramName = std::move(name);
+    p_outputs.back()->name = m_paramName;
 }
 
 void ParamNode::SetType(Type type)
