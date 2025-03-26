@@ -79,6 +79,7 @@ public:
     static void SetUpdateValuesFunc(const UpdateValuesFunc& func) { m_updateValuesFunc = func; }
 
     bool IsLoaded() const { return m_loaded; }
+    bool Failed() const { return m_failed; }
 
     std::string GetFragmentSource() const { return m_fragSource; }
 
@@ -91,6 +92,7 @@ private:
     static UpdateValuesFunc m_updateValuesFunc;
 
     bool m_loaded = false;
+    bool m_failed = false;
 
     std::string m_fragSource = "";
 

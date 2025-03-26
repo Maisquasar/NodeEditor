@@ -120,11 +120,9 @@ void ParamNode::ShowInInspector()
         break;
     case Type::Float:
         {
-            float val = previewValue.x;
-            if (ImGui::DragFloat(InputName, &val, 0.1f))
+            if (ImGui::DragFloat(InputName, &previewValue.x, 0.1f))
             {
                 valueChanged = true;
-                previewValue.x = val;
             }
         }
         break;
@@ -151,19 +149,16 @@ void ParamNode::ShowInInspector()
     case Type::Vector2:
         {
             Vec2f val = Vec2f(previewValue.x, previewValue.y);
-            if (ImGui::DragFloat2(InputName, &val.x, 0.1f))
+            if (ImGui::DragFloat2(InputName, &previewValue.x, 0.1f))
             {
-                previewValue.x = val.x;
                 valueChanged = true;
             }
         }
         break;
     case Type::Vector3:
         {
-            Vec3f val = previewValue;
-            if (ImGui::ColorEdit3(InputName, &val.x))
+            if (ImGui::ColorEdit3(InputName, &previewValue.x))
             {
-                previewValue.x = val.x;
                 valueChanged = true;
             }
         }

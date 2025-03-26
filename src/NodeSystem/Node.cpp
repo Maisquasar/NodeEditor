@@ -287,7 +287,7 @@ void Node::RenderPreview(std::shared_ptr<Mesh> quad) const
     m_framebuffer->Update();
     m_framebuffer->Bind();
     
-
+    m_shader->Use();
     for (auto& val : p_nodeManager->GetNodes() | std::views::values)
     {
         if (Shared paramNode = std::dynamic_pointer_cast<ParamNode>(val))
@@ -298,7 +298,7 @@ void Node::RenderPreview(std::shared_ptr<Mesh> quad) const
             m_shader->SendValue(name.c_str(), previewValue, type);
         }
     }
-    m_shader->Use();
+    
     m_shader->UpdateValues();
     quad->Draw();
     m_framebuffer->Unbind();
@@ -441,6 +441,21 @@ void Node::Draw(float zoom, const Vec2f& origin) const
         }
     }
 #endif
+    if (m_shader && m_shader->Failed())
+    {
+        float errorLineWidth = 4.f;
+        ImU32 errorColor = IM_COL32(237, 45, 45, 255);
+        drawList->AddRect(pMin, pMax, errorColor, 8.f * zoom, 240, errorLineWidth * zoom);
+
+        // Draw Error Text
+        Vec2f gap = Vec2f(5, 0) * zoom;
+        Vec2f textGap = Vec2f(5, 0) * zoom;
+        Vec2f textSize = font->CalcTextSizeA(14 * zoom, FLT_MAX, FLT_MAX, "Compilation Error");
+        Vec2f errorRectMin = pMin + gap - Vec2f(0, textSize.y);
+        Vec2f errorRectMax = pMin + gap + Vec2f(textSize.x, 0);
+        drawList->AddRectFilled(errorRectMin, errorRectMax + textGap * 2.f, errorColor, 8.f * zoom, ImDrawFlags_RoundCornersTop);
+        drawList->AddText(font, 14 * zoom, errorRectMin + textGap, IM_COL32(255, 255, 255, 255), "Compilation Error");
+    }
     if (p_selected)
     {
         drawList->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 8.f * zoom, 240, 2);
