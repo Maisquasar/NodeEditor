@@ -201,7 +201,11 @@ void ParamNode::ShowInInspector()
 std::vector<std::string> ParamNode::GetFormatStrings() const
 {
     if (m_paramType == Type::Sampler2D)
+    {
+        if (DoesInputHaveLink(0))
+            return {"texture2D(" + m_paramName + ", %s)"};    
         return {"texture2D(" + m_paramName + ", " + NodeEditor::TexCoordsVariableName + ")"};
+    }
     return {m_paramName};
 }
 
@@ -278,9 +282,14 @@ void ParamNode::SetParamName(std::string name)
 void ParamNode::SetType(Type type)
 {
     ClearOutputs();
+    ClearInputs();
+    
     m_paramType = type;
     if (type == Type::Sampler2D)
+    {
         type = Type::Vector4;
+        AddInput("UV", Type::Vector2);
+    }
     AddOutput(m_paramName, type);
 }
 
