@@ -780,7 +780,13 @@ void Node::GetPreviewButtonRect(Vec2f& outMin, Vec2f& outMax, const Vec2f& nodeM
 void Node::ShowInInspector()
 {
     ImGui::PushID(GetUUID());
-    ImGui::Text("Inputs:");
+    if (m_shader && m_shader->Failed())
+    {
+        ImGui::TextColored(Vec4f(1, 0, 0, 1), "Compilation Error :");
+        ImGui::TextColored(Vec4f(1, 0, 0, 1), m_shader->GetError().c_str());
+    }
+    if (!p_inputs.empty())
+        ImGui::Text("Inputs:");
     for (uint32_t i = 0; i < p_inputs.size(); ++i)
     {
         ShowInputInspector(i);
@@ -788,7 +794,14 @@ void Node::ShowInInspector()
     if (m_shader)
     {
         std::string content = m_shader->GetFragmentSource();
-        ImGui::InputTextMultiline("Content", &content[0], content.size() + 1);
+        if (ImGui::CollapsingHeader("Shader Content"))
+        {
+            if (ImGui::BeginChild("ShaderContent", ImVec2(0, 200), true))
+            {
+                ImGui::TextWrapped(content.c_str());
+            }
+            ImGui::EndChild();
+        }
     }
     ImGui::PopID();
 }
@@ -901,6 +914,7 @@ void Node::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "UUID" << CppSer::Pair::Value << p_uuid;
     serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
     serializer << CppSer::Pair::Key << "Possibility Index" << CppSer::Pair::Value << p_currentPossibility;
+    serializer << CppSer::Pair::Key << "Preview" << CppSer::Pair::Value << p_preview;
     
     for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
@@ -938,6 +952,9 @@ void Node::Deserialize(CppSer::Parser& parser, bool removeLinks /*= true*/)
 
     p_currentPossibility = parser["Possibility Index"].As<int>();
 
+    bool preview = parser["Preview"].As<bool>();
+    OpenPreview(preview);
+    
     ConvertStream(p_currentPossibility, removeLinks);
 
     InternalDeserialize(parser);
@@ -1033,7 +1050,8 @@ void Node::OpenPreview(bool open)
     }
     else
     {
-        p_nodeManager->GetMainWindow()->RemovePreviewNode(p_uuid);
+        if (p_allowInteraction) // Don't remove the preview if it's the main node
+            p_nodeManager->GetMainWindow()->RemovePreviewNode(p_uuid);
     }
 }
 

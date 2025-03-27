@@ -161,29 +161,13 @@ void ShaderMaker::DoWork(NodeManager* manager)
 
     for (NodeRef& node : std::views::values(manager->m_nodes))
     {
-        if (!node || !node->p_preview)
+        if (!node || !node->p_preview && endNode != node)
             continue;
         std::string content;
 
         CreateFragmentShader(content, manager, node);
 
-        bool success = node->m_shader->RecompileFragmentShader(content.c_str());
-        if (!success)
-            continue;
-
-        node->m_shader->Use();
-        for (auto& val : manager->m_nodes | std::views::values)
-        {
-            if (Shared paramNode = std::dynamic_pointer_cast<ParamNode>(val))
-            {
-                Vec4f previewValue = paramNode->GetPreviewValue();
-                std::string name = paramNode->GetParamName();
-                Type type = paramNode->GetType();
-                node->m_shader->SendValue(name.c_str(), previewValue, type);
-            }
-        }
-        
-        node->RenderPreview(manager->GetMainWindow()->GetQuad());
+        node->m_shader->RecompileFragmentShader(content.c_str());
     }
     RenderDocAPI::EndFrameCapture();
 }

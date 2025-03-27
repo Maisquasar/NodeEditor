@@ -230,6 +230,7 @@ void CustomNode::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "TemplateID" << CppSer::Pair::Value << p_templateID;
     serializer << CppSer::Pair::Key << "UUID" << CppSer::Pair::Value << p_uuid;
     serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
+    serializer << CppSer::Pair::Key << "Preview" << CppSer::Pair::Value << p_preview;
 
     serializer << CppSer::Pair::Key << "Input Count" << CppSer::Pair::Value << p_inputs.size();
     for (uint32_t i = 0; i < p_inputs.size(); i++)
@@ -293,6 +294,9 @@ void CustomNode::Deserialize(CppSer::Parser& parser, bool removeLinks)
         Type outputType = static_cast<Type>(parser["Output Type " + std::to_string(i)].As<int>());
         AddOutput(outputName, outputType);
     }
+    
+    bool preview = parser["Preview"].As<bool>();
+    OpenPreview(preview);
 
     m_content = parser["Content"].As<std::string>();
     UnsanitizeString(m_content);

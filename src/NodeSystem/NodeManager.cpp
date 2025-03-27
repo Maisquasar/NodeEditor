@@ -628,11 +628,12 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
 
         if (m_userInputState == UserInputState::None && node->p_allowPreview)
         {
-            if (node->p_previewHovered = node->IsPreviewHovered(mousePos, origin, zoom))
+            if (node->p_previewHovered = node->IsPreviewHovered(mousePos, origin, zoom); node->p_previewHovered)
             {
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 {
                     node->OpenPreview(!node->p_preview);
+                    wasNodeClicked = true;
                     break;
                 }
             }
@@ -817,6 +818,11 @@ ParamNodeManager* NodeManager::GetParamManager() const
     return m_paramManager;
 }
 
+Shared<Node> NodeManager::GetMainNode() const
+{
+    return GetNodeWithName("Material").lock();
+}
+
 NodeWeak NodeManager::GetNode(const UUID& uuid) const
 {
     if (m_nodes.find(uuid) == m_nodes.end())
@@ -838,7 +844,7 @@ NodeWeak NodeManager::GetNodeWithTemplate(TemplateID templateID)
     return {};
 }
 
-NodeWeak NodeManager::GetNodeWithName(const std::string& name)
+NodeWeak NodeManager::GetNodeWithName(const std::string& name) const
 {
     for (auto& val : m_nodes | std::views::values)
     {
@@ -960,6 +966,7 @@ bool NodeManager::LoadFromFile(const std::filesystem::path& path)
     Deserialize(parser);
     m_firstFrame = true;
 
+    GetMainWindow()->InitializeMainNode();
     m_parent->ShouldUpdateShader();
 
     return true;

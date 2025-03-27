@@ -203,6 +203,11 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Subtract", functionColor, { {"A", Type::Float}, {"B", Type::Vector3} }, { {"Result", Type::Vector3} }, "%s - %s", {"-"});
     CreateTemplateNode("Subtract", functionColor, { {"A", Type::Float}, {"B", Type::Vector4} }, { {"Result", Type::Vector4} }, "%s - %s", {"-"});
 
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Float} }, { {"Result", Type::Float} }, "1.0 - %s", {"1 - "});
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector2} }, { {"Result", Type::Vector2} }, "vec2(1.0) - %s", {"1 - "});
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector3} }, { {"Result", Type::Vector3} }, "vec3(1.0) - %s", {"1 - "});
+    CreateTemplateNode("One Minus", functionColor, { {"A", Type::Vector4} }, { {"Result", Type::Vector4} }, "vec4(1.0) - %s", {"1 - "});
+
     CreateTemplateNode("Multiply", functionColor, { {"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Float} }, "%s * %s", {"*"});
     CreateTemplateNode("Multiply", functionColor, { {"A", Type::Vector2}, {"B", Type::Float} }, { {"Result", Type::Vector2} }, "%s * %s", {"*"});
     CreateTemplateNode("Multiply", functionColor, { {"A", Type::Vector3}, {"B", Type::Float} }, { {"Result", Type::Vector3} }, "%s * %s", {"*"});

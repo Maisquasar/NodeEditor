@@ -38,7 +38,8 @@ class NodeWindow : public Context
 public:
     NodeWindow() = default;
     ~NodeWindow() override = default;
-    
+
+    void InitializeMainNode();
     void Initialize() override;
     
     void PasteNode() const;

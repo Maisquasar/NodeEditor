@@ -29,18 +29,25 @@ using namespace GALAXY;
 class ParamNode;
 using namespace GALAXY;
 
+void NodeWindow::InitializeMainNode()
+{
+    Shared<Node> mainNode = m_nodeManager->GetMainNode();
+    mainNode->InitializePreview();
+    m_currentShader = mainNode->m_shader;
+    m_framebuffer = mainNode->m_framebuffer;
+    
+    AddPreviewNode(mainNode->GetUUID());
+}
+
 void NodeWindow::Initialize()
 {
     m_actionManager.SetContext(this);
     
     m_nodeManager = new NodeManager(this);
 
-    m_quad = Mesh::GetQuad();
-    m_currentShader = std::make_shared<Shader>();
-    m_currentShader->LoadDefaultShader();
+    InitializeMainNode();
 
-    m_framebuffer = std::make_shared<Framebuffer>();
-    m_framebuffer->Initialize();
+    m_quad = Mesh::GetQuad();
 }
 
 void NodeWindow::PasteNode() const
@@ -124,7 +131,7 @@ void NodeWindow::Render()
     {
         const auto previewNode = m_nodeManager->GetNode(*it).lock();
 
-        if (!previewNode || !previewNode->p_preview)
+        if (!previewNode || !previewNode->p_preview && previewNode->p_allowInteraction)
         {
             it = m_previewNodes.erase(it); // Erase returns the next valid iterator
             continue;
@@ -132,13 +139,6 @@ void NodeWindow::Render()
         previewNode->RenderPreview(m_quad);
         ++it;
     }
-
-    m_framebuffer->Update();
-    m_framebuffer->Bind();
-    m_currentShader->Use();
-    m_currentShader->UpdateValues();
-    m_quad->Draw();
-    m_framebuffer->Unbind();
 }
 
 void NodeWindow::ResetActionManager()
@@ -180,6 +180,8 @@ void NodeWindow::DrawInspector() const
     ImGui::Separator();
     
     Vec2f size = {size1 - 15, size1 - 15};
+    size.x = std::fminf(size.x, 256);
+    size.y = std::fminf(size.y, 256);
     m_framebuffer->SetNewSize(size);
     ImGui::Dummy(Vec2f(5, 5));
     ImGui::Image(reinterpret_cast<void*>(static_cast<size_t>(m_framebuffer->GetRenderTexture())), size, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1));
@@ -216,12 +218,6 @@ void NodeWindow::UpdateShaders()
         
         shaderMaker.DoWork(m_nodeManager);
         
-        std::string content;
-        
-        shaderMaker.CreateFragmentShader(content, m_nodeManager);
-        
-        m_currentShader->RecompileFragmentShader(content.c_str());
-        
         m_shouldUpdateShader = false;
     }
 }
@@ -231,6 +227,7 @@ void NodeWindow::NewScene()
     m_nodeManager->Clean();
     delete m_nodeManager;
     m_nodeManager = new NodeManager(this);
+    InitializeMainNode();
     ResetActionManager();
 }
 

@@ -92,9 +92,10 @@ public:
     LinkManager* GetLinkManager() const { return m_linkManager; }
     RerouteNodeNamedManager* GetRerouteManager() const;
     ParamNodeManager* GetParamManager() const;
+    Shared<Node> GetMainNode() const;
     NodeWeak GetNode(const UUID& uuid) const;
     NodeWeak GetNodeWithTemplate(TemplateID templateID);
-    NodeWeak GetNodeWithName(const std::string& name);
+    NodeWeak GetNodeWithName(const std::string& name) const;
     std::vector<NodeWeak> GetNodeConnectedTo(const UUID& uuid) const;
     bool NodeExists(const UUID& uuid) const { return m_nodes.find(uuid) != m_nodes.end(); }
     bool InputExists(const UUID& uuid, const uint32_t index);

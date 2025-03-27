@@ -80,6 +80,7 @@ public:
 
     bool IsLoaded() const { return m_loaded; }
     bool Failed() const { return m_failed; }
+    std::string GetError() const { return m_error; }
 
     std::string GetFragmentSource() const { return m_fragSource; }
 
@@ -93,8 +94,9 @@ private:
 
     bool m_loaded = false;
     bool m_failed = false;
+    std::string m_error;
 
-    std::string m_fragSource = "";
+    std::string m_fragSource;
 
     UniformMap m_uniform;
 };

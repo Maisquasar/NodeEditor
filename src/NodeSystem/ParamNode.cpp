@@ -22,6 +22,9 @@ void ParamNodeManager::AddParamNode(ParamNode* node, const std::string& name)
     else
     {
         it->second.push_back(node);
+
+        UpdateType(name, it->second[0]->GetType());
+        UpdateValue(name, it->second[0]->GetPreviewValue());
     }
 }
 
@@ -221,7 +224,7 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
     m_paramType = static_cast<Type>(parser["Param Type"].As<int>());
 
     // if (m_paramType == Type::Sampler2D)
-    SetType(m_paramType);
+    // SetType(m_paramType);
 
     if (parser.HasKey("Preview Value"))
         m_previewValue = parser["Preview Value"].As<Vec4f>();

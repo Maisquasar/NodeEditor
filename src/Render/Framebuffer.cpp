@@ -83,7 +83,7 @@ bool Shader::LoadDefaultVertex()
     return LoadVertexShader(s_defaultVertShader.c_str());
 }
 
-std::string readFile(const std::filesystem::path& filePath)
+static std::string ReadFile(const std::filesystem::path& filePath)
 {
     std::ifstream file(filePath);
     if (!file)
@@ -92,9 +92,9 @@ std::string readFile(const std::filesystem::path& filePath)
     ss << file.rdbuf();
     return ss.str();
 }
-
-GLuint compileShader(GLenum shaderType, const char* source, const std::string& shaderName)
+static GLuint CompileShader(GLenum shaderType, const char* source, const std::string& shaderName, std::string& errorString)
 {
+    errorString = "";
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
@@ -105,12 +105,20 @@ GLuint compileShader(GLenum shaderType, const char* source, const std::string& s
     if (!success)
     {
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "ERROR::SHADER::" << shaderName << "::COMPILATION_FAILED\n" << infoLog << std::endl;
+        errorString = "ERROR::SHADER::" + shaderName + "::COMPILATION_FAILED\n" + infoLog;
+        std::cerr << errorString << std::endl;
         glDeleteShader(shader);
         return 0;
     }
     return shader;
 }
+
+static GLuint CompileShader(GLenum shaderType, const char* source, const std::string& shaderName)
+{
+    std::string text;
+    return CompileShader(shaderType, source, shaderName, text);
+}
+
 
 bool Shader::Load(const std::filesystem::path& path)
 {
@@ -122,8 +130,8 @@ bool Shader::Load(const std::filesystem::path& path)
     if (!std::filesystem::exists(vertPath) || !std::filesystem::exists(fragPath))
         return false;
 
-    std::string vertCode = readFile(vertPath);
-    std::string fragCode = readFile(fragPath);
+    std::string vertCode = ReadFile(vertPath);
+    std::string fragCode = ReadFile(fragPath);
 
     return Load(vertCode.c_str(), fragCode.c_str());
 }
@@ -131,11 +139,11 @@ bool Shader::Load(const std::filesystem::path& path)
 bool Shader::Load(const char* vertSource, const char* fragSource)
 {
     m_program = glCreateProgram();
-    m_vertexShader = compileShader(GL_VERTEX_SHADER, vertSource, "VERTEX");
+    m_vertexShader = CompileShader(GL_VERTEX_SHADER, vertSource, "VERTEX");
     if (m_vertexShader == 0)
         return false;
 
-    m_fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource, "FRAGMENT");
+    m_fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragSource, "FRAGMENT");
     if (m_fragmentShader == 0)
         return false;
 
@@ -158,14 +166,14 @@ bool Shader::LoadVertexShader(const std::filesystem::path& vertPath)
     if (!std::filesystem::exists(vertPath))
         return false;
     
-    std::string vertCode = readFile(vertPath);
+    std::string vertCode = ReadFile(vertPath);
     return LoadVertexShader(vertCode.c_str());
 }
 
 bool Shader::LoadVertexShader(const char* vertSource)
 {
     m_program = glCreateProgram();
-    m_vertexShader = compileShader(GL_VERTEX_SHADER, vertSource, "VERTEX");
+    m_vertexShader = CompileShader(GL_VERTEX_SHADER, vertSource, "VERTEX");
     if (m_vertexShader == 0)
         return false;
 
@@ -176,7 +184,7 @@ bool Shader::LoadVertexShader(const char* vertSource)
 bool Shader::SetFragmentShaderContent(const std::string& source)
 {
     const char* fragSource = source.c_str();
-    m_fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource, "FRAGMENT");
+    m_fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragSource, "FRAGMENT");
     if (m_fragmentShader == 0)
     {
         // Copy to clipboard for debugging.
@@ -200,7 +208,7 @@ bool Shader::RecompileFragmentShader()
 {
     m_loaded = false;
     auto fragPath = m_path.string() + ".frag";
-    std::string fragCode = readFile(fragPath);
+    std::string fragCode = ReadFile(fragPath);
     return RecompileFragmentShader(fragCode.c_str());
 }
 
@@ -232,7 +240,7 @@ bool Shader::RecompileFragmentShader(const char* content)
         std::cerr << "No fragment shader found in the program." << std::endl;
     }
 
-    GLuint newFragmentShader = compileShader(GL_FRAGMENT_SHADER, content, "FRAGMENT");
+    GLuint newFragmentShader = CompileShader(GL_FRAGMENT_SHADER, content, "FRAGMENT", m_error);
     m_fragSource = content;
     if (newFragmentShader == 0)
     {
