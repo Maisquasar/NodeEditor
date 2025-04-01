@@ -964,6 +964,7 @@ bool NodeManager::LoadFromFile(const std::filesystem::path& path)
     Clean();
     
     Deserialize(parser);
+    m_linkManager->FixLinks();
     m_firstFrame = true;
 
     GetMainWindow()->InitializeMainNode();
@@ -1073,7 +1074,7 @@ SerializedData NodeManager::DeserializeData(CppSer::Parser& parser)
         parser.PushDepth();
         TemplateID templateID = parser["TemplateID"].As<uint64_t>();
         NodeRef node = NodeTemplateHandler::CreateFromTemplate(templateID, this);
-        node->Deserialize(parser, false);
+        node->Deserialize(parser);
         data.nodes[i] = node;
     }
     LinkManager::Deserialize(parser, data.links);

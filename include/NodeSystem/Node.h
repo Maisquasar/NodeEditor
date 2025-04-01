@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <galaxymath/Maths.h>
+#include <optional>
+#include <filesystem>
 
 #include "NodeSystem/Selectable.h"
 
@@ -135,7 +137,7 @@ public:
     
     int FindBestPossibilityForType(Type type, StreamRef stream) const;
     
-    void ConvertStream(uint32_t index, bool removeLinks = true);
+    void ConvertStream(uint32_t index);
 
     static bool IsPointHoverCircle(const Vec2f& point, const Vec2f& circlePos, const Vec2f& origin, float zoom, uint32_t index);
 
@@ -223,7 +225,7 @@ public:
 
     virtual void Serialize(CppSer::Serializer& serializer) const;
     virtual void InternalSerialize(CppSer::Serializer& serializer) const;
-    virtual void Deserialize(CppSer::Parser& parser, bool removeLinks = true);
+    virtual void Deserialize(CppSer::Parser& parser);
     virtual void InternalDeserialize(CppSer::Parser& parser);
 
     virtual std::string ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const;
@@ -270,6 +272,8 @@ protected:
     uint32_t p_topColor = IM_COL32(150, 150, 150, 255);
     
     NodeManager* p_nodeManager;
+
+    bool p_loaded = false;
     
     bool p_selected = false;
     Vec2f p_positionOnClick = {0, 0};
@@ -284,6 +288,8 @@ protected:
     bool p_preview = false;
     Ref<Shader> m_shader;
     Ref<Framebuffer> m_framebuffer;
+    
+    std::optional<std::filesystem::path> m_texturePath;
 };
 
 typedef std::shared_ptr<Node> NodeRef;

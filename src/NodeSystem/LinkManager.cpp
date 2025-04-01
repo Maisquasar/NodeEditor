@@ -555,3 +555,27 @@ NodeWindow* LinkManager::GetMainWindow() const
 {
     return m_nodeManager->GetMainWindow();
 }
+
+void LinkManager::FixLinks()
+{
+    for (auto& link : m_links)
+    {
+        if (!m_nodeManager->NodeExists(link->fromNodeIndex) || !m_nodeManager->NodeExists(link->toNodeIndex))
+        {
+            RemoveLink(link);
+            continue;
+        }
+        NodeRef fromNode = m_nodeManager->GetNode(link->fromNodeIndex).lock();
+        NodeRef toNode = m_nodeManager->GetNode(link->toNodeIndex).lock();
+        if (!fromNode || !toNode)
+        {
+            RemoveLink(link);
+            continue;
+        }
+        if (fromNode->GetOutput(link->fromOutputIndex) == nullptr || toNode->GetInput(link->toInputIndex) == nullptr)
+        {
+            RemoveLink(link);
+            continue;
+        }
+    }
+}

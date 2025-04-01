@@ -46,8 +46,6 @@ public:
     void RemoveLinks(const NodeRef& node);
 
     bool CanCreateLink(const Link& link) const;
-    
-
 
     static bool IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold = 1);
     static bool IsPointHoverBezier(Vec2f pointPosition, Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, float threshold = 1, int numSamples = 10);
@@ -77,6 +75,8 @@ public:
     void Clean();
 
     class NodeWindow* GetMainWindow() const;
+
+    void FixLinks();
 
 private:
     NodeManager* m_nodeManager = nullptr;

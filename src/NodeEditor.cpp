@@ -94,12 +94,17 @@ void NodeEditor::AddUniformNode(const std::string& name, Type type, std::string 
     NodeTemplateHandler::GetInstance()->AddTemplateNode(info);
 }
 
-void NodeEditor::SetTextureSelectorFunction(TextureSelectorFunc func)
+void NodeEditor::SetTextureSelectorFunction(const TextureSelectorFunc& func)
 {
     TextureSelectorFunction = func;
 }
 
-bool NodeEditor::ShowTextureSelector(const char* str, int* valueInt)
+void NodeEditor::SetLoadTextureFunction(const LoadTextureFunc& func)
 {
-    return TextureSelectorFunction(str, valueInt);
+    LoadTextureFunction = func;
+}
+
+bool NodeEditor::ShowTextureSelector(const char* str, int* valueInt, std::filesystem::path* outputPath)
+{
+    return TextureSelectorFunction(str, valueInt, outputPath);
 }

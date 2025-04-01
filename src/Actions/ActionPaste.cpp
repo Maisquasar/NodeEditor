@@ -86,6 +86,7 @@ void ActionPaste::Do()
             m_pastedLinks.push_back(link);
     }
     linkManager->UpdateInputOutputLinks();
+    linkManager->FixLinks();
 }
 
 void ActionPaste::Undo()

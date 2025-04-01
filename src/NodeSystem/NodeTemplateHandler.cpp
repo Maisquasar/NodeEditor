@@ -436,8 +436,29 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("Not Equal", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "%s != %s", {"!="});
 
     CreateTemplateNode("Inferior", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s < %s", {"<"});
-
+    CreateTemplateNode("Inferior", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "all(lessThan(%s, %s))", {"<"});
+    CreateTemplateNode("Inferior", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "all(lessThan(%s, %s))", {"<"});
+    CreateTemplateNode("Inferior", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "all(lessThan(%s, %s))", {"<"});
+    
     CreateTemplateNode("Superior", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s > %s", {">"});
+    CreateTemplateNode("Superior", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "all(greaterThan(%s, %s))", {">"});
+    CreateTemplateNode("Superior", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "all(greaterThan(%s, %s))", {">"});
+    CreateTemplateNode("Superior", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "all(greaterThan(%s, %s))", {">"});
+    
+    CreateTemplateNode("Inferior or Equal", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s <= %s", {"<="});
+    CreateTemplateNode("Inferior or Equal", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "all(lessThanEqual(%s, %s))", {"<="});
+    CreateTemplateNode("Inferior or Equal", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "all(lessThanEqual(%s, %s))", {"<="});
+    CreateTemplateNode("Inferior or Equal", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "all(lessThanEqual(%s, %s))", {"<="});
+    
+    CreateTemplateNode("Superior or Equal", otherNodeColor, {{"A", Type::Float}, {"B", Type::Float} }, { {"Result", Type::Bool} }, "%s >= %s", {">="});
+    CreateTemplateNode("Superior or Equal", otherNodeColor, {{"A", Type::Vector2}, {"B", Type::Vector2} }, { {"Result", Type::Bool} }, "all(greaterThanEqual(%s, %s))", {">="});
+    CreateTemplateNode("Superior or Equal", otherNodeColor, {{"A", Type::Vector3}, {"B", Type::Vector3} }, { {"Result", Type::Bool} }, "all(greaterThanEqual(%s, %s))", {">="});
+    CreateTemplateNode("Superior or Equal", otherNodeColor, {{"A", Type::Vector4}, {"B", Type::Vector4} }, { {"Result", Type::Bool} }, "all(greaterThanEqual(%s, %s))", {">="});
+    
+    CreateTemplateNode("And", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s && %s", {"&&"});
+    CreateTemplateNode("Or", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s || %s", {"||"});
+    CreateTemplateNode("Xor", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s ^^ %s", {"^^"});
+
 #ifdef _DEBUG
     RunUnitTests();
 #endif

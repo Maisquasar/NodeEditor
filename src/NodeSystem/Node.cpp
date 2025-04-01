@@ -375,7 +375,7 @@ int Node::FindBestPossibilityForType(Type type, StreamRef stream) const
     return index;
 }
 
-void Node::ConvertStream(uint32_t index, bool removeLinks)
+void Node::ConvertStream(uint32_t index)
 {
     for (auto& input : p_inputs)
     {
@@ -383,7 +383,7 @@ void Node::ConvertStream(uint32_t index, bool removeLinks)
         if (currentType == input->possibleTypes[index])
             continue;
         ChangeInputType(input->index, input->possibleTypes[index]);
-        if (p_nodeManager && removeLinks)
+        if (p_nodeManager && p_loaded)
         {
             p_nodeManager->GetLinkManager()->RemoveLink(input);
         }
@@ -394,7 +394,7 @@ void Node::ConvertStream(uint32_t index, bool removeLinks)
         if (currentType == output->possibleTypes[index])
             continue;
         ChangeOutputType(output->index, output->possibleTypes[index]);
-        if (p_nodeManager && removeLinks)
+        if (p_nodeManager && p_loaded)
         {
             p_nodeManager->GetLinkManager()->RemoveLinks(output);
         }
@@ -636,7 +636,7 @@ void Node::RemoveInput(uint32_t index)
     
     p_size.y = static_cast<float>(std::max(size, size2));
 
-    if (p_nodeManager) // Case when Using with a templateNode
+    if (p_nodeManager && p_loaded) // Case when Using with a templateNode
     {
         auto linkManager = p_nodeManager->GetLinkManager();
         for (auto& link : linkManager->GetLinks())
@@ -661,7 +661,7 @@ void Node::RemoveOutput(uint32_t index)
     
     p_size.y = static_cast<float>(std::max(size, size2));
     
-    if (p_nodeManager) // Case when Using with a templateNode
+    if (p_nodeManager && p_loaded) // Case when Using with a templateNode
     {
         auto linkManager = p_nodeManager->GetLinkManager();
         linkManager->RemoveLinks(p_outputs[index]);
@@ -889,10 +889,12 @@ void Node::ShowInputInspector(uint32_t index)
         {
             Vec4f value = input->GetValue<Vec4f>();
             int valueInt = static_cast<int>(value.x);
-            if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
+            std::filesystem::path path;
+            if (NodeEditor::ShowTextureSelector("##texture", &valueInt, &path))
             {
                 value.x = static_cast<float>(valueInt);
                 input->SetValue<Vec4f>(value);
+                m_texturePath = path;
             }
         }
     default:
@@ -915,6 +917,8 @@ void Node::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::Key << "Position" << CppSer::Pair::Value << p_position;
     serializer << CppSer::Pair::Key << "Possibility Index" << CppSer::Pair::Value << p_currentPossibility;
     serializer << CppSer::Pair::Key << "Preview" << CppSer::Pair::Value << p_preview;
+    if (m_texturePath.has_value())
+        serializer << CppSer::Pair::Key << "Texture Path" << CppSer::Pair::Value << m_texturePath->generic_string();
     
     for (uint32_t i = 0; i < p_inputs.size(); i++)
     {
@@ -934,7 +938,7 @@ void Node::InternalSerialize(CppSer::Serializer& serializer) const
 {
 }
 
-void Node::Deserialize(CppSer::Parser& parser, bool removeLinks /*= true*/)
+void Node::Deserialize(CppSer::Parser& parser)
 {
     p_uuid = parser["UUID"].As<uint64_t>();
     SetUUID(p_uuid);
@@ -955,15 +959,25 @@ void Node::Deserialize(CppSer::Parser& parser, bool removeLinks /*= true*/)
     bool preview = parser["Preview"].As<bool>();
     OpenPreview(preview);
     
-    ConvertStream(p_currentPossibility, removeLinks);
+    ConvertStream(p_currentPossibility);
 
     InternalDeserialize(parser);
+
+    if (parser.HasKey("Texture Path"))
+    {
+        m_texturePath = parser["Texture Path"].As<std::string>();
+        NodeEditor::LoadTextureFunction(m_texturePath.value(), this);
+    }
+    else
+    {
+        m_texturePath.reset();
+    }
+    p_loaded = true;
 }
 
 void Node::InternalDeserialize(CppSer::Parser& parser)
 {
 }
-
 
 std::string Node::ToShader(ShaderMaker* shaderMaker, const FuncStruct& funcStruct) const
 {
@@ -1022,6 +1036,10 @@ Node* Node::Clone() const
 
 void Node::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
 {
+    if (p_preview)
+    {
+        p_nodeManager->GetMainWindow()->AddPreviewNode(newUUID);
+    }
 }
 
 void Node::InitializePreview()
@@ -1036,6 +1054,8 @@ void Node::InitializePreview()
 
 void Node::OpenPreview(bool open)
 {
+    if (p_preview == open)
+        return;
     p_preview = open;
 
     if (p_preview)

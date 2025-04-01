@@ -101,10 +101,13 @@ namespace NodeEditor
 
     inline void SetTexCoordsVariableName(std::string name) { TexCoordsVariableName = std::move(name); }
 
-    using TextureSelectorFunc = std::function<bool(const char*, int*)>;
-    void SetTextureSelectorFunction(TextureSelectorFunc func);
+    using TextureSelectorFunc = std::function<bool(const char*, int*, std::filesystem::path*)>;
+    using LoadTextureFunc = std::function<bool(const std::filesystem::path&, Node*)>;
+    void SetTextureSelectorFunction(const TextureSelectorFunc& func);
+    void SetLoadTextureFunction(const LoadTextureFunc& func);
     
-    bool ShowTextureSelector(const char* str, int* valueInt);
+    bool ShowTextureSelector(const char* str, int* valueInt, std::filesystem::path* outputPath);
 
     inline extern TextureSelectorFunc TextureSelectorFunction = nullptr;
+    inline extern LoadTextureFunc LoadTextureFunction = nullptr;
 };

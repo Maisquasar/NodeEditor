@@ -67,6 +67,8 @@ void ParamNodeManager::UpdateType(const std::string& name, Type type)
 
     for (ParamNode* node : list->second)
     {
+        if (node->GetType() == type)
+            continue;
         node->SetType(type);
     }
 }
@@ -107,7 +109,6 @@ void ParamNode::ShowInInspector()
     {
         Type realType = static_cast<Type>(type + 1);
         Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, realType, m_paramType);
-        SetType(realType);
         p_nodeManager->GetParamManager()->UpdateType(m_paramName, realType);
         ActionManager::AddAction(changeType);
     }
@@ -177,10 +178,12 @@ void ParamNode::ShowInInspector()
     case Type::Sampler2D:
         {
             int valueInt = static_cast<int>(previewValue.x);
-            if (NodeEditor::ShowTextureSelector("##texture", &valueInt))
+            std::filesystem::path path;
+            if (NodeEditor::ShowTextureSelector("##texture", &valueInt, &path))
             {
                 previewValue.x = static_cast<float>(valueInt);
                 valueChanged = true;
+                m_texturePath = path;
             }
         }
         break;
@@ -223,14 +226,15 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
 {
     Node::InternalDeserialize(parser);
 
-    m_paramName = parser["Param Name"].As<std::string>();
+    std::string prevName = parser["Param Name"].As<std::string>();
+    p_nodeManager->GetParamManager()->OnUpdateName(this, m_paramName, prevName);
+    m_paramName = prevName;
     // Do not use the method to not remove links associate to it, force the type set
-    m_paramType = static_cast<Type>(parser["Param Type"].As<int>());
+    Type newType = static_cast<Type>(parser["Param Type"].As<int>());
 
-    // if (m_paramType == Type::Sampler2D)
-    // SetType(m_paramType);
+    SetType(newType);
 
-    if (parser.HasKey("Preview Value"))
+    if (m_paramType != Type::Sampler2D && parser.HasKey("Preview Value"))
         m_previewValue = parser["Preview Value"].As<Vec4f>();
 }
 

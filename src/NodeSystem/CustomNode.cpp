@@ -37,6 +37,7 @@ void CustomNode::Update()
 
 void CustomNode::OnChangeUUID(const UUID& prevUUID, const UUID& newUUID)
 {
+    Node::OnChangeUUID(prevUUID, newUUID);
     auto prevName = GetName();
     ShaderMaker::CleanString(prevName);
     prevName = prevName + "_" + std::to_string(prevUUID) + "_" + "Func";
@@ -263,7 +264,7 @@ void CustomNode::Serialize(CppSer::Serializer& serializer) const
     serializer << CppSer::Pair::EndMap << "Node";
 }
 
-void CustomNode::Deserialize(CppSer::Parser& parser, bool removeLinks)
+void CustomNode::Deserialize(CppSer::Parser& parser)
 {
     p_uuid = parser["UUID"].As<uint64_t>();
     SetUUID(p_uuid);

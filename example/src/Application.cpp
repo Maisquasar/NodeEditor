@@ -7,6 +7,7 @@
 
 #include "NodeEditor.h"
 #include "ResourceManager.h"
+#include "NodeSystem/ParamNode.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Framebuffer.h"
 #include "Render/RenderDocAPI.h"
@@ -276,12 +277,13 @@ void Application::Initialize()
     
     NodeEditor::SetEditCustomNodeOutputPath(TEMP_FOLDER);
 
-    NodeEditor::SetTextureSelectorFunction([](const char* str, int* valueInt)
+    NodeEditor::SetTextureSelectorFunction([](const char* str, int* valueInt, std::filesystem::path* outputPath)
     {
         Weak<Texture> texture = ResourceManager::GetTextureWithID(*valueInt);
         if (ImGui::ImageButton(str, reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(*valueInt)), ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
         {
             std::string texturePath = OpenDialog({{"Images", "png"}});
+            *outputPath = std::filesystem::path(texturePath);
             if (!texturePath.empty())
             {
                 Shared textureWithPath = ResourceManager::GetOrLoadTexture(texturePath).lock();
@@ -291,6 +293,15 @@ void Application::Initialize()
             return true;
         }
         return false; 
+    });
+
+    NodeEditor::SetLoadTextureFunction([](const std::filesystem::path& path, Node* node)
+    {
+        Shared textureWithPath = ResourceManager::GetOrLoadTexture(path).lock();
+        auto paramNode = dynamic_cast<ParamNode*>(node);
+        assert(textureWithPath != nullptr);
+        paramNode->SetPreviewValue(Vec4f(textureWithPath->GetID(), 0, 0, 0));
+        return true;
     });
 
     for (int i = 0; i < 1; i++)

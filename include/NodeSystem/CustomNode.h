@@ -21,7 +21,7 @@ public:
     void ShowInInspector() override;
 
     void Serialize(CppSer::Serializer& serializer) const override;
-    void Deserialize(CppSer::Parser& parser, bool removeLinks = true) override;
+    void Deserialize(CppSer::Parser& parser) override;
     
     void UpdateFunction();
     
