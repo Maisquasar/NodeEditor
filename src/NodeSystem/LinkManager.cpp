@@ -265,6 +265,8 @@ void LinkManager::RemoveLink(const LinkWeakRef& link)
 
 void LinkManager::RemoveLink(const InputRef& input)
 {
+    if (input == nullptr)
+        return;
     for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->toNodeIndex == input->parentUUID && m_links[i]->toInputIndex == input->index)
@@ -277,6 +279,8 @@ void LinkManager::RemoveLink(const InputRef& input)
 
 void LinkManager::RemoveLinks(const OutputRef& output)
 {
+    if (output == nullptr)
+        return;
     for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->fromNodeIndex == output->parentUUID && m_links[i]->fromOutputIndex == output->index)
@@ -289,6 +293,8 @@ void LinkManager::RemoveLinks(const OutputRef& output)
 
 void LinkManager::RemoveLinks(const NodeRef& node)
 {
+    if (node == nullptr)
+        return;
     for (uint32_t i = 0; i < m_links.size(); i++)
     {
         if (m_links[i]->fromNodeIndex == node->GetUUID() || m_links[i]->toNodeIndex == node->GetUUID())
@@ -411,8 +417,9 @@ std::vector<LinkWeakRef> LinkManager::GetLinksWithOutput(const OutputRef& output
     return links;
 }
 
-LinkWeakRef LinkManager::GetLinkLinkedToInput(const UUID& uuid, uint32_t index) const
+LinkRef LinkManager::GetLinkWithInput(const UUID& uuid, uint32_t index) const
 {
+    std::vector<LinkRef> links;
     for (const LinkRef& link : m_links)
     {
         if (link->toNodeIndex == uuid && link->toInputIndex == index)
@@ -420,20 +427,7 @@ LinkWeakRef LinkManager::GetLinkLinkedToInput(const UUID& uuid, uint32_t index) 
             return link;
         }
     }
-    return {};
-}
-
-std::vector<LinkWeakRef> LinkManager::GetLinksWithInput(const UUID& uuid, uint32_t index) const
-{
-    std::vector<LinkWeakRef> links;
-    for (const LinkRef& link : m_links)
-    {
-        if (link->toNodeIndex == uuid && link->toInputIndex == index)
-        {
-            links.push_back(link);
-        }
-    }
-    return links;
+    return nullptr;
 }
 
 bool LinkManager::HasLink(const OutputRef& output) const

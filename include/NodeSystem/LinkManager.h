@@ -52,8 +52,7 @@ public:
     static bool BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1, Vec2f controlPoint2, Vec2f outputPosition, Vec2f rectMin, Vec2f rectMax);
 
     std::vector<LinkWeakRef> GetLinksWithOutput(const OutputRef& output) const;
-    LinkWeakRef GetLinkLinkedToInput(const UUID& uuid, uint32_t index) const;
-    std::vector<LinkWeakRef> GetLinksWithInput(const UUID& uuid, uint32_t index) const;
+    LinkRef GetLinkWithInput(const UUID& uuid, uint32_t index) const;
     const std::vector<LinkRef>& GetLinks() const { return m_links; }
     const std::vector<LinkWeakRef>& GetSelectedLinks() { return m_selectedLinks;}
 

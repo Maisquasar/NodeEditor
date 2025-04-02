@@ -25,6 +25,8 @@ void ActionManager::AddAction(const ActionRef& action)
     m_current->CleanRedoneActions();
     m_current->m_undoneActions.push_back(action);
 
+    if (!action->ShouldUpdateShader())
+        return;
     if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
     {
         nodeWindow->ShouldUpdateShader();

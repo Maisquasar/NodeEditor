@@ -11,6 +11,7 @@ public:
     void Undo() override;
 
     std::string ToString() override { return "Create Node"; }
+    bool ShouldUpdateShader() const override { return true; }
 public:
     NodeManager* m_nodeManager;
     

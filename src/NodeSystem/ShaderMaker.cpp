@@ -89,7 +89,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
     // Recursively process connected nodes (children) first
     for (int i = 0; i < node->p_inputs.size(); i++)
     {
-        LinkRef link = linkManager->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+        LinkRef link = linkManager->GetLinkWithInput(node->GetUUID(), i);
         if (link == nullptr)
             continue;
 
@@ -113,7 +113,7 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
     // Gather input connections
     for (int i = 0; i < node->p_inputs.size(); i++)
     {
-        LinkRef link = linkManager->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+        LinkRef link = linkManager->GetLinkWithInput(node->GetUUID(), i);
         if (link == nullptr)
         {
             funcStruct.inputs.emplace_back();
@@ -374,7 +374,7 @@ void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, 
         Ref<RerouteNodeNamed> isReroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
         if (!isReroute || isReroute && isReroute->IsDefinition())
         {
-            LinkRef link = manager->GetLinkManager()->GetLinkLinkedToInput(node->GetUUID(), i).lock();
+            LinkRef link = manager->GetLinkManager()->GetLinkWithInput(node->GetUUID(), i);
             if (link == nullptr)
                 continue;
             currentNode = manager->GetNode(link->fromNodeIndex).lock();

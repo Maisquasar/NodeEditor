@@ -10,6 +10,7 @@ public:
     void Undo() override { *m_input = m_oldValue; }
 
     std::string ToString() override { return "Change Input"; }
+    bool ShouldUpdateShader() const override { return true; }
 private:
     std::string* m_input;
     std::string m_oldValue;

@@ -10,6 +10,7 @@ public:
     void Do() override;
     void Undo() override;
     std::string ToString() override;
+    bool ShouldUpdateShader() const override { return true; }
 protected:
     Vec4f oldValue;
     Vec4f newValue;

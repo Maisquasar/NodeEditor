@@ -211,21 +211,6 @@ void NodeWindow::DrawInspector() const
     ImGui::EndChild();   
 }
 
-void NodeWindow::UpdateShader()
-{
-    if (m_shouldUpdateShader)
-    {
-        ShaderMaker shaderMaker;
-        std::string content;
-        
-        shaderMaker.CreateFragmentShader(content, m_nodeManager);
-        
-        m_currentShader->RecompileFragmentShader(content.c_str());
-        
-        m_shouldUpdateShader = false;
-    }
-}
-
 void NodeWindow::UpdateShaders()
 {
     if (m_shouldUpdateShader)
@@ -235,6 +220,8 @@ void NodeWindow::UpdateShaders()
         shaderMaker.DoWork(m_nodeManager);
         
         m_shouldUpdateShader = false;
+
+        std::cout << "Shader updated" << std::endl;
     }
 }
 

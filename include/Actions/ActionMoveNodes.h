@@ -42,6 +42,7 @@ public:
     void Update() override;
 
     std::string ToString() override { return "Move Nodes"; }
+    bool ShouldUpdateShader() const override { return false; }
 
 private:
     std::unordered_map<NodeWeak, MoveNodeData, WeakPtrHash, WeakPtrEqual> m_positions;

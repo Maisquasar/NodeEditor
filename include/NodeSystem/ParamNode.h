@@ -19,7 +19,9 @@ public:
     void UpdateType(const std::string& name, Type type);
 
     void OnUpdateName(ParamNode* node, const std::string& prevName, const std::string& newName);
+    void OnUpdateType(const std::string& name) const;
 
+    std::vector<ParamNode*> GetParamNodes(const std::string& name) const { return m_paramNodes.at(name);}
 private:
     std::unordered_map<std::string, std::vector<ParamNode*>> m_paramNodes;
 };

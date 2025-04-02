@@ -17,6 +17,7 @@ public:
     void Undo() override;
 
     std::string ToString() override { return "Paste"; }
+    bool ShouldUpdateShader() const override { return true; }
 
 private:
     const char* m_clipboardText = nullptr;

@@ -115,13 +115,15 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
 {
     if (altClicked)
     {
-        std::vector<LinkWeakRef> linkWithInput = m_linkManager->GetLinksWithInput(node->GetUUID(), i);
+        LinkRef linkWithInput = m_linkManager->GetLinkWithInput(node->GetUUID(), i);
 
         SetUserInputState(UserInputState::Busy);
 
         std::vector<NodeWeak> nodes = {};
-        auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, linkWithInput);
-        ActionManager::AddAction(action);
+
+        //TODO !!!
+        // auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, {linkWithInput});
+        // ActionManager::AddAction(action);
         
         m_linkManager->RemoveLink(node->GetInput(i));
     }
@@ -864,7 +866,7 @@ std::vector<NodeWeak> NodeManager::GetNodeConnectedTo(const UUID& uuid) const
 
     for (int i = 0; i < node->p_inputs.size(); i++)
     {
-        LinkRef val = linkManager->GetLinkLinkedToInput(uuid, i).lock();
+        LinkRef val = linkManager->GetLinkWithInput(uuid, i);
         if (!val)
             continue;
         auto connectedNode = GetNode(val->fromNodeIndex);

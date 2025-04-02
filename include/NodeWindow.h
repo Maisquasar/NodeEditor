@@ -57,7 +57,6 @@ public:
 
     ActionManager& GetActionManager() { return m_actionManager; }
 
-    void UpdateShader();
     void UpdateShaders();
 
     void ShouldUpdateShader() { m_shouldUpdateShader = true; }

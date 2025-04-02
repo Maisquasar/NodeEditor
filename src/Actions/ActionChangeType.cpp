@@ -14,11 +14,9 @@ ActionChangeType::ActionChangeType(ParamNode* node, Type type, Type oldType): Ac
 
 ActionChangeType::ActionChangeType(CustomNode* node, InputRef input, Type type, Type oldType) : Action(), m_customNode(node), m_type(type), m_oldType(oldType), m_input(input)
 {
-    auto links = m_customNode->GetNodeManager()->GetLinkManager()->GetLinksWithInput(node->GetUUID(), input->index);
-    for (auto& link : links)
-    {
-        m_link.push_back(*link.lock());
-    }
+    LinkRef link = m_customNode->GetNodeManager()->GetLinkManager()->GetLinkWithInput(node->GetUUID(), input->index);
+
+    m_link.push_back(*link);
 }
 
 ActionChangeType::ActionChangeType(CustomNode* node, OutputRef output, Type type, Type oldType) : Action(), m_customNode(node), m_type(type), m_oldType(oldType), m_output(output)
@@ -81,4 +79,34 @@ void ActionChangeType::Undo()
         node->GetNodeManager()->GetLinkManager()->AddLink(link);
     }
     
+}
+
+ActionChangeTypeParam::ActionChangeTypeParam(ParamNodeManager* paramNodeManager, const std::string& paramName,
+    Type type, Type oldType) 
+{
+    m_paramNodeManager = paramNodeManager;
+    m_paramName = paramName;
+    m_type = type;
+    m_oldType = oldType;
+
+    auto nodes = m_paramNodeManager->GetParamNodes(paramName);
+    for (auto& node : nodes)
+    {
+        std::vector outputLinks = node->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(node->GetOutput(0));
+        LinkRef inputLink = node->GetNodeManager()->GetLinkManager()->GetLinkWithInput(node->GetUUID(), 0);
+        m_prevLinks.insert(m_prevLinks.end(), outputLinks.begin(), outputLinks.end());
+        m_prevLinks.push_back(inputLink);
+    }
+}
+
+void ActionChangeTypeParam::Do()
+{
+    m_paramNodeManager->OnUpdateType(m_paramName);
+    m_paramNodeManager->UpdateType(m_paramName, m_type);
+}
+
+void ActionChangeTypeParam::Undo()
+{
+    m_paramNodeManager->OnUpdateType(m_paramName);
+    m_paramNodeManager->UpdateType(m_paramName, m_oldType);
 }

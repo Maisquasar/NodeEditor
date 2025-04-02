@@ -85,6 +85,19 @@ void ParamNodeManager::OnUpdateName(ParamNode* node, const std::string& prevName
     AddParamNode(node, newName);
 }
 
+void ParamNodeManager::OnUpdateType(const std::string& name) const
+{
+    auto list = GetParamNodes(name);
+    LinkManager* linkManager = nullptr;
+    for (ParamNode* node : list)
+    {
+        if (!linkManager)
+            linkManager = node->GetNodeManager()->GetLinkManager();
+        linkManager->RemoveLinks(node->GetOutput(0));
+        linkManager->RemoveLink(node->GetInput(0));
+    }
+}
+
 void ParamNode::ShowInInspector()
 {
     Node::ShowInInspector();
@@ -108,9 +121,8 @@ void ParamNode::ShowInInspector()
     if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
     {
         Type realType = static_cast<Type>(type + 1);
-        Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, realType, m_paramType);
-        p_nodeManager->GetParamManager()->UpdateType(m_paramName, realType);
-        ActionManager::AddAction(changeType);
+        Ref changeType = std::make_shared<ActionChangeTypeParam>(GetNodeManager()->GetParamManager(), m_paramName, realType, m_paramType);
+        ActionManager::DoAction(changeType);
     }
 
     const char* InputName = "Preview Value";

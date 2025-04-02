@@ -11,6 +11,7 @@ public:
     void Undo() override;
 
     std::string ToString() override { return "Create Link"; }
+    bool ShouldUpdateShader() const override { return true; }
 
 private:
     NodeManager* m_nodeManager = nullptr;

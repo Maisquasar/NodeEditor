@@ -16,6 +16,7 @@ public:
     void Undo() override;
 
     std::string ToString() override { return "Change Type"; }
+    bool ShouldUpdateShader() const override { return true; }
 
 private:
     ParamNode* m_paramNode = nullptr;
@@ -27,4 +28,21 @@ private:
     Type m_oldType;
     
     std::vector<Link> m_link;
+};
+
+class ActionChangeTypeParam : public Action
+{
+public:
+    ActionChangeTypeParam(ParamNodeManager* paramNodeManager, const std::string& paramName, Type type, Type oldType);
+    void Do() override;
+    void Undo() override;
+    std::string ToString() override { return "Change Type Param"; }
+    bool ShouldUpdateShader() const override { return true; }
+private:
+    ParamNodeManager* m_paramNodeManager = nullptr;
+    std::string m_paramName;
+    Type m_type;
+    Type m_oldType;
+
+    std::vector<LinkRef> m_prevLinks = {};
 };

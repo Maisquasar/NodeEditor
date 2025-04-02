@@ -13,6 +13,8 @@ public:
     virtual void Update() {}
     virtual std::string ToString() = 0;
     virtual ~Action() = default;
+
+    virtual bool ShouldUpdateShader() const = 0;
 };
 
 using ActionRef = std::shared_ptr<Action>;
