@@ -227,7 +227,8 @@ void ParamNode::InternalDeserialize(CppSer::Parser& parser)
     Node::InternalDeserialize(parser);
 
     std::string prevName = parser["Param Name"].As<std::string>();
-    p_nodeManager->GetParamManager()->OnUpdateName(this, m_paramName, prevName);
+    if (m_editable)
+        p_nodeManager->GetParamManager()->OnUpdateName(this, m_paramName, prevName);
     m_paramName = prevName;
     // Do not use the method to not remove links associate to it, force the type set
     Type newType = static_cast<Type>(parser["Param Type"].As<int>());

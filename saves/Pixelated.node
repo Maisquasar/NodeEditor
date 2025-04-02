@@ -1,0 +1,133 @@
+v1.0
+ ------------- Nodes ------------- 
+[Node Count] : 9
+   ------------- Node ------------- 
+  [TemplateID] : 12798265388312005056
+  [UUID] : 12890335318372855201
+  [Position] : 348.090637, -126.601730
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 7914862670581146976
+  [UUID] : 774846922732704994
+  [Position] : -930.722107, -125.245270
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Param Name] : TexCoords
+  [Param Type] : 4
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 864067316332219097
+  [Position] : -596.447388, 17.349733
+  [Possibility Index] : 1
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 14686373685247804210
+  [UUID] : 2696905469197419806
+  [Position] : -1004.019287, 87.273972
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Param Name] : PixelSize
+  [Param Type] : 1
+  [Preview Value] : 48.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 13150330638402972445
+  [UUID] : 11532413110699315778
+  [Position] : -425.744049, 22.839025
+  [Possibility Index] : 1
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 1163401179356910352
+  [UUID] : 2465199172891796027
+  [Position] : -266.382355, 19.260384
+  [Possibility Index] : 1
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 14686373685247804210
+  [UUID] : 8658523619794847266
+  [Position] : 17.259754, 41.677799
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Texture Path] : C:/Users/informatique4/Documents/User/NodeEditorLib/images/0.png
+  [Param Name] : None
+  [Param Type] : 7
+  [Preview Value] : 6.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 14686373685247804210
+  [UUID] : 6202172261192196161
+  [Position] : -435.574402, 240.745499
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Param Name] : PixelSize
+  [Param Type] : 1
+  [Preview Value] : 48.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 9657547218617834872
+  [UUID] : 8537445891714912299
+  [Position] : 181.117844, 13.021309
+  [Possibility Index] : 2
+  [Preview] : 0
+   ============= Node ============= 
+ ============= Nodes ============= 
+ ------------- Links ------------- 
+[Link Count] : 8
+   ------------- Link ------------- 
+  [From Node Index] : 774846922732704994
+  [From Output Index] : 0
+  [To Node Index] : 864067316332219097
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 2696905469197419806
+  [From Output Index] : 0
+  [To Node Index] : 864067316332219097
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 864067316332219097
+  [From Output Index] : 0
+  [To Node Index] : 11532413110699315778
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 11532413110699315778
+  [From Output Index] : 0
+  [To Node Index] : 2465199172891796027
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 6202172261192196161
+  [From Output Index] : 0
+  [To Node Index] : 2465199172891796027
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 2465199172891796027
+  [From Output Index] : 0
+  [To Node Index] : 8658523619794847266
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8658523619794847266
+  [From Output Index] : 0
+  [To Node Index] : 8537445891714912299
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8537445891714912299
+  [From Output Index] : 0
+  [To Node Index] : 12890335318372855201
+  [To Input Index] : 0
+   ============= Link ============= 
+ ============= Links ============= 

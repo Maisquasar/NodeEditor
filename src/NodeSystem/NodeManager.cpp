@@ -218,8 +218,13 @@ void NodeManager::UpdateCurrentLink()
 {
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
-        auto link = m_linkManager->AddLink(m_currentLink);
-        auto action =std::make_shared<ActionCreateLink>(this, link.lock());
+        Ref input = GetInput(m_currentLink.toNodeIndex, m_currentLink.toInputIndex).lock();
+        if (m_linkManager->HasLink(input))
+        {
+            m_linkManager->RemoveLink(input);
+        }
+        Weak link = m_linkManager->AddLink(m_currentLink);
+        auto action = std::make_shared<ActionCreateLink>(this, link.lock());
         ActionManager::AddAction(action);
         ClearCurrentLink();
     }
@@ -661,12 +666,6 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
                 {
                     ClearCurrentLink();
                 }
-                else
-                {
-                    InputRef inputRef = GetInput(m_currentLink.toNodeIndex, m_currentLink.toInputIndex).lock();
-                    assert(inputRef);
-                    m_linkManager->RemoveLink(inputRef);
-                }
             }
             else if (auto output = std::dynamic_pointer_cast<Output>( m_hoveredStream.lock()))
             {
@@ -1088,6 +1087,10 @@ void NodeManager::Clean()
     m_linkManager->Clean();
     m_rerouteManager->Clean();
     m_selectedNodes.clear();
+    for (auto& node : m_nodes | std::views::values)
+    {
+        node->OnRemove();
+    }
     m_nodes.clear();
     m_currentLink = Link();
     m_userInputState = UserInputState::None;

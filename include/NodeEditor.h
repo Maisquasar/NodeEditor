@@ -84,10 +84,11 @@ namespace NodeEditor
      * @param type The type of the variable (e.g., float, int, vec3).
      * @param variableName (Optional) The variable name to be used in the shader and in the output.
      * If not provided, the default name will be the same as the node name.
+     * @param searchStrings (Optional) A vector of strings that will be used to search for the variable in the shader. 
      * @note The in variable should be set in the header of the shader,
      * it will not be created automatically not like the uniform.
      */
-    void AddInVariableNode(const std::string& name, Type type, std::string variableName = "");
+    void AddInVariableNode(const std::string& name, Type type, std::string variableName = "", const std::vector<std::string>& searchStrings = {});
     /**
      * @brief Adds a uniform variable node to the editor.
      * @param name The name of the node.

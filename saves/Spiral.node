@@ -1,0 +1,841 @@
+v1.0
+ ------------- Nodes ------------- 
+[Node Count] : 57
+   ------------- Node ------------- 
+  [TemplateID] : 8594162656809183311
+  [UUID] : 1489864984266874914
+  [Position] : 472.480103, 1056.507324
+  [Possibility Index] : 0
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 18195853051418024993
+  [UUID] : 4118648202540797124
+  [Position] : 1787.760254, 404.799133
+  [Possibility Index] : 4
+  [Preview] : 1
+  [Value 1] : 1.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 12798265388312005056
+  [UUID] : 12890335318372855201
+  [Position] : 2348.828125, 1113.252197
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 2] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 3] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 2319353626144916885
+  [UUID] : 18169033841024082932
+  [Position] : -574.404846, -324.175781
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17991567260590197172
+  [UUID] : 6308400667296866907
+  [Position] : 772.460266, 1052.043457
+  [Possibility Index] : 0
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 3193009553887467568
+  [Position] : 1450.397461, 970.018738
+  [Possibility Index] : 5
+  [Preview] : 0
+  [Value 0] : 0.500000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 2662633543385298833
+  [UUID] : 7453407448217328477
+  [Position] : -432.487000, -322.366394
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8594162656809183311
+  [UUID] : 17995992562159819403
+  [Position] : -568.999023, -68.060287
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 14965882260628613572
+  [Position] : 1419.723999, 570.209412
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : scale
+  [Type] : 1
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 7686723154774465937
+  [UUID] : 13211703828939228445
+  [Position] : 2194.139648, 444.074188
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : scale
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 3157571649601035533
+  [Position] : 1716.145996, -111.724716
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : fcoords
+  [Type] : 4
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 13527322194750512200
+  [UUID] : 12909435982518874012
+  [Position] : 651.493591, 104.091591
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 18195853051418024993
+  [UUID] : 18062012504508091030
+  [Position] : 442.397766, 263.525482
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 12019146058967729146
+  [Position] : -279.311920, -323.656799
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : logRad
+  [Type] : 1
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 9391385414133346235
+  [Position] : -186.679214, -88.497345
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : angle
+  [Type] : 1
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 6440326419024626692
+  [UUID] : 17402228408452677879
+  [Position] : 279.006744, -94.817039
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : logRad
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17991567260590197172
+  [UUID] : 17856568729491694173
+  [Position] : 446.047821, 39.584846
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10975766084202123533
+  [UUID] : 18215984376363363455
+  [Position] : 1218.593506, 971.714905
+  [Possibility Index] : 2
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 4849416905412705766
+  [Position] : 1977.284546, 129.910782
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Value 1] : 1000.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 4619207558531745336
+  [UUID] : 13377681271876282752
+  [Position] : 227.520721, 200.906570
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : angle
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 13527323294262140411
+  [UUID] : 5942383389729969275
+  [Position] : 778.709961, 869.003357
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 0] : 0.000000, 0.000000, 0.000000, 0.000000
+  [Value 1] : 2.000000, 0.000000, 0.000000, 0.000000
+  [Value 2] : 4.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 1163401179356910352
+  [UUID] : 8222101518032555921
+  [Position] : 844.841187, 102.272629
+  [Possibility Index] : 1
+  [Preview] : 1
+  [Value 1] : 3.141593, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 11745042803755946961
+  [Position] : 1218.737061, 625.262329
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 1] : 0.500000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 18195853051418024993
+  [UUID] : 10006148222350032520
+  [Position] : 1336.616333, 64.751389
+  [Possibility Index] : 1
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 9415009511065186075
+  [Position] : 2163.716064, 1024.459473
+  [Possibility Index] : 5
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 5251627053891867748
+  [UUID] : 2656191648454770969
+  [Position] : 799.272400, 386.410858
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Param Name] : iTime
+  [Param Type] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 13249686803892187046
+  [Position] : 987.966614, 388.240845
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 1] : 0.020000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 13527322194750512200
+  [UUID] : 14313131910214954044
+  [Position] : 1169.619019, 192.128265
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 1] : 0.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 1163401179356910352
+  [UUID] : 1677992374057370861
+  [Position] : 2540.561523, 230.426437
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 7942211228350165767
+  [UUID] : 6541871904745587685
+  [Position] : 1977.712158, 861.185059
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Value 0] : 0.500000, 0.000000, 0.000000, 0.000000
+  [Value 1] : 0.500000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 14686373685247804210
+  [UUID] : 3982869722018410724
+  [Position] : 1053.988525, 599.269531
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Param Name] : sym
+  [Param Type] : 1
+  [Preview Value] : 5.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 12164442380028710986
+  [Position] : 1096.953247, -80.641068
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : coords
+  [Type] : 4
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 13433507862827379897
+  [Position] : 1331.043823, -125.037537
+  [Possibility Index] : 1
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 7686723154774465937
+  [UUID] : 8337694563586992478
+  [Position] : 1134.560181, 12.187947
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : scale
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 1275040982954115353
+  [Position] : 1606.738037, 398.349731
+  [Possibility Index] : 1
+  [Preview] : 1
+  [Value 1] : 2.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 16561232420921639075
+  [UUID] : 4235918281415583972
+  [Position] : 301.849640, 1043.726929
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : fcoords
+  [Type] : 4
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 1433861565182795671
+  [Position] : -425.524048, -454.819946
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : rad
+  [Type] : 1
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 9941359835863803816
+  [UUID] : 1678459135538045110
+  [Position] : 1812.537964, 87.845078
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : rad
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17991567260590197172
+  [UUID] : 9487407204590921242
+  [Position] : 621.577393, 1037.758667
+  [Possibility Index] : 0
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 10924839093199273255
+  [Position] : 2165.043213, 203.831177
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 16263434952350913734
+  [UUID] : 7789207265528768136
+  [Position] : 1980.973022, 429.526947
+  [Preview] : 1
+  [Input Count] : 1
+  [Input Name 0] : pos
+  [Input Type 0] : 4
+  [Output Count] : 1
+  [Output Name 0] : Output
+  [Output Type 0] : 1
+  [Content] : float sidelength = 0.9;\nfloat smoothrad = 0.3;\nvoid Custom_Node_7789207265528768136_Func(in vec2 pos, out float Output)\n{\n    vec2 closestpoint = min(abs(pos), vec2(sidelength-smoothrad));\n    Output = length(abs(pos) - closestpoint) - smoothrad;\n}\n
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 5695430551865695147
+  [Position] : 1713.450928, -314.270325
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : tile
+  [Type] : 4
+  [Definition] : 1
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 13150330638402972445
+  [UUID] : 4166838621955644740
+  [Position] : 1497.811401, -95.393257
+  [Possibility Index] : 1
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 2184415071832886441
+  [UUID] : 4479914827855527025
+  [Position] : 1443.598267, 311.164795
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Name] : tile
+  [Type] : 4
+  [Definition] : 0
+  [Color] : 0.431373, 0.588235, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 14504130378146570871
+  [Position] : 2368.086914, 381.926025
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Value 0] : 4.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 10327275955282710464
+  [UUID] : 8043335200573323336
+  [Position] : 2702.843018, 222.172699
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : dist
+  [Type] : 1
+  [Definition] : 1
+  [Color] : 0.431373, 0.584314, 0.666667
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17991567260590197172
+  [UUID] : 12333873671255970608
+  [Position] : 1002.802429, 936.872375
+  [Possibility Index] : 5
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 5251627053891867748
+  [UUID] : 3945198568920176338
+  [Position] : 629.791870, 1150.967896
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Param Name] : iTime
+  [Param Type] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17991567260590197172
+  [UUID] : 7533743594233704127
+  [Position] : 1321.447876, 1077.553589
+  [Possibility Index] : 5
+  [Preview] : 0
+  [Value 1] : 1.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 941612129342610149
+  [Position] : 1758.378296, 818.789246
+  [Possibility Index] : 0
+  [Preview] : 1
+  [Value 1] : -1.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 781374008964990039
+  [Position] : 1729.408569, 1065.217407
+  [Possibility Index] : 2
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 18195853051418024993
+  [UUID] : 8221819901097142234
+  [Position] : 1537.055542, 1220.239136
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 0] : 1.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17983610179050168517
+  [UUID] : 16096082954666699033
+  [Position] : 1292.123535, 1288.870850
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Value 0] : 0.500000, 0.000000, 0.000000, 0.000000
+  [Value 1] : 1.000000, 0.000000, 0.000000, 0.000000
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 8743749195355659927
+  [UUID] : 12605091031780795185
+  [Position] : -364.733856, -87.227882
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 17219292962390623335
+  [UUID] : 10264658310712388576
+  [Position] : 1507.038818, -179.582520
+  [Possibility Index] : 1
+  [Preview] : 0
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 11483898904596936802
+  [UUID] : 9396634183656035060
+  [Position] : -1113.049683, -274.042603
+  [Possibility Index] : 0
+  [Preview] : 1
+   ============= Node ============= 
+   ------------- Node ------------- 
+  [TemplateID] : 14574961654905149033
+  [UUID] : 14619013468338843818
+  [Position] : 1508.189087, 761.071106
+  [Possibility Index] : 0
+  [Preview] : 0
+  [Name] : dist
+  [Type] : 1
+  [Definition] : 0
+  [Color] : 0.431373, 0.584314, 0.666667
+   ============= Node ============= 
+ ============= Nodes ============= 
+ ------------- Links ------------- 
+[Link Count] : 56
+   ------------- Link ------------- 
+  [From Node Index] : 18169033841024082932
+  [From Output Index] : 0
+  [To Node Index] : 7453407448217328477
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 7453407448217328477
+  [From Output Index] : 0
+  [To Node Index] : 12019146058967729146
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 17402228408452677879
+  [From Output Index] : 0
+  [To Node Index] : 17856568729491694173
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13377681271876282752
+  [From Output Index] : 0
+  [To Node Index] : 17856568729491694173
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 17402228408452677879
+  [From Output Index] : 0
+  [To Node Index] : 18062012504508091030
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13377681271876282752
+  [From Output Index] : 0
+  [To Node Index] : 18062012504508091030
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 17856568729491694173
+  [From Output Index] : 0
+  [To Node Index] : 12909435982518874012
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 18062012504508091030
+  [From Output Index] : 0
+  [To Node Index] : 12909435982518874012
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 12909435982518874012
+  [From Output Index] : 0
+  [To Node Index] : 8222101518032555921
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8222101518032555921
+  [From Output Index] : 0
+  [To Node Index] : 10006148222350032520
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 2656191648454770969
+  [From Output Index] : 0
+  [To Node Index] : 13249686803892187046
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13249686803892187046
+  [From Output Index] : 0
+  [To Node Index] : 14313131910214954044
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 14313131910214954044
+  [From Output Index] : 0
+  [To Node Index] : 10006148222350032520
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 3982869722018410724
+  [From Output Index] : 0
+  [To Node Index] : 11745042803755946961
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 11745042803755946961
+  [From Output Index] : 0
+  [To Node Index] : 14965882260628613572
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 12164442380028710986
+  [From Output Index] : 0
+  [To Node Index] : 13433507862827379897
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8337694563586992478
+  [From Output Index] : 0
+  [To Node Index] : 13433507862827379897
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 18169033841024082932
+  [From Output Index] : 0
+  [To Node Index] : 1433861565182795671
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4479914827855527025
+  [From Output Index] : 0
+  [To Node Index] : 1275040982954115353
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 1275040982954115353
+  [From Output Index] : 0
+  [To Node Index] : 4118648202540797124
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4118648202540797124
+  [From Output Index] : 0
+  [To Node Index] : 7789207265528768136
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 7789207265528768136
+  [From Output Index] : 0
+  [To Node Index] : 10924839093199273255
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 10924839093199273255
+  [From Output Index] : 0
+  [To Node Index] : 1677992374057370861
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 14504130378146570871
+  [From Output Index] : 0
+  [To Node Index] : 1677992374057370861
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13211703828939228445
+  [From Output Index] : 0
+  [To Node Index] : 14504130378146570871
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 1677992374057370861
+  [From Output Index] : 0
+  [To Node Index] : 8043335200573323336
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 5942383389729969275
+  [From Output Index] : 0
+  [To Node Index] : 12333873671255970608
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 1489864984266874914
+  [From Output Index] : 0
+  [To Node Index] : 9487407204590921242
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 1489864984266874914
+  [From Output Index] : 1
+  [To Node Index] : 9487407204590921242
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 9487407204590921242
+  [From Output Index] : 0
+  [To Node Index] : 6308400667296866907
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 3945198568920176338
+  [From Output Index] : 0
+  [To Node Index] : 6308400667296866907
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 6308400667296866907
+  [From Output Index] : 0
+  [To Node Index] : 12333873671255970608
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 12333873671255970608
+  [From Output Index] : 0
+  [To Node Index] : 18215984376363363455
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 18215984376363363455
+  [From Output Index] : 0
+  [To Node Index] : 7533743594233704127
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 7533743594233704127
+  [From Output Index] : 0
+  [To Node Index] : 3193009553887467568
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 941612129342610149
+  [From Output Index] : 0
+  [To Node Index] : 6541871904745587685
+  [To Input Index] : 2
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 6541871904745587685
+  [From Output Index] : 0
+  [To Node Index] : 9415009511065186075
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 3193009553887467568
+  [From Output Index] : 0
+  [To Node Index] : 781374008964990039
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 16096082954666699033
+  [From Output Index] : 0
+  [To Node Index] : 8221819901097142234
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 8221819901097142234
+  [From Output Index] : 0
+  [To Node Index] : 781374008964990039
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 781374008964990039
+  [From Output Index] : 0
+  [To Node Index] : 9415009511065186075
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 17995992562159819403
+  [From Output Index] : 1
+  [To Node Index] : 12605091031780795185
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 17995992562159819403
+  [From Output Index] : 0
+  [To Node Index] : 12605091031780795185
+  [To Input Index] : 1
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 12605091031780795185
+  [From Output Index] : 0
+  [To Node Index] : 9391385414133346235
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13433507862827379897
+  [From Output Index] : 0
+  [To Node Index] : 10264658310712388576
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 10264658310712388576
+  [From Output Index] : 0
+  [To Node Index] : 5695430551865695147
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 13433507862827379897
+  [From Output Index] : 0
+  [To Node Index] : 4166838621955644740
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4166838621955644740
+  [From Output Index] : 0
+  [To Node Index] : 3157571649601035533
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 10006148222350032520
+  [From Output Index] : 0
+  [To Node Index] : 12164442380028710986
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 9396634183656035060
+  [From Output Index] : 0
+  [To Node Index] : 18169033841024082932
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 9396634183656035060
+  [From Output Index] : 0
+  [To Node Index] : 17995992562159819403
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4235918281415583972
+  [From Output Index] : 0
+  [To Node Index] : 1489864984266874914
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 1678459135538045110
+  [From Output Index] : 0
+  [To Node Index] : 4849416905412705766
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 4849416905412705766
+  [From Output Index] : 0
+  [To Node Index] : 10924839093199273255
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 9415009511065186075
+  [From Output Index] : 0
+  [To Node Index] : 12890335318372855201
+  [To Input Index] : 0
+   ============= Link ============= 
+   ------------- Link ------------- 
+  [From Node Index] : 14619013468338843818
+  [From Output Index] : 0
+  [To Node Index] : 941612129342610149
+  [To Input Index] : 0
+   ============= Link ============= 
+ ============= Links ============= 

@@ -65,7 +65,7 @@ void NodeEditor::SetEditCustomNodeOutputPath(const std::filesystem::path& path)
     NodeTemplateHandler::SetTempPath(path);
 }
 
-void NodeEditor::AddInVariableNode(const std::string& name, Type type, std::string variableName)
+void NodeEditor::AddInVariableNode(const std::string& name, Type type, std::string variableName, const std::vector<std::string>& searchStrings)
 {
     if (variableName.empty())
         variableName = name;
@@ -77,6 +77,7 @@ void NodeEditor::AddInVariableNode(const std::string& name, Type type, std::stri
     node->SetSerialize(false);
         
     NodeMethodInfo info{node};
+    info.searchStrings = searchStrings;
     NodeTemplateHandler::GetInstance()->AddTemplateNode(info);
 }
 

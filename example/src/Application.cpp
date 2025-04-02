@@ -269,7 +269,7 @@ void Application::Initialize()
         "\tfloat Specular = %s;\n"
         "}\n");
     
-    NodeEditor::AddInVariableNode("TexCoords", Type::Vector2, "TexCoords");
+    NodeEditor::AddInVariableNode("TexCoords", Type::Vector2, "TexCoords", {"UV"});
     NodeEditor::SetTexCoordsVariableName("TexCoords");
     
     NodeEditor::AddUniformNode("Time", Type::Float, "iTime");
@@ -303,6 +303,8 @@ void Application::Initialize()
         paramNode->SetPreviewValue(Vec4f(textureWithPath->GetID(), 0, 0, 0));
         return true;
     });
+
+    NodeTemplateHandler::CreateTemplateNode("CenteredUV", IM_COL32(90, 130, 180, 255), {}, { {"CenteredUV", Type::Vector2} }, NodeEditor::TexCoordsVariableName + "* 2.f - 1.f" );
 
     for (int i = 0; i < 1; i++)
     {
@@ -432,6 +434,17 @@ void Application::DrawMainBar() const
         if (ImGui::BeginMenu("Debug"))
         {
             bool captureFrame = RenderDocAPI::ShouldCaptureFrame();
+            if (ImGui::Button("Close All previews"))
+            {
+                auto previewNodesUUID = nodeWindow->GetPreviewNodes(); 
+                for (auto it = previewNodesUUID.begin(); it != previewNodesUUID.end(); it++)
+                {
+                    if (Ref node = nodeWindow->GetNodeManager()->GetNode(*it).lock())
+                    {
+                        node->OpenPreview(false);
+                    }
+                }
+            }
             if (ImGui::Checkbox("Capture Frame", &captureFrame))
             {
                 RenderDocAPI::SetShouldCaptureFrame(captureFrame);

@@ -73,6 +73,7 @@ public:
     void* GetIMGUIWindow() const { return m_ImGuiWindow; }
 
     Ref<Mesh> GetQuad() const { return m_quad; }
+    const std::set<UUID>& GetPreviewNodes() const { return m_previewNodes; }
 private:
     
     void DrawGrid();

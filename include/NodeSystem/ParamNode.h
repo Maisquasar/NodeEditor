@@ -17,9 +17,9 @@ public:
     bool Exist(const std::string& name) const;
     void UpdateValue(const std::string& name, Vec4f value);
     void UpdateType(const std::string& name, Type type);
-    void UpdateTexture(ParamNode* node, const std::filesystem::path& path);
 
     void OnUpdateName(ParamNode* node, const std::string& prevName, const std::string& newName);
+
 private:
     std::unordered_map<std::string, std::vector<ParamNode*>> m_paramNodes;
 };

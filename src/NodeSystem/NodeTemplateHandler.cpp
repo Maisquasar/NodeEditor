@@ -458,7 +458,6 @@ void NodeTemplateHandler::Initialize()
     CreateTemplateNode("And", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s && %s", {"&&"});
     CreateTemplateNode("Or", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s || %s", {"||"});
     CreateTemplateNode("Xor", otherNodeColor, {{"A", Type::Bool}, {"B", Type::Bool} }, { {"Result", Type::Bool} }, "%s ^^ %s", {"^^"});
-
 #ifdef _DEBUG
     RunUnitTests();
 #endif
@@ -659,7 +658,7 @@ void NodeTemplateHandler::CreateTemplateNode(
         node->p_possiblityCount = 1;
         NodeMethodInfo info = {node, formats};
         info.searchStrings = searchStrings;
-        AddTemplateNode(info);
+        GetInstance()->AddTemplateNode(info);
     }
 }
 

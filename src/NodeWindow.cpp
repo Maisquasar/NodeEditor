@@ -136,7 +136,10 @@ void NodeWindow::Render()
             it = m_previewNodes.erase(it); // Erase returns the next valid iterator
             continue;
         }
-        previewNode->RenderPreview(m_quad);
+        if (previewNode->p_isVisible || !previewNode->p_allowInteraction)
+        {
+            previewNode->RenderPreview(m_quad);
+        }
         ++it;
     }
 }
@@ -182,7 +185,20 @@ void NodeWindow::DrawInspector() const
     Vec2f size = {size1 - 15, size1 - 15};
     size.x = std::fminf(size.x, 256);
     size.y = std::fminf(size.y, 256);
-    m_framebuffer->SetNewSize(size);
+    Vec2f framebufferSize = size;
+    
+    Shared mainNode = m_nodeManager->GetMainNode();
+    if (mainNode && mainNode->p_preview) // Select the biggest preview size
+    {
+        Vec2f pos1, pos2;
+        mainNode->GetPreviewRect(mainNode->GetMin(m_gridWindow.zoom, m_gridWindow.origin), m_gridWindow.zoom, pos1, pos2);
+        Vec2f mainNodePreviewSize = pos2 - pos1;
+        if (mainNodePreviewSize.x > size.x && mainNodePreviewSize.y > size.y)
+        {
+            framebufferSize = mainNodePreviewSize;
+        }
+    }
+    m_framebuffer->SetNewSize(framebufferSize);
     ImGui::Dummy(Vec2f(5, 5));
     ImGui::Image(reinterpret_cast<void*>(static_cast<size_t>(m_framebuffer->GetRenderTexture())), size, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1));
     ImGui::Separator();

@@ -159,9 +159,10 @@ void ShaderMaker::DoWork(NodeManager* manager)
 
     std::unordered_map<UUID, FuncStruct> functionList = m_functions;
 
-    for (NodeRef& node : std::views::values(manager->m_nodes))
+    for (const auto& previewUUID : manager->GetMainWindow()->GetPreviewNodes())
     {
-        if (!node || !node->p_preview && endNode != node)
+        auto node = manager->GetNode(previewUUID).lock();
+        if (!node || !node->p_preview && node->p_allowInteraction)
             continue;
         std::string content;
 

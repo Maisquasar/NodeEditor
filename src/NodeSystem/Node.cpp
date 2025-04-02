@@ -329,7 +329,7 @@ void Node::DrawPreview(Vec2f pMin, float zoom) const
     Vec2f imageMax;
     GetPreviewRect(pMin, zoom, imageMin, imageMax);
 
-    if (m_framebuffer)
+    if (m_framebuffer && p_allowInteraction)
     {
         m_framebuffer->SetNewSize(imageMax - imageMin);
     }

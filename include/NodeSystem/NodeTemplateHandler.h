@@ -87,12 +87,12 @@ public:
     static void UpdateColor(const std::string& name, uint32_t color);
 
     static bool DoesNameExist(const std::string& name);
-private:
-    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<StreamNameType>& inputs,
+    
+    static void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<StreamNameType>& inputs,
                             const std::vector<StreamNameType>& outputs, const std::vector<std::string>& format,
                             const std::vector<std::string>& searchStrings = {});
 
-    void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<StreamNameType>& inputs,
+    static void CreateTemplateNode(const std::string& name, const uint32_t& color, const std::vector<StreamNameType>& inputs,
                             const std::vector<StreamNameType>& outputs, const std::string& format,
                             const std::vector<std::string>& searchStrings = {});
 

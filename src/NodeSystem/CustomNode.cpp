@@ -97,7 +97,7 @@ void CustomNode::ShowInInspector()
 
     if (ImGui::Button("+"))
     {
-        AddInput("Input " + std::to_string(p_inputs.size()), Type::Float);
+        AddInput("In" + std::to_string(p_inputs.size()), Type::Float);
         UpdateFunction();
     }
     if (!p_inputs.empty())
