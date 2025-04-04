@@ -43,10 +43,12 @@ void ActionManager::UndoLastAction()
 {
     if (!m_current->m_undoneActions.empty())
     {
-        m_current->m_undoneActions.back()->Undo();
-        m_current->m_redoneActions.push_back(m_current->m_undoneActions.back());
+        Ref undoneAction = m_current->m_undoneActions.back();
+        undoneAction->Undo();
+        m_current->m_redoneActions.push_back(undoneAction);
         m_current->m_undoneActions.pop_back();
-
+        if (!undoneAction->ShouldUpdateShader())
+            return;
         if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
         {
             nodeWindow->ShouldUpdateShader();
@@ -58,10 +60,13 @@ void ActionManager::RedoLastAction()
 {
     if (!m_current->m_redoneActions.empty())
     {
-        m_current->m_redoneActions.back()->Do();
-        m_current->m_undoneActions.push_back(m_current->m_redoneActions.back());
+        Ref redoneAction = m_current->m_redoneActions.back();
+        redoneAction->Do();
+        m_current->m_undoneActions.push_back(redoneAction);
         m_current->m_redoneActions.pop_back();
-        
+
+        if (!redoneAction->ShouldUpdateShader())
+            return;
         if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
         {
             nodeWindow->ShouldUpdateShader();

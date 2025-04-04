@@ -36,7 +36,7 @@ public:
 
     Vec2f GetWindowSize() const;
 
-    void UpdateShadersValues(int program) const;
+    void UpdateShadersValues(int program, const Vec2f& framebufferSize) const;
 
 private:
     static Application* s_instance;

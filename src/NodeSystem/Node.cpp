@@ -305,7 +305,7 @@ void Node::RenderPreview(std::shared_ptr<Mesh> quad) const
         }
     }
     
-    m_shader->UpdateValues();
+    m_shader->UpdateValues(m_framebuffer->GetSize());
     quad->Draw();
     m_framebuffer->Unbind();
 }

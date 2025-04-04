@@ -12,6 +12,7 @@ struct RerouteNodeNamedData
     int refCount = 0;
 };
 
+using RerouteNodeNamedMap = std::unordered_map<std::string, RerouteNodeNamedData>;
 class RerouteNodeNamedManager
 {
 public:
@@ -32,13 +33,14 @@ public:
 
     RerouteNodeNamed* GetDefinitionNode(const std::string& name);
 
+    const RerouteNodeNamedData& GetNodeData(const std::string& name) const;
+
     bool HasDefinition(const std::string& name);
     bool HasNode(const std::string& name);
     void Clean();
 
 private:
-
-    std::unordered_map<std::string, RerouteNodeNamedData> m_rerouteNamedNodes;
+    RerouteNodeNamedMap m_rerouteNamedNodes;
 };
 
 class RerouteNodeNamed : public Node, public std::enable_shared_from_this<RerouteNodeNamed>
@@ -67,6 +69,7 @@ public:
     
     bool IsDefinition() const { return m_definition; }
     void SetRerouteName(const std::string& string);
+    std::string GetRerouteName() const { return m_name; }
 
 protected:
     void OnCreate() override;

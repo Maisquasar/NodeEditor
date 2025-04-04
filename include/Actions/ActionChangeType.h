@@ -2,6 +2,7 @@
 #include "Action.h"
 #include "NodeSystem/NodeManager.h"
 
+class RerouteNodeNamed;
 class CustomNode;
 class ParamNode;
 
@@ -33,6 +34,25 @@ public:
 private:
     CustomNode* m_customNode = nullptr;
     StreamRef m_stream = nullptr;
+    
+    Type m_type;
+    Type m_oldType;
+    
+    std::vector<Link> m_prevLinks = {};
+};
+
+class ActionChangeTypeRerouteNode : public Action
+{
+public:
+    ActionChangeTypeRerouteNode(RerouteNodeNamedManager* rerouteNodeManager, const std::string& name, Type type, Type oldType);
+    void Do() override;
+    void Undo() override;
+    std::string ToString() override { return "Change Type Reroute Node"; }
+    bool ShouldUpdateShader() const override { return true; }
+
+private:
+    RerouteNodeNamedManager* m_rerouteNodeNamedManager = nullptr;
+    std::string m_name;
     
     Type m_type;
     Type m_oldType;

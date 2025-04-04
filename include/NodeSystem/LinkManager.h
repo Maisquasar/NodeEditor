@@ -38,6 +38,7 @@ public:
     void RemoveLink(const NodeRef& fromNode, uint32_t fromOutput, const NodeRef& toNode, uint32_t toOutput);
     void RemoveLink(const UUID& fromNodeIndex, uint32_t fromOutputIndex, const UUID& toNodeIndex, uint32_t toOutputIndex);
     void RemoveLink(const LinkWeakRef& link);
+    void RemoveLink(const Link& link);
     // Removes the link connected to the input
     void RemoveLink(const InputRef& input);
     // Removes all links connected to the output

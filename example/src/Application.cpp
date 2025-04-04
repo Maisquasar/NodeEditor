@@ -155,7 +155,7 @@ static void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
-void Application::UpdateShadersValues(int program) const
+void Application::UpdateShadersValues(int program, const Vec2f& framebufferSize) const
 {
     // Set time value
     GLint timeLocation = glGetUniformLocation(program, "iTime");
@@ -168,6 +168,10 @@ void Application::UpdateShadersValues(int program) const
     {
         Vec2f mousePos = ImGui::GetMousePos();
         glUniform2fv(mouseLocation, 1, mousePos.GetNormalize().Data());
+    }
+    GLint resolutionLocation = glGetUniformLocation(program, "iResolution");
+    if (resolutionLocation != -1) {
+        glUniform2fv(resolutionLocation, 1, framebufferSize.Data());
     }
 }
 
@@ -241,7 +245,7 @@ void Application::Initialize()
 
     // Initialize Node Editor
     NodeEditor::Initialize();
-    UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1);
+    UpdateValuesFunc updateValuesFunc = std::bind(&Application::UpdateShadersValues, this, std::placeholders::_1, std::placeholders::_2);
     NodeEditor::SetShaderUpdateFunction(updateValuesFunc);
 
     NodeEditor::SetMaterialNodeInputs({
@@ -271,7 +275,8 @@ void Application::Initialize()
     
     NodeEditor::AddInVariableNode("TexCoords", Type::Vector2, "TexCoords", {"UV"});
     NodeEditor::SetTexCoordsVariableName("TexCoords");
-    
+
+    NodeEditor::AddUniformNode("Resolution", Type::Vector2, "iResolution");
     NodeEditor::AddUniformNode("Time", Type::Float, "iTime");
     NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
     

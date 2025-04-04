@@ -16,7 +16,7 @@ void NodeEditor::Initialize()
     templateHandler->Initialize();
 }
 
-void NodeEditor::SetShaderUpdateFunction(std::function<void(int)> func)
+void NodeEditor::SetShaderUpdateFunction(UpdateValuesFunc func)
 {
     Shader::SetUpdateValuesFunc(func);
 }

@@ -2,14 +2,15 @@
 
 #include <CppSerializer.h>
 #include <imgui_stdlib.h>
+#include <random>
 
 #include "NodeWindow.h"
 #include "Actions/Action.h"
+#include "Actions/ActionChangeType.h"
+#include "Actions/ActionRerouteNode.h"
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ShaderMaker.h"
-
-class ActionChangeType;
 
 RerouteNodeNamedManager::~RerouteNodeNamedManager()
 {
@@ -31,7 +32,6 @@ RerouteNodeNamedData* RerouteNodeNamedManager::GetNode(const std::string& name)
     auto it = m_rerouteNamedNodes.find(name);
     if (it == m_rerouteNamedNodes.end())
     {
-        std::cerr << "Node with name " << name << " does not exist\n";
         return nullptr;
     }
     return &m_rerouteNamedNodes[name];
@@ -42,12 +42,12 @@ void RerouteNodeNamedManager::UpdateKey(std::string oldName, const std::string& 
     auto it = m_rerouteNamedNodes.find(oldName);
     if (it == m_rerouteNamedNodes.end())
     {
-        std::cerr << "Node with old name " << oldName << " does not exist\n";
+        // std::cerr << "Node with old name " << oldName << " does not exist\n";
         return;
     }
     if (m_rerouteNamedNodes.contains(newName))
     {
-        std::cerr << "Node with new name " << newName << " already exists\n";
+        // std::cerr << "Node with new name " << newName << " already exists\n";
         return;
     }
 
@@ -143,6 +143,11 @@ RerouteNodeNamed* RerouteNodeNamedManager::GetDefinitionNode(const std::string& 
     return nullptr;
 }
 
+const RerouteNodeNamedData& RerouteNodeNamedManager::GetNodeData(const std::string& name) const
+{
+    return m_rerouteNamedNodes.at(name);
+}
+
 bool RerouteNodeNamedManager::HasDefinition(const std::string& name)
 {
     auto it = GetNode(name);
@@ -181,35 +186,41 @@ void RerouteNodeNamed::ShowInInspector()
     auto oldName = m_name;
     if (ImGui::InputText("Name", &m_name))
     {
-        //TODO : Add action
-        // Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs.back()->name, p_outputs.back()->name, m_paramName);
-        // ActionManager::AddAction(changeInput);
-        if (NodeTemplateHandler::DoesNameExist(m_name))
-        {
-            std::cerr << "Node with name " << m_name << " already exists\n";
-            SetRerouteName(oldName);
-        }
-        else
-        {
-            p_nodeManager->GetRerouteManager()->UpdateKey(oldName, m_name);
-        }
+        Ref changeName = std::make_shared<ActionRenameRerouteNode>(this, oldName, m_name);
+        ActionManager::DoAction(changeName);
     }
     
     int type = static_cast<int>(m_type) - 1;
     if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
     {
-        //TODO : Add action
-        // Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, static_cast<Type>(type + 1), m_paramType);
-        SetType(static_cast<Type>(type + 1));
-        p_nodeManager->GetRerouteManager()->UpdateType(p_name, m_type);
-        // ActionManager::AddAction(changeType);
+        Ref changeType = std::make_shared<ActionChangeTypeRerouteNode>(
+            GetNodeManager()->GetRerouteManager(), m_name, static_cast<Type>(type + 1), m_type);
+        ActionManager::DoAction(changeType);
     }
 
     Vec3f color = m_color.value();
-    if (ImGui::ColorEdit3("Node Color", &color.x))
+    static bool s_firstFrame = true;
+    static Vec3f s_valueAtStart = Vec3f(0.f);
+    bool edited;
+    if (edited = ImGui::ColorEdit3("Node Color", &color.x); edited)
     {
-        SetColor(color);
-        p_nodeManager->GetRerouteManager()->UpdateColor(p_name, color);
+        auto changeColor = ActionChangeColorRerouteNode(
+            GetNodeManager()->GetRerouteManager(), m_name, m_color.value_or(Vec3f()), color);
+        changeColor.Do();
+    }
+    
+    if (edited && s_firstFrame)
+    {
+        s_valueAtStart = color;
+        s_firstFrame = false;
+    }
+    if (!s_firstFrame && ImGui::IsItemDeactivatedAfterEdit())
+    {
+        Ref changeColor = std::make_shared<ActionChangeColorRerouteNode>(
+            GetNodeManager()->GetRerouteManager(), m_name, s_valueAtStart, color);
+        ActionManager::DoAction(changeColor);
+        s_valueAtStart = Vec4f();
+        s_firstFrame = true;
     }
 }
 
@@ -361,6 +372,50 @@ void RerouteNodeNamed::SetRerouteName(const std::string& string)
     RecalculateWidth();
 }
 
+// Converts an HSV color (h in [0,1], s in [0,1], v in [0,1]) to an ImVec4 RGB color.
+Vec4f HSVtoRGB(float h, float s, float v)
+{
+    float r, g, b;
+    int i = int(h * 6);
+    float f = h * 6 - i;
+    float p = v * (1 - s);
+    float q = v * (1 - f * s);
+    float t = v * (1 - (1 - f) * s);
+    
+    switch (i % 6)
+    {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+    }
+    return Vec4f(r, g, b, 1.0f);
+}
+
+// Returns a random color that is pale yet dark enough so white text is legible.
+Vec4f GetRandomPastelColor()
+{
+    // Random engine
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    
+    // Random hue in [0, 1)
+    std::uniform_real_distribution<float> hueDist(0.0f, 1.0f);
+    float hue = hueDist(gen);
+    
+    // Fixed low saturation for a pastel feel.
+    float saturation = 0.3f;
+    
+    // Choose a random brightness (value) in a relatively low range.
+    // (Lower value means darker color, which helps white text stand out.)
+    std::uniform_real_distribution<float> valueDist(0.23f, 0.3f);
+    float value = valueDist(gen);
+    
+    return HSVtoRGB(hue, saturation, value);
+}
+
 void RerouteNodeNamed::OnCreate()
 {
     if (m_templateNode || !p_nodeManager->GetRerouteManager()->HasDefinition(m_name))
@@ -378,6 +433,7 @@ void RerouteNodeNamed::OnCreate()
             
             m_name = newName;
             SetName(newName);
+            index++;
         }
 
         if (!templateNode)
@@ -405,7 +461,7 @@ void RerouteNodeNamed::OnCreate()
     
     if (!m_color.has_value())
     {
-        p_nodeManager->GetRerouteManager()->UpdateColor(m_name, Vec4f(ImGui::ColorConvertU32ToFloat4(p_topColor)));
+        p_nodeManager->GetRerouteManager()->UpdateColor(m_name, GetRandomPastelColor());
     }
 }
 

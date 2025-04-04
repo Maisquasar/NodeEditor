@@ -46,7 +46,7 @@ private:
     uint32_t m_count;
 };
 
-using UpdateValuesFunc = std::function<void(int)>;
+using UpdateValuesFunc = std::function<void(int, Vec2f)>;
 class Shader
 {
 public:
@@ -71,7 +71,7 @@ public:
     void Use() const;
     bool RecompileFragmentShader();
     bool RecompileFragmentShader(const char* content);
-    void UpdateValues();
+    void UpdateValues(const Vec2f& framebufferSize);
 
     void SendValue(const char* name, Vec4f value, Type type);
     
@@ -118,6 +118,7 @@ public:
     uint32_t GetRenderTexture() const { return m_texture; }
 
     void SetNewSize(const Vec2f& size) { m_newSize = size; }
+    Vec2f GetSize() const { return m_size; }
 private:
     Vec2f m_size = { 1280, 720 };
 

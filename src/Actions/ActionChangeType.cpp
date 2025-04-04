@@ -4,9 +4,10 @@
 
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/ParamNode.h"
+#include "NodeSystem/RerouteNodeNamed.h"
 
 ActionChangeTypeParam::ActionChangeTypeParam(ParamNodeManager* paramNodeManager, const std::string& paramName,
-    Type type, Type oldType) 
+                                             Type type, Type oldType) 
 {
     m_paramNodeManager = paramNodeManager;
     m_paramName = paramName;
@@ -100,4 +101,51 @@ void ActionChangeTypeCustom::Undo()
         m_customNode->GetNodeManager()->GetLinkManager()->AddLink(link);
     }
     m_customNode->UpdateFunction();
+}
+
+ActionChangeTypeRerouteNode::ActionChangeTypeRerouteNode(RerouteNodeNamedManager* rerouteNodeManager,
+    const std::string& name, Type type, Type oldType)
+{
+    m_rerouteNodeNamedManager = rerouteNodeManager;
+    m_name = name;
+    m_type = type;
+    m_oldType = oldType;
+
+    const RerouteNodeNamedData& rerouteNodeNamedData = rerouteNodeManager->GetNodeData(name);
+    for (auto& node : rerouteNodeNamedData.node)
+    {
+        if (node->IsDefinition())
+        {
+            if (Ref inputLink = node->GetNodeManager()->GetLinkManager()->GetLinkWithInput(node->GetUUID(), 0))
+            {
+                m_prevLinks.push_back(*inputLink);
+            }
+        }
+        std::vector links = node->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(node->GetOutput(0));
+        std::ranges::for_each(links, [&](const LinkRef& link)
+        {
+            m_prevLinks.push_back(*link);
+        });
+    }
+}
+
+void ActionChangeTypeRerouteNode::Do()
+{
+    RerouteNodeNamed* defNode = m_rerouteNodeNamedManager->GetDefinitionNode(m_name);
+    m_rerouteNodeNamedManager->UpdateType(m_name, m_type);
+
+    for (auto& link : m_prevLinks)
+    {
+        defNode->GetNodeManager()->GetLinkManager()->RemoveLink(link);
+    }
+}
+
+void ActionChangeTypeRerouteNode::Undo()
+{
+    RerouteNodeNamed* defNode = m_rerouteNodeNamedManager->GetDefinitionNode(m_name);
+    m_rerouteNodeNamedManager->UpdateType(m_name, m_oldType);
+    for (auto& link : m_prevLinks)
+    {
+        defNode->GetNodeManager()->GetLinkManager()->AddLink(link);
+    }
 }

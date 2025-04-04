@@ -263,6 +263,11 @@ void LinkManager::RemoveLink(const LinkWeakRef& link)
     RemoveLink(sharedPtr->fromNodeIndex, sharedPtr->fromOutputIndex, sharedPtr->toNodeIndex, sharedPtr->toInputIndex);
 }
 
+void LinkManager::RemoveLink(const Link& link)
+{
+    RemoveLink(link.fromNodeIndex, link.fromOutputIndex, link.toNodeIndex, link.toInputIndex);
+}
+
 void LinkManager::RemoveLink(const InputRef& input)
 {
     if (input == nullptr)

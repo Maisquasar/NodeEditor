@@ -297,9 +297,9 @@ void Shader::ComputeUniforms()
     }
 }
 
-void Shader::UpdateValues()
+void Shader::UpdateValues(const Vec2f& framebufferSize)
 {
-    m_updateValuesFunc(m_program);
+    m_updateValuesFunc(m_program, framebufferSize);
 }
 
 void Shader::SendValue(const char* name, Vec4f value, Type type)

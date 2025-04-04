@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "NodeSystem/Node.h"
+#include "Render/Framebuffer.h"
 
 class NodeWindow;
 
@@ -32,7 +33,7 @@ namespace NodeEditor
      * @brief Sets the function to be called when a shader update is triggered.
      * @param func A function that takes an integer argument that represents the program ID of the shader.
      */
-    void SetShaderUpdateFunction(std::function<void(int)> func);
+    void SetShaderUpdateFunction(UpdateValuesFunc func);
 
     /**
      * @brief Creates a new NodeWindow instance.

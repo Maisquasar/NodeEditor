@@ -33,6 +33,10 @@ void CustomNode::Update()
     m_lastWriteTime = std::filesystem::last_write_time(path);
     std::ifstream file(path);
     std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
+    if (m_content != content)
+    {
+        this->GetNodeManager()->GetMainWindow()->ShouldUpdateShader();
+    }
     m_content = content;
 }
 
@@ -95,8 +99,9 @@ void CustomNode::ShowInInspector()
 
     ImGui::SeparatorText("Inputs");
     ImGui::PushID("Inputs");
+    const Vec2f buttonSize = Vec2f(20);
 
-    if (ImGui::Button("+"))
+    if (ImGui::Button("+", buttonSize))
     {
         auto addInput = std::make_shared<ActionAddStream>(this, "Input" + std::to_string(p_inputs.size()), Type::Float, StreamType::Input);
         ActionManager::DoAction(addInput);
@@ -104,7 +109,7 @@ void CustomNode::ShowInInspector()
     if (!p_inputs.empty())
     {
         ImGui::SameLine();
-        if (ImGui::Button("-"))
+        if (ImGui::Button("-", buttonSize))
         {
             auto removeInput = std::make_shared<ActionRemoveStream>(this, p_inputs[p_inputs.size() - 1]);
             ActionManager::DoAction(removeInput);
@@ -113,7 +118,7 @@ void CustomNode::ShowInInspector()
     for (int i = 0; i < p_inputs.size(); i++)
     {
         ImGui::PushID(i);
-        if (ImGui::TreeNode("##", "Input %d", i))
+        if (ImGui::TreeNodeEx(("##" + p_inputs[i]->name).c_str(), ImGuiTreeNodeFlags_DefaultOpen, "Input %d", i))
         {
             std::string name = p_inputs[i]->name;
             if (ImGui::InputText("Input Name", &name))
@@ -135,7 +140,7 @@ void CustomNode::ShowInInspector()
     ImGui::SeparatorText("Outputs");
     ImGui::PushID("Outputs");
 
-    if (ImGui::Button("+"))
+    if (ImGui::Button("+", buttonSize))
     {
         auto addOutput = std::make_shared<ActionAddStream>(this, "Output" + std::to_string(p_outputs.size()), Type::Float, StreamType::Output);
         ActionManager::DoAction(addOutput);
@@ -143,7 +148,7 @@ void CustomNode::ShowInInspector()
     if (!p_outputs.empty())
     {
         ImGui::SameLine();
-        if (ImGui::Button("-"))
+        if (ImGui::Button("-", buttonSize))
         {
             auto removeInput = std::make_shared<ActionRemoveStream>(this, p_outputs[p_outputs.size() - 1]);
             ActionManager::DoAction(removeInput);
@@ -152,12 +157,12 @@ void CustomNode::ShowInInspector()
     for (int i = 0; i < p_outputs.size(); i++)
     {
         ImGui::PushID(i);
-        if (ImGui::TreeNode("##", "Output %d", i))
+        if (ImGui::TreeNodeEx(("##" + p_outputs[i]->name).c_str(), ImGuiTreeNodeFlags_DefaultOpen, "Output %d", i))
         {
             std::string name = p_outputs[i]->name;
             if (ImGui::InputText("Output Name", &name))
             {
-                Ref changeInput = std::make_shared<ActionChangeStreamNameCustom>(this, &p_inputs[i]->name, p_inputs[i]->name, name);
+                Ref changeInput = std::make_shared<ActionChangeStreamNameCustom>(this, &p_outputs[i]->name, p_outputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
             }
             int type = static_cast<int>(p_outputs[i]->type) - 1;
