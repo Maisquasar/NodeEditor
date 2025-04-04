@@ -102,7 +102,7 @@ public:
     bool OutputExists(const UUID& uuid, const uint32_t index);
     InputWeak GetInput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetInput(index); }
     OutputWeak GetOutput(const UUID& uuid, const uint32_t index) { return m_nodes[uuid]->GetOutput(index); }
-    std::vector<LinkWeakRef> GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
+    std::vector<LinkRef> GetLinkWithOutput(const UUID& uuid, uint32_t index) const;
     NodeWeak GetSelectedNode() const;
     Link& GetCurrentLink() {return m_currentLink;}
     std::filesystem::path GetFilePath() const {return m_savePath;}

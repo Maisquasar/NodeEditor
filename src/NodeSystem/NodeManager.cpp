@@ -98,7 +98,12 @@ void NodeManager::UpdateDelete()
     const bool deleteClicked = ImGui::IsKeyPressed(ImGuiKey_Delete);
     if (!deleteClicked)
         return;
-    auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, m_selectedNodes, m_linkManager->GetSelectedLinks());
+    std::vector<LinkRef> selectedLinks;
+    for (auto& link : m_linkManager->GetSelectedLinks())
+    {
+        selectedLinks.push_back(link.lock());
+    }
+    auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, m_selectedNodes, selectedLinks);
     m_linkManager->DeleteSelectedLinks();
     
     for (int i = 0; i < m_selectedNodes.size(); i++)
@@ -144,7 +149,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
 {
     if (altClicked)
     {
-        std::vector<LinkWeakRef> links = m_linkManager->GetLinksWithOutput(node->GetOutput(i));
+        std::vector<LinkRef> links = m_linkManager->GetLinksWithOutput(node->GetOutput(i));
         std::vector<NodeWeak> nodes = {};
         
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
@@ -894,7 +899,7 @@ bool NodeManager::OutputExists(const UUID& uuid, const uint32_t index)
     return it->second->p_outputs.size() > index;
 }
 
-std::vector<LinkWeakRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
+std::vector<LinkRef> NodeManager::GetLinkWithOutput(const UUID& uuid, const uint32_t index) const
 {
     return m_linkManager->GetLinksWithOutput(GetNode(uuid).lock()->GetOutput(index));
 }

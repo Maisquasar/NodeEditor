@@ -33,6 +33,13 @@ enum class Type
     Sampler2D,
 };
 
+enum class StreamType
+{
+    None,
+    Input,
+    Output,
+};
+
 const char* SerializeTypeEnum();
 std::string TypeEnumToString(Type type);
 uint32_t GetColorFromType(Type type);
@@ -65,6 +72,8 @@ struct Stream
     bool isLinked = false;
 
     bool isHovered = false;
+
+    StreamType streamType = StreamType::None;
 };
 
 struct Input : Stream
@@ -89,7 +98,7 @@ struct Input : Stream
 struct Output : Stream
 {
     Output() = default;
-    Output(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type) : Stream(_parentUUID, _index, _name, _type) {}
+    Output(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type);
 };
 
 constexpr int c_pointSize = 25;
@@ -219,7 +228,10 @@ public:
     
     virtual void ShowInInspector();
 
-    virtual void ShowInputInspector(uint32_t index);;
+    virtual void ShowInputInspector(uint32_t index);
+
+    const std::filesystem::path& GetTexturePath() const { return m_texturePath.value_or(""); }
+    void SetTexturePath(const std::filesystem::path& path) { if (path.empty()) {m_texturePath = path;} }
 
     virtual std::vector<std::string> GetFormatStrings() const;
 

@@ -5,31 +5,6 @@
 class CustomNode;
 class ParamNode;
 
-class ActionChangeType : public Action
-{
-public:
-    ActionChangeType(ParamNode* node, Type type, Type oldType);
-    ActionChangeType(CustomNode* node, InputRef input, Type type, Type oldType);
-    ActionChangeType(CustomNode* node, OutputRef output, Type type, Type oldType);
-
-    void Do() override;
-    void Undo() override;
-
-    std::string ToString() override { return "Change Type"; }
-    bool ShouldUpdateShader() const override { return true; }
-
-private:
-    ParamNode* m_paramNode = nullptr;
-    CustomNode* m_customNode = nullptr;
-    InputRef m_input = nullptr;
-    OutputRef m_output = nullptr;
-    
-    Type m_type;
-    Type m_oldType;
-    
-    std::vector<Link> m_link;
-};
-
 class ActionChangeTypeParam : public Action
 {
 public:
@@ -44,5 +19,23 @@ private:
     Type m_type;
     Type m_oldType;
 
-    std::vector<LinkRef> m_prevLinks = {};
+    std::vector<Link> m_prevLinks = {};
+};
+
+class ActionChangeTypeCustom : public Action
+{
+public:
+    ActionChangeTypeCustom(CustomNode* node, StreamRef stream, Type type, Type oldType);
+    void Do() override;
+    void Undo() override;
+    std::string ToString() override { return "Change Type Custom"; }
+    bool ShouldUpdateShader() const override { return true; }
+private:
+    CustomNode* m_customNode = nullptr;
+    StreamRef m_stream = nullptr;
+    
+    Type m_type;
+    Type m_oldType;
+    
+    std::vector<Link> m_prevLinks = {};
 };

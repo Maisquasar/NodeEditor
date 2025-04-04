@@ -9,9 +9,14 @@
 #include "Actions/Action.h"
 #include "Actions/ActionChangeInput.h"
 #include "Actions/ActionChangeType.h"
+#include "Actions/ActionChangeValue.h"
 
 void ParamNodeManager::AddParamNode(ParamNode* node, const std::string& name)
 {
+    if (!m_nodeManager)
+    {
+        m_nodeManager = node->GetNodeManager();
+    }
     auto it = m_paramNodes.find(name);
     if (it == m_paramNodes.end())
     {
@@ -108,11 +113,8 @@ void ParamNode::ShowInInspector()
 
     if (ImGui::InputText("Param Name", &m_paramName))
     {
-        Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs.back()->name, p_outputs.back()->name, m_paramName);
-        ActionManager::AddAction(changeInput);
-
-        p_nodeManager->GetParamManager()->OnUpdateName(this, p_outputs.back()->name, m_paramName);
-        p_outputs.back()->name = m_paramName;
+        Ref changeName = std::make_shared<ActionChangeStreamNameParam>(this, &p_outputs.back()->name, p_outputs.back()->name, m_paramName);
+        ActionManager::DoAction(changeName);
     }
 
     m_paramName = p_outputs.back()->name;
@@ -128,6 +130,9 @@ void ParamNode::ShowInInspector()
     const char* InputName = "Preview Value";
     Vec4f previewValue = GetPreviewValue();
     bool valueChanged = false;
+    std::filesystem::path path = "";
+    static bool s_firstFrame = true;
+    static Vec4f s_valueAtStart = Vec4f(0);
     //TODO Add action for each type
     switch (m_paramType)
     {
@@ -136,7 +141,7 @@ void ParamNode::ShowInInspector()
         break;
     case Type::Float:
         {
-            if (ImGui::DragFloat(InputName, &previewValue.x, 0.1f))
+            if (ImGui::InputFloat(InputName, &previewValue.x, 0.1f))
             {
                 valueChanged = true;
             }
@@ -145,7 +150,7 @@ void ParamNode::ShowInInspector()
     case Type::Int:
         {
             int val = static_cast<int>(previewValue.x);
-            if (ImGui::DragInt(InputName, &val, 1))
+            if (ImGui::InputInt(InputName, &val, 1))
             {
                 previewValue.x = static_cast<float>(val);
                 valueChanged = true;
@@ -165,7 +170,7 @@ void ParamNode::ShowInInspector()
     case Type::Vector2:
         {
             Vec2f val = Vec2f(previewValue.x, previewValue.y);
-            if (ImGui::DragFloat2(InputName, &previewValue.x, 0.1f))
+            if (ImGui::DragFloat2(InputName, &previewValue.x))
             {
                 valueChanged = true;
             }
@@ -190,12 +195,10 @@ void ParamNode::ShowInInspector()
     case Type::Sampler2D:
         {
             int valueInt = static_cast<int>(previewValue.x);
-            std::filesystem::path path;
             if (NodeEditor::ShowTextureSelector("##texture", &valueInt, &path))
             {
                 previewValue.x = static_cast<float>(valueInt);
                 valueChanged = true;
-                m_texturePath = path;
             }
         }
         break;
@@ -207,9 +210,23 @@ void ParamNode::ShowInInspector()
 
     if (valueChanged)
     {
-        SetPreviewValue(previewValue);
+        if (s_firstFrame)
+        {
+            s_valueAtStart = m_previewValue.value_or(Vec4f());
+            s_firstFrame = false;
+        }
         p_nodeManager->GetMainWindow()->ShouldUpdateShader();
-        p_nodeManager->GetParamManager()->UpdateValue(m_paramName, previewValue);
+        p_nodeManager->GetParamManager()->UpdateValue(GetParamName(), previewValue);
+        SetTexturePath(path);
+    }
+    if (!s_firstFrame && (ImGui::IsItemDeactivatedAfterEdit() || m_paramType == Type::Sampler2D && valueChanged)) // Do this to avoid calling each frame
+    {
+        Ref changeValue = std::make_shared<ActionChangePreviewValue>(
+            this, s_valueAtStart, previewValue, m_texturePath.value_or(""), path);
+        ActionManager::AddAction(changeValue);
+        std::cout << "Change value from " << s_valueAtStart.ToString() << " to " << previewValue.ToString() << std::endl;
+        s_valueAtStart = Vec4f();
+        s_firstFrame = true;
     }
 }
 

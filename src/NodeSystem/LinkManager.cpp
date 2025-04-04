@@ -78,7 +78,7 @@ void LinkManager::UpdateLinkSelection(const Vec2f& origin, float zoom)
             if (altClick)
             {
                 std::vector<NodeWeak> nodeList = {};
-                std::vector<LinkWeakRef> linkList = { clickedLink };
+                std::vector<LinkRef> linkList = { clickedLink };
                 auto action = std::make_shared<ActionDeleteNodesAndLinks>(m_nodeManager, nodeList, linkList);
                 ActionManager::AddAction(action);
                 RemoveLink(clickedLink);
@@ -404,17 +404,22 @@ bool LinkManager::BezierIntersectSquare(Vec2f inputPosition, Vec2f controlPoint1
     return false;
 }
 
-std::vector<LinkWeakRef> LinkManager::GetLinksWithOutput(const OutputRef& output) const
+std::vector<LinkRef> LinkManager::GetLinksWithOutput(const UUID& uuid, uint32_t index) const
 {
-    std::vector<LinkWeakRef> links;
+    std::vector<LinkRef> links;
     for (uint32_t i = 0; i < m_links.size(); i++)
     {
-        if (m_links[i]->fromNodeIndex == output->parentUUID && m_links[i]->fromOutputIndex == output->index)
+        if (m_links[i]->fromNodeIndex == uuid && m_links[i]->fromOutputIndex == index)
         {
             links.push_back(m_links[i]);
         }
     }
     return links;
+}
+
+std::vector<LinkRef> LinkManager::GetLinksWithOutput(const OutputRef& output) const
+{
+    return GetLinksWithOutput(output->parentUUID, output->index);
 }
 
 LinkRef LinkManager::GetLinkWithInput(const UUID& uuid, uint32_t index) const
@@ -428,6 +433,11 @@ LinkRef LinkManager::GetLinkWithInput(const UUID& uuid, uint32_t index) const
         }
     }
     return nullptr;
+}
+
+LinkRef LinkManager::GetLinkWithInput(const InputRef& input) const
+{
+    return GetLinkWithInput(input->parentUUID, input->index);
 }
 
 bool LinkManager::HasLink(const OutputRef& output) const

@@ -1,85 +1,9 @@
+#include <utility>
+
 #include "Actions/ActionChangeType.h"
 
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/ParamNode.h"
-
-ActionChangeType::ActionChangeType(ParamNode* node, Type type, Type oldType): Action(), m_paramNode(node), m_type(type), m_oldType(oldType)
-{
-    auto links = m_paramNode->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(m_paramNode->GetOutput(0));
-    for (auto& link : links)
-    {
-        m_link.push_back(*link.lock());
-    }
-}
-
-ActionChangeType::ActionChangeType(CustomNode* node, InputRef input, Type type, Type oldType) : Action(), m_customNode(node), m_type(type), m_oldType(oldType), m_input(input)
-{
-    LinkRef link = m_customNode->GetNodeManager()->GetLinkManager()->GetLinkWithInput(node->GetUUID(), input->index);
-
-    m_link.push_back(*link);
-}
-
-ActionChangeType::ActionChangeType(CustomNode* node, OutputRef output, Type type, Type oldType) : Action(), m_customNode(node), m_type(type), m_oldType(oldType), m_output(output)
-{
-    auto links = m_customNode->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(output);
-    for (auto& link : links)
-    {
-        m_link.push_back(*link.lock());
-    }
-}
-
-void ActionChangeType::Do()
-{
-    if (m_paramNode)
-    {
-        m_paramNode->SetType(m_type);
-        m_paramNode->GetNodeManager()->GetParamManager()->UpdateType(m_paramNode->GetParamName(), m_type);
-    }
-    else if (m_customNode)
-    {
-        if (m_input)
-        {
-            m_customNode->RemoveInput(m_input->index);
-            m_customNode->AddInput(m_input->name, m_type);
-        }
-        else if (m_output)
-        {
-            m_customNode->RemoveOutput(m_output->index);
-            m_customNode->AddOutput(m_output->name, m_type);
-        }
-    }
-}
-
-void ActionChangeType::Undo()
-{
-    Node* node;
-    if (m_paramNode)
-    {
-        node = m_paramNode;
-        m_paramNode->SetType(m_oldType);
-        m_paramNode->GetNodeManager()->GetParamManager()->UpdateType(m_paramNode->GetParamName(), m_oldType);
-    }
-    else if (m_customNode)
-    {
-        node = m_customNode;
-        if (m_input)
-        {
-            m_customNode->RemoveInput(m_input->index);
-            m_customNode->AddInput(m_input->name, m_oldType);
-        }
-        else if (m_output)
-        {
-            m_customNode->RemoveOutput(m_output->index);
-            m_customNode->AddOutput(m_output->name, m_oldType);
-        }
-    }
-        
-    for (auto& link : m_link)
-    {
-        node->GetNodeManager()->GetLinkManager()->AddLink(link);
-    }
-    
-}
 
 ActionChangeTypeParam::ActionChangeTypeParam(ParamNodeManager* paramNodeManager, const std::string& paramName,
     Type type, Type oldType) 
@@ -92,10 +16,17 @@ ActionChangeTypeParam::ActionChangeTypeParam(ParamNodeManager* paramNodeManager,
     auto nodes = m_paramNodeManager->GetParamNodes(paramName);
     for (auto& node : nodes)
     {
-        std::vector outputLinks = node->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(node->GetOutput(0));
+        std::vector<LinkRef> outputLinks = node->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(node->GetOutput(0));
         LinkRef inputLink = node->GetNodeManager()->GetLinkManager()->GetLinkWithInput(node->GetUUID(), 0);
-        m_prevLinks.insert(m_prevLinks.end(), outputLinks.begin(), outputLinks.end());
-        m_prevLinks.push_back(inputLink);
+        
+        std::ranges::for_each(outputLinks, [&](const LinkRef& link)
+        {
+            m_prevLinks.push_back(*link);
+        });
+        if (inputLink)
+        {
+            m_prevLinks.push_back(*inputLink);
+        }
     }
 }
 
@@ -107,6 +38,66 @@ void ActionChangeTypeParam::Do()
 
 void ActionChangeTypeParam::Undo()
 {
-    m_paramNodeManager->OnUpdateType(m_paramName);
+    // Don't need to update links
     m_paramNodeManager->UpdateType(m_paramName, m_oldType);
+
+    for (Link& link : m_prevLinks)
+    {
+        m_paramNodeManager->GetNodeManager()->GetLinkManager()->AddLink(link);
+    }
+}
+
+ActionChangeTypeCustom::ActionChangeTypeCustom(CustomNode* node, StreamRef stream, Type type, Type oldType)
+{
+    m_customNode = node;
+    m_stream = std::move(stream);
+    m_type = type;
+    m_oldType = oldType;
+
+    if (m_stream->streamType == StreamType::Input)
+    {
+        const LinkRef linkRef = m_customNode->GetNodeManager()->GetLinkManager()->GetLinkWithInput(m_stream->parentUUID, m_stream->index);
+        if (linkRef)
+            m_prevLinks.push_back(*linkRef);
+    }
+    else
+    {
+        std::vector<LinkRef> outputLinks = m_customNode->GetNodeManager()->GetLinkManager()->GetLinksWithOutput(m_stream->parentUUID, m_stream->index);
+        std::ranges::for_each(outputLinks, [&](const LinkRef& link)
+        {
+            m_prevLinks.push_back(*link);
+        });
+    }
+}
+
+void ActionChangeTypeCustom::Do()
+{
+    if (m_stream->streamType == StreamType::Input)
+    {
+        m_customNode->ChangeInputType(m_stream->index, m_type);
+        m_customNode->GetNodeManager()->GetLinkManager()->RemoveLink(std::dynamic_pointer_cast<Input>(m_stream));
+    }
+    else
+    {
+        m_customNode->ChangeOutputType(m_stream->index, m_type);
+        m_customNode->GetNodeManager()->GetLinkManager()->RemoveLinks(std::dynamic_pointer_cast<Output>(m_stream));
+    }
+    m_customNode->UpdateFunction();
+}
+
+void ActionChangeTypeCustom::Undo()
+{
+    if (m_stream->streamType == StreamType::Input)
+    {
+        m_customNode->ChangeInputType(m_stream->index, m_oldType);
+    }
+    else
+    {
+        m_customNode->ChangeOutputType(m_stream->index, m_oldType);
+    }
+    for (auto& link : m_prevLinks)
+    {
+        m_customNode->GetNodeManager()->GetLinkManager()->AddLink(link);
+    }
+    m_customNode->UpdateFunction();
 }

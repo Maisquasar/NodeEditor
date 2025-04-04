@@ -21,9 +21,11 @@ public:
     void OnUpdateName(ParamNode* node, const std::string& prevName, const std::string& newName);
     void OnUpdateType(const std::string& name) const;
 
+    NodeManager* GetNodeManager() const { return m_nodeManager; }
     std::vector<ParamNode*> GetParamNodes(const std::string& name) const { return m_paramNodes.at(name);}
 private:
     std::unordered_map<std::string, std::vector<ParamNode*>> m_paramNodes;
+    NodeManager* m_nodeManager = nullptr;
 };
 
 

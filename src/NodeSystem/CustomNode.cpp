@@ -4,6 +4,7 @@
 
 #include "imgui_stdlib.h"
 #include "NodeWindow.h"
+#include "Actions/ActionAddStream.h"
 #include "Actions/ActionChangeInput.h"
 #include "Actions/ActionChangeType.h"
 #include "NodeSystem/ShaderMaker.h"
@@ -97,16 +98,16 @@ void CustomNode::ShowInInspector()
 
     if (ImGui::Button("+"))
     {
-        AddInput("In" + std::to_string(p_inputs.size()), Type::Float);
-        UpdateFunction();
+        auto addInput = std::make_shared<ActionAddStream>(this, "Input" + std::to_string(p_inputs.size()), Type::Float, StreamType::Input);
+        ActionManager::DoAction(addInput);
     }
     if (!p_inputs.empty())
     {
         ImGui::SameLine();
         if (ImGui::Button("-"))
         {
-            RemoveInput(p_inputs.size() - 1);
-            UpdateFunction();
+            auto removeInput = std::make_shared<ActionRemoveStream>(this, p_inputs[p_inputs.size() - 1]);
+            ActionManager::DoAction(removeInput);
         }
     }
     for (int i = 0; i < p_inputs.size(); i++)
@@ -117,19 +118,14 @@ void CustomNode::ShowInInspector()
             std::string name = p_inputs[i]->name;
             if (ImGui::InputText("Input Name", &name))
             {
-                Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_inputs[i]->name, p_inputs[i]->name, name);
+                Ref changeInput = std::make_shared<ActionChangeStreamNameCustom>(this, &p_inputs[i]->name, p_inputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
-                UpdateFunction();
-                RecalculateWidth();
             }
             int type = static_cast<int>(p_inputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
             {
-                Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, p_inputs[i], static_cast<Type>(type + 1), p_inputs[i]->type);
-                ActionManager::AddAction(changeType);
-                p_nodeManager->GetLinkManager()->RemoveLink(p_inputs[i]);
-                p_inputs[i]->type = static_cast<Type>(type + 1);
-                UpdateFunction();
+                Ref changeType = std::make_shared<ActionChangeTypeCustom>(this, p_inputs[i], static_cast<Type>(type + 1), p_inputs[i]->type);
+                ActionManager::DoAction(changeType);
             }
             ImGui::TreePop();
         }
@@ -141,16 +137,16 @@ void CustomNode::ShowInInspector()
 
     if (ImGui::Button("+"))
     {
-        AddOutput("Output" + std::to_string(p_outputs.size()), Type::Float);
-        UpdateFunction();
+        auto addOutput = std::make_shared<ActionAddStream>(this, "Output" + std::to_string(p_outputs.size()), Type::Float, StreamType::Output);
+        ActionManager::DoAction(addOutput);
     }
     if (!p_outputs.empty())
     {
         ImGui::SameLine();
         if (ImGui::Button("-"))
         {
-            RemoveOutput(p_outputs.size() - 1);
-            UpdateFunction();
+            auto removeInput = std::make_shared<ActionRemoveStream>(this, p_outputs[p_outputs.size() - 1]);
+            ActionManager::DoAction(removeInput);
         }
     }
     for (int i = 0; i < p_outputs.size(); i++)
@@ -161,19 +157,14 @@ void CustomNode::ShowInInspector()
             std::string name = p_outputs[i]->name;
             if (ImGui::InputText("Output Name", &name))
             {
-                Ref<ActionChangeInput> changeInput = std::make_shared<ActionChangeInput>(&p_outputs[i]->name, p_outputs[i]->name, name);
+                Ref changeInput = std::make_shared<ActionChangeStreamNameCustom>(this, &p_inputs[i]->name, p_inputs[i]->name, name);
                 ActionManager::DoAction(changeInput);
-                UpdateFunction();
-                RecalculateWidth();
             }
             int type = static_cast<int>(p_outputs[i]->type) - 1;
             if (ImGui::Combo("Type", &type, SerializeTypeEnum()))
             {
-                Ref<ActionChangeType> changeType = std::make_shared<ActionChangeType>(this, p_outputs[i], static_cast<Type>(type + 1), p_outputs[i]->type);
-                ActionManager::AddAction(changeType);
-                p_nodeManager->GetLinkManager()->RemoveLinks(p_outputs[i]);
-                p_outputs[i]->type = static_cast<Type>(type + 1);
-                UpdateFunction();
+                Ref changeType = std::make_shared<ActionChangeTypeCustom>(this, p_outputs[i], static_cast<Type>(type + 1), p_outputs[i]->type);
+                ActionManager::DoAction(changeType);
             }
             ImGui::TreePop();
         }

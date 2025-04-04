@@ -85,6 +85,7 @@ void AddColor(uint32_t& color, int value)
 
 Input::Input(const UUID& _parentUUID, const uint32_t _index, const std::string& _name, const Type _type) : Stream(_parentUUID, _index, _name, _type)
 {
+    streamType = StreamType::Input;
 }
 
 #pragma region GetValue
@@ -178,6 +179,11 @@ Input* Input::Clone() const
     input->SetLinked(isLinked);
     input->value = value;
     return input;
+}
+
+Output::Output(const UUID& _parentUUID, uint32_t _index, const std::string& _name, Type _type): Stream(_parentUUID, _index, _name, _type)
+{
+    streamType = StreamType::Output;
 }
 
 void DrawTriangle(ImDrawList* draw_list, ImGuiDir dir, const Vec2f& position, const Vec2f& size)
@@ -629,13 +635,7 @@ void Node::ChangeOutputType(uint32_t index, Type type) const
 }
 
 void Node::RemoveInput(uint32_t index)
-{    
-    int size = CalculateSize(p_inputs.size());
-
-    int size2 = CalculateSize(p_outputs.size());
-    
-    p_size.y = static_cast<float>(std::max(size, size2));
-
+{ 
     if (p_nodeManager && p_loaded) // Case when Using with a templateNode
     {
         auto linkManager = p_nodeManager->GetLinkManager();
@@ -650,17 +650,15 @@ void Node::RemoveInput(uint32_t index)
     }
     p_inputs.erase(p_inputs.begin() + index);
     
+    // Recalculate the size
+    int size = CalculateSize(p_inputs.size());
+    int size2 = CalculateSize(p_outputs.size());
+    p_size.y = static_cast<float>(std::max(size, size2));
+    
 }
 
 void Node::RemoveOutput(uint32_t index)
 {
-    
-    int size = CalculateSize(p_inputs.size());
-
-    int size2 = CalculateSize(p_outputs.size());
-    
-    p_size.y = static_cast<float>(std::max(size, size2));
-    
     if (p_nodeManager && p_loaded) // Case when Using with a templateNode
     {
         auto linkManager = p_nodeManager->GetLinkManager();
@@ -668,6 +666,11 @@ void Node::RemoveOutput(uint32_t index)
     }
 
     p_outputs.erase(p_outputs.begin() + index);
+
+    // Recalculate the size
+    int size = CalculateSize(p_inputs.size());
+    int size2 = CalculateSize(p_outputs.size());
+    p_size.y = static_cast<float>(std::max(size, size2));
 }
 
 void Node::ClearInputs()
@@ -821,7 +824,7 @@ void Node::ShowInputInspector(uint32_t index)
     case Type::Float:
         {
             float value = input->GetValue<float>();
-            if (ImGui::DragFloat("##float", &value, 0.1f, FLT_MIN, FLT_MAX, "%.2f"))
+            if (ImGui::InputFloat("##float", &value))
             {
                 input->SetValue<float>(value);
                 auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
@@ -854,7 +857,7 @@ void Node::ShowInputInspector(uint32_t index)
     case Type::Vector2:
         {
             Vec2f value = input->GetValue<Vec2f>();
-            if (ImGui::InputFloat2("##vec2", &value[0]))
+            if (ImGui::DragFloat2("##vec2", &value[0]))
             {
                 input->SetValue<Vec2f>(value);
                 auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
