@@ -105,3 +105,55 @@ std::unordered_set<UUID> ActionRemoveStream::NodeToUpdate() const
 {
     return { m_node->GetUUID() };
 }
+
+ActionChangeStreamType::ActionChangeStreamType(Node* node, int index) : m_node(node), m_index(index)
+{
+    m_prevIndex = node->GetCurrentPossibility();
+
+    auto linkManager = node->GetNodeManager()->GetLinkManager();
+    for (auto& input : node->GetInputs())
+    {
+        auto link = linkManager->GetLinkWithInput(node->GetUUID(), input->index);
+        if (link)
+        {
+            m_prevLinks.push_back(*link);
+        }
+    }
+
+    for (auto& output : node->GetOutputs())
+    {
+        auto links = linkManager->GetLinksWithOutput(node->GetUUID(), output->index);
+        std::ranges::for_each(links, [&](const LinkRef& link)
+        {
+            m_prevLinks.push_back(*link);
+        });
+    }
+}
+
+void ActionChangeStreamType::Do()
+{
+    m_node->ConvertStream(m_index);
+}
+
+void ActionChangeStreamType::Undo()
+{
+    m_node->ConvertStream(m_prevIndex);
+
+    auto linkManager = m_node->GetNodeManager()->GetLinkManager();
+    for (auto& link : m_prevLinks)
+    {
+        if (linkManager->LinkExists(link))
+            continue;
+        linkManager->AddLink(link);
+    }
+}
+
+std::unordered_set<UUID> ActionChangeStreamType::NodeToUpdate() const
+{
+    std::unordered_set<UUID> nodesToUpdate;
+    for (auto& link : m_prevLinks)
+    {
+        nodesToUpdate.insert(link.toNodeIndex);
+    }
+    return { nodesToUpdate };
+}

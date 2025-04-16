@@ -222,6 +222,7 @@ public:
     NodeManager* GetNodeManager() const { return p_nodeManager; }
     std::vector<InputRef>& GetInputs() { return p_inputs; }
     std::vector<OutputRef>& GetOutputs() { return p_outputs; }
+    int GetCurrentPossibility() const {return p_currentPossibility;}
 
     static void GetPreviewTriangle(Vec2f& trianglePos, Vec2f& triangleSize, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom);
     static void GetPreviewButtonRect(Vec2f& outMin, Vec2f& outMax, const Vec2f& nodeMin, const Vec2f& nodeMax, float zoom);

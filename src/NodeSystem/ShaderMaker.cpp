@@ -177,6 +177,7 @@ void ShaderMaker::UpdateNodes(NodeManager* manager, const std::unordered_set<UUI
     auto createShader = [&](const UUID& uuid)
     {
         if (auto node = manager->GetNode(uuid).lock()) {
+            //std::cout << "Updating shader for node: " << node->GetName() << std::endl;
             std::string content;
             CreateFragmentShader(content, manager, node);
             node->m_shader->RecompileFragmentShader(content.c_str());

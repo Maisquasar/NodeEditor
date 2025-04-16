@@ -310,7 +310,7 @@ void LinkManager::RemoveLinks(const NodeRef& node)
     }
 }
 
-bool LinkManager::CanCreateLink(const Link& link) const
+bool LinkManager::CanCreateLink(const Link& link, StreamType convertStream) const
 {
     if (link.fromNodeIndex == UUID_NULL || link.toNodeIndex == UUID_NULL)
         return false;    
@@ -326,8 +326,31 @@ bool LinkManager::CanCreateLink(const Link& link) const
     InputRef toInput = toNode->GetInput(link.toInputIndex);
 
     // Check if nodes are valid, not the same and the same input and output type
-    if (!fromOutput || !toInput || fromNode == toNode || (fromOutput->type != toInput->type))
+    if (!fromOutput || !toInput || fromNode == toNode)
         return false;
+
+    if (fromOutput->type != toInput->type)
+    {
+        StreamRef streamToConvert;
+        StreamRef streamToKeep;
+        switch (convertStream) {
+        case StreamType::None:
+            return false;
+        case StreamType::Input:
+            streamToConvert = toInput;
+            streamToKeep = fromOutput;
+            break;
+        case StreamType::Output:
+            streamToConvert = fromOutput;
+            streamToKeep = toInput;
+            break;
+        }
+
+        if (!streamToConvert->HasType(streamToKeep->type))
+        {
+            return false;
+        }
+    }
 
     /*
     for (const LinkRef& inLink : m_links)
@@ -338,6 +361,22 @@ bool LinkManager::CanCreateLink(const Link& link) const
     */
     
     return true;
+}
+
+bool LinkManager::LinkExists(const Link& link) const
+{
+    for (const LinkRef& existingLink : m_links)
+    {
+        if (existingLink->fromNodeIndex == link.fromNodeIndex &&
+            existingLink->fromOutputIndex == link.fromOutputIndex &&
+            existingLink->toNodeIndex == link.toNodeIndex &&
+            existingLink->toInputIndex == link.toInputIndex)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool LinkManager::IsPointHoverLineSegment(Vec2f pointPosition, Vec2f fromPosition, Vec2f toPosition, float threshold)

@@ -274,7 +274,7 @@ void NodeWindow::DrawGrid()
 
     // This will catch our interactions
     ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-    const bool is_hovered = ImGui::IsItemHovered(); // Hovered
+    const bool is_hovered = ImGui::IsItemHovered();// Hovered
     const bool is_active = ImGui::IsItemActive();   // Held// Adjust the origin based on zoom
     origin = {canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y};
     // Adjust mouse position with zoom
@@ -317,7 +317,7 @@ void NodeWindow::DrawGrid()
 
     // Draw grid + all lines in the canvas
     draw_list->PushClipRect(canvas_p0, canvas_p1, true);
-    m_nodeManager->m_isGridHovered = is_hovered;
+    m_nodeManager->m_isGridHovered = is_hovered || is_active;
     
     const float GRID_STEP = 64.0f * zoom; // Adjust the grid step based on zoom
     for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x; x += GRID_STEP)

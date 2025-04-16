@@ -15,6 +15,7 @@
 #include "Serializer.h"
 #include "Type.h"
 #include "Actions/Action.h"
+#include "Actions/ActionAddStream.h"
 #include "Actions/ActionCreateLink.h"
 #include "Actions/ActionCreateNode.h"
 #include "Actions/ActionDeleteNodesAndLinks.h"
@@ -134,12 +135,6 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
     {
         m_currentLink.toNodeIndex = node->p_uuid;
         m_currentLink.toInputIndex = i;
-
-        if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
-        {
-            m_currentLink.toNodeIndex = UUID_NULL;
-            m_currentLink.toInputIndex = INDEX_NULL;
-        }
     }
 }
 
@@ -157,12 +152,6 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
     {
         m_currentLink.fromNodeIndex = node->p_uuid;
         m_currentLink.fromOutputIndex = i;
-        
-        if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
-        {
-            m_currentLink.fromNodeIndex = UUID_NULL;
-            m_currentLink.fromOutputIndex = INDEX_NULL;
-        }
     }
 }
 
@@ -181,7 +170,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
                 {
                     OnInputClicked(node, altClicked, i);
-                    SetUserInputState(UserInputState::CreateLink);
+                    if (!altClicked)
+                        SetUserInputState(UserInputState::CreateLink);
+                    else
+                        SetUserInputState(UserInputState::Busy);
                 }
                 else if (rightClick)
                 {
@@ -204,7 +196,10 @@ void NodeManager::UpdateInputOutputClick(float zoom, const Vec2f& origin, const 
                 if (GetUserInputState() == UserInputState::None && mouseClicked)
                 {
                     OnOutputClicked(node, altClicked, i);
-                    SetUserInputState(UserInputState::CreateLink);
+                    if (!altClicked)
+                        SetUserInputState(UserInputState::CreateLink);
+                    else
+                        SetUserInputState(UserInputState::Busy);
                 }
                 else if (rightClick)
                 {
@@ -221,6 +216,11 @@ void NodeManager::UpdateCurrentLink()
 {
     if (m_currentLink.fromNodeIndex != UUID_NULL && m_currentLink.toNodeIndex != UUID_NULL) // Is Linked
     {
+        if (!m_linkManager->CanCreateLink(m_currentLink))
+        {
+            ClearCurrentLink();
+            return;
+        }
         Ref input = GetInput(m_currentLink.toNodeIndex, m_currentLink.toInputIndex).lock();
         if (m_linkManager->HasLink(input))
         {
@@ -560,9 +560,10 @@ void NodeManager::RightClickStreamMenuUpdate()
         StreamRef stream = m_rightClickedStream.lock();
         NodeRef node = GetNode(stream->parentUUID).lock();
         
-        if (!stream || node->p_possiblityCount == 0)
+        if (!stream || node->p_possiblityCount <= 1)
         {
             ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
             return;
         }
         
@@ -578,7 +579,8 @@ void NodeManager::RightClickStreamMenuUpdate()
             if (ImGui::Button(("Convert to " + TypeEnumToString(type)).c_str()))
             {
                 int index = node->FindBestPossibilityForType(type, stream);
-                node->ConvertStream(index);
+                auto action = std::make_shared<ActionChangeStreamType>(node.get(), index);
+                ActionManager::DoAction(action);
                 m_rightClickedStream = {};
                 ImGui::CloseCurrentPopup();
                 break;
@@ -664,21 +666,11 @@ void NodeManager::UpdateNodes(float zoom, const Vec2f& origin, const Vec2f& mous
             {
                 m_currentLink.toNodeIndex = input->parentUUID;
                 m_currentLink.toInputIndex = input->index;
-        
-                if (m_currentLink.toNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
-                {
-                    ClearCurrentLink();
-                }
             }
             else if (auto output = std::dynamic_pointer_cast<Output>( m_hoveredStream.lock()))
             {
                 m_currentLink.fromNodeIndex = output->parentUUID;
                 m_currentLink.fromOutputIndex = output->index;
-        
-                if (m_currentLink.fromNodeIndex != UUID_NULL && !m_linkManager->CanCreateLink(m_currentLink))
-                {
-                    ClearCurrentLink();
-                }
             }
         }
         else

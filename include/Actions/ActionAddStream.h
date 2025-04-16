@@ -35,3 +35,19 @@ private:
     std::vector<Link> m_prevLinks = {};
 };
 
+class ActionChangeStreamType : public Action
+{
+public:
+    ActionChangeStreamType(Node* node, int index);
+    void Do() override;
+    void Undo() override;
+    
+    std::string ToString() override { return "Change Stream Type"; }
+    bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
+private:
+    std::vector<Link> m_prevLinks = {};
+    Node* m_node;
+    int m_index;
+    int m_prevIndex;
+};
