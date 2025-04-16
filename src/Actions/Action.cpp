@@ -29,7 +29,7 @@ void ActionManager::AddAction(const ActionRef& action)
         return;
     if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
     {
-        nodeWindow->ShouldUpdateShader();
+        nodeWindow->ShouldUpdateShader(action->NodeToUpdate());
     }
 }
 
@@ -51,7 +51,7 @@ void ActionManager::UndoLastAction()
             return;
         if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
         {
-            nodeWindow->ShouldUpdateShader();
+            nodeWindow->ShouldUpdateShader(undoneAction->NodeToUpdate());
         }
     }
 }
@@ -69,7 +69,7 @@ void ActionManager::RedoLastAction()
             return;
         if (auto nodeWindow = dynamic_cast<NodeWindow*>(m_current->m_context))
         {
-            nodeWindow->ShouldUpdateShader();
+            nodeWindow->ShouldUpdateShader(redoneAction->NodeToUpdate());
         }
     }
 }

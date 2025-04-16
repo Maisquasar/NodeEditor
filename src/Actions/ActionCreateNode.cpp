@@ -15,3 +15,8 @@ void ActionCreateNode::Undo()
 {
     m_nodeManager->RemoveNode(m_node);
 }
+
+std::unordered_set<UUID> ActionCreateNode::NodeToUpdate() const
+{
+    return {m_node->GetUUID()};
+}

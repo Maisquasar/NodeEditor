@@ -10,6 +10,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Change Input Param"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     ParamNode* m_node;
     std::string* m_input;
@@ -25,6 +26,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Change Input Custom"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     CustomNode* m_node;
     std::string* m_input;

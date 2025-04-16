@@ -109,6 +109,8 @@ public:
     NodeWindow* GetMainWindow() const { return m_parent; }
     StreamWeak GetHoveredStream() const {return m_hoveredStream;}
 
+    std::vector<NodeRef> GetNodesLinkTo(const UUID& uuid) const;
+
     // Link
     bool CurrentLinkIsAlmostLinked() const;
     bool CurrentLinkIsNone() const;

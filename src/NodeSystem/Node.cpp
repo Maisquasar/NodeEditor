@@ -827,7 +827,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::InputFloat("##float", &value))
             {
                 input->SetValue<float>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             break;
@@ -838,7 +838,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::InputInt("##int", &value))
             {
                 input->SetValue<int>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             break;
@@ -849,7 +849,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::Checkbox("##bool", &value))
             {
                 input->SetValue<bool>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             break;
@@ -860,7 +860,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::DragFloat2("##vec2", &value[0]))
             {
                 input->SetValue<Vec2f>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             break;
@@ -871,7 +871,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::ColorEdit3("##vec3", &value.x))
             {
                 input->SetValue<Vec3f>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             input->SetValue<Vec3f>(value);
@@ -883,7 +883,7 @@ void Node::ShowInputInspector(uint32_t index)
             if (ImGui::ColorEdit4("##vec4", &value.x))
             {
                 input->SetValue<Vec4f>(value);
-                auto action = std::make_shared<ActionChangeValue>(prevValue, input->GetValue<Vec4f>(), &input->value);
+                auto action = std::make_shared<ActionChangeValue>(p_uuid, prevValue, input->GetValue<Vec4f>(), &input->value);
                 ActionManager::AddAction(action);
             }
             break;
@@ -1052,7 +1052,7 @@ void Node::InitializePreview()
 
     m_shader->LoadDefaultShader();
     m_framebuffer->Initialize();
-    p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+    p_nodeManager->GetMainWindow()->ShouldUpdateShader(p_uuid);
 }
 
 void Node::OpenPreview(bool open)

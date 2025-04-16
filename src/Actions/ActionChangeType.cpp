@@ -48,6 +48,17 @@ void ActionChangeTypeParam::Undo()
     }
 }
 
+std::unordered_set<UUID> ActionChangeTypeParam::NodeToUpdate() const
+{
+    auto paramNodes = m_paramNodeManager->GetParamNodes(m_paramName);
+    std::unordered_set<UUID> uuids;
+    for (auto& node : paramNodes)
+    {
+        uuids.insert(node->GetUUID());
+    }
+    return uuids;
+}
+
 ActionChangeTypeCustom::ActionChangeTypeCustom(CustomNode* node, StreamRef stream, Type type, Type oldType)
 {
     m_customNode = node;
@@ -103,8 +114,13 @@ void ActionChangeTypeCustom::Undo()
     m_customNode->UpdateFunction();
 }
 
+std::unordered_set<UUID> ActionChangeTypeCustom::NodeToUpdate() const
+{
+    return { m_stream->parentUUID };
+}
+
 ActionChangeTypeRerouteNode::ActionChangeTypeRerouteNode(RerouteNodeNamedManager* rerouteNodeManager,
-    const std::string& name, Type type, Type oldType)
+                                                         const std::string& name, Type type, Type oldType)
 {
     m_rerouteNodeNamedManager = rerouteNodeManager;
     m_name = name;
@@ -148,4 +164,12 @@ void ActionChangeTypeRerouteNode::Undo()
     {
         defNode->GetNodeManager()->GetLinkManager()->AddLink(link);
     }
+}
+
+std::unordered_set<UUID> ActionChangeTypeRerouteNode::NodeToUpdate() const
+{
+    RerouteNodeNamed* rerouteNodeNamed = m_rerouteNodeNamedManager->GetDefinitionNode(m_name);
+    if (!rerouteNodeNamed)
+        return {};
+    return { rerouteNodeNamed->GetUUID() };
 }

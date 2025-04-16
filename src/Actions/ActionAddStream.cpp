@@ -37,6 +37,11 @@ void ActionAddStream::Undo()
     m_node->UpdateFunction();
 }
 
+std::unordered_set<UUID> ActionAddStream::NodeToUpdate() const
+{
+    return { m_node->GetUUID() };
+}
+
 ActionRemoveStream::ActionRemoveStream(CustomNode* node, StreamRef stream)
 {
     m_node = node;
@@ -94,4 +99,9 @@ void ActionRemoveStream::Undo()
         m_node->GetNodeManager()->GetLinkManager()->AddLink(link);
     }
     m_node->UpdateFunction();
+}
+
+std::unordered_set<UUID> ActionRemoveStream::NodeToUpdate() const
+{
+    return { m_node->GetUUID() };
 }

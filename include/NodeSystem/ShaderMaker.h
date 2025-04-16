@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <deque>
 #include <set>
+#include <unordered_set>
 
 #include "NodeSystem/NodeManager.h"
 #include "NodeSystem/NodeTemplateHandler.h"
@@ -32,7 +33,8 @@ public:
     void FillFunctionList(NodeManager* manager, NodeRef firstNode);
     void FillRecurrence(NodeManager* manager, const NodeRef& node);
 
-    void DoWork(NodeManager* manager);
+    void UpdateAllPreviewNodes(NodeManager* manager);
+    void UpdateNodes(NodeManager* manager, const std::unordered_set<UUID>& nodesUUID);
     void CreateFragmentShader(std::string& content, NodeManager* manager);
     void CreateFragmentShader(const std::filesystem::path& path, NodeManager* manager);
     void CreateFragmentShader(std::string& content, NodeManager* manager, const NodeRef& endNode);

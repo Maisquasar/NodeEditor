@@ -163,11 +163,18 @@ void Application::UpdateShadersValues(int program, const Vec2f& framebufferSize)
         float time = GetTime();
         glUniform1f(timeLocation, time);
     }
+    GLint deltaTimeLocation = glGetUniformLocation(program, "iTimeDelta");
+    if (deltaTimeLocation != -1) {
+        float deltaTime = ImGui::GetIO().DeltaTime;
+        glUniform1f(deltaTimeLocation, deltaTime);
+    }
     GLint mouseLocation = glGetUniformLocation(program, "iMouse");
     if (mouseLocation != -1)
     {
         Vec2f mousePos = ImGui::GetMousePos();
-        glUniform2fv(mouseLocation, 1, mousePos.GetNormalize().Data());
+        mousePos.Normalize();
+        Vec4f iMouse = { mousePos.x, mousePos.y, static_cast<float>(ImGui::IsMouseDown(0)), static_cast<float>(ImGui::IsMouseClicked(0)) };
+        glUniform4fv(mouseLocation, 1, iMouse.Data());
     }
     GLint resolutionLocation = glGetUniformLocation(program, "iResolution");
     if (resolutionLocation != -1) {
@@ -278,7 +285,8 @@ void Application::Initialize()
 
     NodeEditor::AddUniformNode("Resolution", Type::Vector2, "iResolution");
     NodeEditor::AddUniformNode("Time", Type::Float, "iTime");
-    NodeEditor::AddUniformNode("Mouse", Type::Vector2, "iMouse");
+    NodeEditor::AddUniformNode("Delta Time", Type::Float, "iTimeDelta");
+    NodeEditor::AddUniformNode("Mouse", Type::Vector4, "iMouse");
     
     NodeEditor::SetEditCustomNodeOutputPath(TEMP_FOLDER);
 
@@ -448,6 +456,14 @@ void Application::DrawMainBar() const
                     {
                         node->OpenPreview(false);
                     }
+                }
+            }
+            if (ImGui::Button("Open All previews"))
+            {
+                auto nodes = nodeWindow->GetNodeManager()->GetNodes();
+                for (auto it = nodes.begin(); it != nodes.end(); it++)
+                {
+                    it->second->OpenPreview(true);
                 }
             }
             if (ImGui::Checkbox("Capture Frame", &captureFrame))

@@ -35,7 +35,7 @@ void CustomNode::Update()
     std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
     if (m_content != content)
     {
-        this->GetNodeManager()->GetMainWindow()->ShouldUpdateShader();
+        p_nodeManager->GetMainWindow()->ShouldUpdateShader(p_uuid);
     }
     m_content = content;
 }
@@ -118,7 +118,7 @@ void CustomNode::ShowInInspector()
     for (int i = 0; i < p_inputs.size(); i++)
     {
         ImGui::PushID(i);
-        if (ImGui::TreeNodeEx(("##" + p_inputs[i]->name).c_str(), ImGuiTreeNodeFlags_DefaultOpen, "Input %d", i))
+        if (ImGui::TreeNodeEx("##Input", ImGuiTreeNodeFlags_DefaultOpen, "Input %d", i))
         {
             std::string name = p_inputs[i]->name;
             if (ImGui::InputText("Input Name", &name))
@@ -157,7 +157,7 @@ void CustomNode::ShowInInspector()
     for (int i = 0; i < p_outputs.size(); i++)
     {
         ImGui::PushID(i);
-        if (ImGui::TreeNodeEx(("##" + p_outputs[i]->name).c_str(), ImGuiTreeNodeFlags_DefaultOpen, "Output %d", i))
+        if (ImGui::TreeNodeEx(("##Output" + p_outputs[i]->name).c_str(), ImGuiTreeNodeFlags_DefaultOpen, "Output %d", i))
         {
             std::string name = p_outputs[i]->name;
             if (ImGui::InputText("Output Name", &name))

@@ -125,12 +125,10 @@ void NodeManager::OnInputClicked(const NodeRef& node, bool altClicked, const uin
         SetUserInputState(UserInputState::Busy);
 
         std::vector<NodeWeak> nodes = {};
+        std::vector links = { linkWithInput};
 
-        //TODO !!!
-        // auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, {linkWithInput});
-        // ActionManager::AddAction(action);
-        
-        m_linkManager->RemoveLink(node->GetInput(i));
+        auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links); 
+        ActionManager::DoAction(action);
     }
     else
     {
@@ -153,9 +151,7 @@ void NodeManager::OnOutputClicked(const NodeRef& node, bool altClicked, uint32_t
         std::vector<NodeWeak> nodes = {};
         
         auto action = std::make_shared<ActionDeleteNodesAndLinks>(this, nodes, links);
-        ActionManager::AddAction(action);
-        
-        m_linkManager->RemoveLinks(node->GetOutput(i));
+        ActionManager::DoAction(action);
     }
     else
     {
@@ -781,7 +777,18 @@ void NodeManager::DrawNodes(float zoom, const Vec2f& origin, const Vec2f& mouseP
 void NodeManager::SelectNode(const NodeRef& node)
 {
     ClearSelectedNodes();
+    if (!node)
+        return;
     AddSelectedNode(node);
+
+    // Draw dependent nodes for debug
+    /*
+    auto dependentNodes = GetNodesLinkTo(node->GetUUID());
+    for (auto& dependentNode : dependentNodes)
+    {
+        AddSelectedNode(dependentNode);
+    }
+    */
 }
 
 void NodeManager::AddSelectedNode(const NodeRef& node)
@@ -794,7 +801,7 @@ void NodeManager::AddSelectedNode(const NodeRef& node)
 
 void NodeManager::RemoveSelectedNode(const NodeWeak& node)
 {
-    for (auto it = m_selectedNodes.begin(); it != m_selectedNodes.end(); it++)
+    for (auto it = m_selectedNodes.begin(); it != m_selectedNodes.end(); ++it)
     {
         if (it->lock() == node.lock())
         {
@@ -831,11 +838,12 @@ Shared<Node> NodeManager::GetMainNode() const
 
 NodeWeak NodeManager::GetNode(const UUID& uuid) const
 {
-    if (m_nodes.find(uuid) == m_nodes.end())
+    auto it = m_nodes.find(uuid);
+    if (it == m_nodes.end())
     {
         return {};
     }
-    return m_nodes.at(uuid);
+    return it->second;
 }
 
 NodeWeak NodeManager::GetNodeWithTemplate(TemplateID templateID)
@@ -909,6 +917,59 @@ NodeWeak NodeManager::GetSelectedNode() const
     if (m_selectedNodes.empty())
         return {};
     return m_selectedNodes[0];
+}
+
+std::vector<NodeRef> NodeManager::GetNodesLinkTo(const UUID& uuid) const
+{
+    std::vector<NodeRef> result;
+    auto it = m_nodes.find(uuid);
+    if (it == m_nodes.end())
+        return result;
+    Ref<Node> thisNode = it->second;
+    for (OutputRef& output : thisNode->p_outputs)
+    {
+        auto links = m_linkManager->GetLinksWithOutput(output);
+        for (auto& link : links)
+        {
+            if (link->fromNodeIndex == uuid)
+            {
+                result.push_back(GetNode(link->toNodeIndex).lock());
+            }
+        }
+    }
+    if (auto reroute = std::dynamic_pointer_cast<RerouteNodeNamed>(it->second)) // Handle RerouteNode
+    {
+        if (reroute->IsDefinition())
+        {
+            RerouteNodeNamedData* data = m_rerouteManager->GetNode(reroute->GetRerouteName());
+            for (auto& node : data->node)
+            {
+                if (node->GetUUID() != uuid)
+                    result.push_back(GetNode(node->GetUUID()).lock());
+            }
+        }
+    }
+    else if (auto param = std::dynamic_pointer_cast<ParamNode>(it->second)) // Handle ParamNode
+    {
+        std::string name = param->GetParamName();
+        if (m_paramManager->Exist(name))
+        {
+            auto paramNode = m_paramManager->GetParamNodes(name);
+            for (auto& node : paramNode)
+            {
+                if (node->GetUUID() != uuid)
+                    result.push_back(GetNode(node->GetUUID()).lock());
+            }
+        }
+    }
+    std::vector<NodeWeak> children;
+    for (int i = 0; i < result.size(); i++)
+    {
+        auto r = GetNodesLinkTo(result[i]->GetUUID());
+        children.insert(children.end(), r.begin(), r.end());
+    }
+    result.insert(result.end(), children.begin(), children.end());
+    return result;
 }
 
 bool NodeManager::CurrentLinkIsAlmostLinked() const

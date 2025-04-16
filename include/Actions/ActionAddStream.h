@@ -10,6 +10,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Add Stream"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     CustomNode* m_node;
     std::string m_name;
@@ -25,6 +26,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Remove Stream"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     CustomNode* m_node;
     std::string m_name;

@@ -11,7 +11,9 @@ public:
     void Undo() override;
 
     std::string ToString() override { return "Delete Nodes"; }
-    bool ShouldUpdateShader() const override { return true; }
+    bool ShouldUpdateShader() const override;
+    std::unordered_set<UUID> NodeToUpdate() const override;
+
 private:
     NodeManager* m_nodeManager = nullptr;
     std::vector<NodeRef> m_nodes = {};

@@ -100,3 +100,17 @@ void ActionPaste::Undo()
         m_nodeManager->GetLinkManager()->RemoveLink(link);
     }
 }
+
+std::unordered_set<UUID> ActionPaste::NodeToUpdate() const
+{
+    std::unordered_set<UUID> uuids;
+    for (auto& node : m_pastedNodes)
+    {
+        uuids.insert(node->GetUUID());
+    }
+    for (auto& link : m_pastedLinks)
+    {
+        uuids.insert(link->toNodeIndex);
+    }
+    return uuids;
+}

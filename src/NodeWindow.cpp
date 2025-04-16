@@ -217,12 +217,24 @@ void NodeWindow::UpdateShaders()
     {
         ShaderMaker shaderMaker;
         
-        shaderMaker.DoWork(m_nodeManager);
+        shaderMaker.UpdateNodes(m_nodeManager, m_nodesToUpdate);
         
         m_shouldUpdateShader = false;
-
+        m_nodesToUpdate.clear();
+        
         std::cout << "Shader updated" << std::endl;
     }
+}
+
+void NodeWindow::ShouldUpdateShader(const UUID& nodeToUpdate)
+{
+    m_shouldUpdateShader = true; m_nodesToUpdate.insert(nodeToUpdate);
+}
+
+void NodeWindow::ShouldUpdateShader(const std::unordered_set<UUID>& nodesToUpdate)
+{
+    m_shouldUpdateShader = true;
+    m_nodesToUpdate.insert(nodesToUpdate.begin(), nodesToUpdate.end());
 }
 
 void NodeWindow::NewScene()

@@ -23,7 +23,7 @@ void ActionRenameRerouteNode::Undo()
 }
 
 ActionChangeColorRerouteNode::ActionChangeColorRerouteNode(RerouteNodeNamedManager* manager, const std::string& name,
-    Vec4f prevColor, Vec4f newColor)
+                                                           Vec4f prevColor, Vec4f newColor)
 {
     m_rerouteNodeNamedManager = manager;
     m_name = name;

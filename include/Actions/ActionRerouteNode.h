@@ -15,6 +15,7 @@ public:
     
     std::string ToString() override { return "Rename Reroute Node"; }
     bool ShouldUpdateShader() const override { return false; }
+    std::unordered_set<UUID> NodeToUpdate() const override {return {};}
 private:
     RerouteNodeNamed* m_node = nullptr;
     std::string m_oldName;
@@ -30,6 +31,7 @@ public:
     
     std::string ToString() override { return "Change Color Reroute Node"; }
     bool ShouldUpdateShader() const override { return false; }
+    std::unordered_set<UUID> NodeToUpdate() const override {return {};}
 private:
     RerouteNodeNamedManager* m_rerouteNodeNamedManager = nullptr;
     std::string m_name;

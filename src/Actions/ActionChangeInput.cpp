@@ -23,6 +23,11 @@ void ActionChangeStreamNameParam::Undo()
     m_node->SetParamName(m_oldValue);
 }
 
+std::unordered_set<UUID> ActionChangeStreamNameParam::NodeToUpdate() const
+{
+    return { m_node->GetUUID() };
+}
+
 ActionChangeStreamNameCustom::ActionChangeStreamNameCustom(CustomNode* node, std::string* input, std::string oldValue, std::string newValue):
     m_input(input), m_oldValue(std::move(oldValue)), m_newValue(std::move(newValue))
 {
@@ -41,4 +46,9 @@ void ActionChangeStreamNameCustom::Undo()
     *m_input = m_oldValue;
     m_node->RecalculateWidth();
     m_node->UpdateFunction();
+}
+
+std::unordered_set<UUID> ActionChangeStreamNameCustom::NodeToUpdate() const
+{
+    return { m_node->GetUUID() };
 }

@@ -14,3 +14,8 @@ void ActionCreateLink::Undo()
 {
     m_nodeManager->GetLinkManager()->RemoveLink(m_link);
 }
+
+std::unordered_set<UUID> ActionCreateLink::NodeToUpdate() const
+{
+    return {m_link->toNodeIndex};
+}

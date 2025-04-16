@@ -348,7 +348,7 @@ void RerouteNodeNamed::InitializePreview()
             m_shader = nodeDefinition->m_shader;
         }
         m_framebuffer = nodeDefinition->m_framebuffer;
-        p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+        p_nodeManager->GetMainWindow()->ShouldUpdateShader(p_uuid);
     }
     else
     {

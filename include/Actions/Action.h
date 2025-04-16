@@ -2,7 +2,11 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <unordered_set>
 
+#include "UUID.h"
+
+class Node;
 class Context;
 
 class Action
@@ -15,6 +19,7 @@ public:
     virtual ~Action() = default;
 
     virtual bool ShouldUpdateShader() const = 0;
+    virtual std::unordered_set<UUID> NodeToUpdate() const = 0;
 };
 
 using ActionRef = std::shared_ptr<Action>;

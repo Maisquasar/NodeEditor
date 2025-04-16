@@ -36,3 +36,23 @@ void ActionDeleteNodesAndLinks::Undo()
         m_nodeManager->AddNode(node);
     }
 }
+
+bool ActionDeleteNodesAndLinks::ShouldUpdateShader() const
+{
+    return true;
+}
+
+std::unordered_set<UUID> ActionDeleteNodesAndLinks::NodeToUpdate() const
+{
+    std::unordered_set<UUID> uuids;
+    for (auto& node : m_nodes)
+    {
+        uuids.insert(node->GetUUID());
+    }
+    for (auto& link : m_links)
+    {
+        auto node = m_nodeManager->GetNode(link->toNodeIndex).lock();
+        uuids.insert(link->toNodeIndex);
+    }
+    return uuids;
+}

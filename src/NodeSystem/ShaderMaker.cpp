@@ -2,8 +2,10 @@
 
 #include <fstream>
 #include <ranges>
+#include <unordered_set>
 
 #include "NodeWindow.h"
+#include "Debug/TimeProfiler.h"
 #include "NodeSystem/CustomNode.h"
 #include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ParamNode.h"
@@ -151,17 +153,13 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
 }
 
 
-void ShaderMaker::DoWork(NodeManager* manager)
+void ShaderMaker::UpdateAllPreviewNodes(NodeManager* manager)
 {
     RenderDocAPI::StartFrameCapture();
-    auto endNode = manager->GetNodeWithName("Material").lock();
-    FillFunctionList(manager, endNode);
-
-    std::unordered_map<UUID, FuncStruct> functionList = m_functions;
 
     for (const auto& previewUUID : manager->GetMainWindow()->GetPreviewNodes())
     {
-        auto node = manager->GetNode(previewUUID).lock();
+        NodeRef node = manager->GetNode(previewUUID).lock();
         if (!node || !node->p_preview && node->p_allowInteraction)
             continue;
         std::string content;
@@ -170,8 +168,44 @@ void ShaderMaker::DoWork(NodeManager* manager)
 
         node->m_shader->RecompileFragmentShader(content.c_str());
     }
+    
     RenderDocAPI::EndFrameCapture();
 }
+
+void ShaderMaker::UpdateNodes(NodeManager* manager, const std::unordered_set<UUID>& nodesUUID)
+{
+    auto createShader = [&](const UUID& uuid)
+    {
+        if (auto node = manager->GetNode(uuid).lock()) {
+            std::string content;
+            CreateFragmentShader(content, manager, node);
+            node->m_shader->RecompileFragmentShader(content.c_str());
+        }
+    };
+
+    std::unordered_set<UUID> nodesToUpdate;
+    for (const auto& uuid : nodesUUID)
+    {
+        auto node = manager->GetNode(uuid).lock();
+        if (node && (node->p_preview || !node->p_allowInteraction))
+            nodesToUpdate.insert(uuid);
+
+        auto linkedNodes = manager->GetNodesLinkTo(uuid);
+        for (const auto& node : linkedNodes)
+        {
+            if (!node || !node->p_preview && node->p_allowInteraction)
+                continue;
+
+            nodesToUpdate.insert(node->GetUUID());
+        }
+    }
+
+    for (const auto& uuid : nodesToUpdate)
+    {
+        createShader(uuid);
+    }
+}
+
 
 void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manager)
 {
@@ -194,7 +228,7 @@ void ShaderMaker::CreateFragmentShader(const std::filesystem::path& path, NodeMa
 void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manager, const NodeRef& endNode)
 {
     content.clear();
-
+    
     FillFunctionList(manager, endNode);
 
     content = s_shaderHeader;
@@ -366,36 +400,36 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 
 void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content)
 {
-    auto templateList = NodeTemplateHandler::GetInstance()->GetTemplates();
-    NodeRef currentNode;
-    for (int i = 0; i < m_functions[node->p_uuid].inputs.size(); i++)
+    auto* linkManager = manager->GetLinkManager();
+    const auto& inputs = m_functions[node->p_uuid].inputs;
+    
+    for (size_t i = 0; i < inputs.size(); ++i)
     {
-        std::string basicStrings = m_functions[node->p_uuid].inputs[i];
-        Ref<RerouteNodeNamed> isReroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
-        if (!isReroute || isReroute && isReroute->IsDefinition())
-        {
-            LinkRef link = manager->GetLinkManager()->GetLinkWithInput(node->GetUUID(), i);
-            if (link == nullptr)
+        NodeRef currentNode;
+        auto reroute = std::dynamic_pointer_cast<RerouteNodeNamed>(node);
+        if (reroute && !reroute->IsDefinition()) {
+            // For reroute nodes that are not definitions, use the definition node.
+            currentNode = reroute->GetDefinitionNode();
+        } else {
+            // Otherwise, try getting the link for the given input.
+            LinkRef link = linkManager->GetLinkWithInput(node->GetUUID(), i);
+            if (!link) {
                 continue;
+            }
             currentNode = manager->GetNode(link->fromNodeIndex).lock();
-            if (currentNode == nullptr)
+            if (!currentNode) {
                 continue;
-        }
-        else
-        {
-            if (!isReroute->IsDefinition())
-            {
-                currentNode = isReroute->GetDefinitionNode();
             }
         }
 
+        // Recursively serialize functions starting from the current node.
         SerializeFunctions(manager, currentNode, content);
 
-        FuncStruct& funcStruct = m_functions[currentNode->p_uuid];
-
+        const auto& funcStruct = m_functions[currentNode->p_uuid];
         content += currentNode->ToShader(this, funcStruct);
     }
 }
+
 
 std::string ShaderMaker::ToGLSLVariable(Type type, const Vec4f& value)
 {

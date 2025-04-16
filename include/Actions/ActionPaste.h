@@ -18,6 +18,7 @@ public:
 
     std::string ToString() override { return "Paste"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 
 private:
     const char* m_clipboardText = nullptr;

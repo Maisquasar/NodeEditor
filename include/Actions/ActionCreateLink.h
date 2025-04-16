@@ -12,6 +12,7 @@ public:
 
     std::string ToString() override { return "Create Link"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 
 private:
     NodeManager* m_nodeManager = nullptr;

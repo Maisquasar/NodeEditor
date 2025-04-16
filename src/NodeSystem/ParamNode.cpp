@@ -103,6 +103,16 @@ void ParamNodeManager::OnUpdateType(const std::string& name) const
     }
 }
 
+std::vector<ParamNode*> ParamNodeManager::GetParamNodes(const std::string& name) const
+{
+    auto it = m_paramNodes.find(name);
+    if (it == m_paramNodes.end())
+    {
+        return {};
+    }
+    return it->second;
+}
+
 void ParamNode::ShowInInspector()
 {
     Node::ShowInInspector();
@@ -215,7 +225,7 @@ void ParamNode::ShowInInspector()
             s_valueAtStart = m_previewValue.value_or(Vec4f());
             s_firstFrame = false;
         }
-        p_nodeManager->GetMainWindow()->ShouldUpdateShader();
+        p_nodeManager->GetMainWindow()->ShouldUpdateShader(p_uuid);
         p_nodeManager->GetParamManager()->UpdateValue(GetParamName(), previewValue);
         SetTexturePath(path);
     }

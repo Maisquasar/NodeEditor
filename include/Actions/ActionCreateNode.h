@@ -12,6 +12,7 @@ public:
 
     std::string ToString() override { return "Create Node"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 public:
     NodeManager* m_nodeManager;
     

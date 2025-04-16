@@ -14,6 +14,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Change Type Param"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     ParamNodeManager* m_paramNodeManager = nullptr;
     std::string m_paramName;
@@ -31,6 +32,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Change Type Custom"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 private:
     CustomNode* m_customNode = nullptr;
     StreamRef m_stream = nullptr;
@@ -49,6 +51,7 @@ public:
     void Undo() override;
     std::string ToString() override { return "Change Type Reroute Node"; }
     bool ShouldUpdateShader() const override { return true; }
+    std::unordered_set<UUID> NodeToUpdate() const override;
 
 private:
     RerouteNodeNamedManager* m_rerouteNodeNamedManager = nullptr;
