@@ -774,6 +774,7 @@ void NodeManager::SelectNode(const NodeRef& node)
     AddSelectedNode(node);
 
     // Draw dependent nodes for debug
+
     /*
     auto dependentNodes = GetNodesLinkTo(node->GetUUID());
     for (auto& dependentNode : dependentNodes)
@@ -911,8 +912,9 @@ NodeWeak NodeManager::GetSelectedNode() const
     return m_selectedNodes[0];
 }
 
-std::vector<NodeRef> NodeManager::GetNodesLinkTo(const UUID& uuid) const
+std::vector<NodeRef> NodeManager::GetNodesLinkTo(const UUID& uuid, bool processParam) const
 {
+    bool paramProcessed = false;
     std::vector<NodeRef> result;
     auto it = m_nodes.find(uuid);
     if (it == m_nodes.end())
@@ -941,7 +943,7 @@ std::vector<NodeRef> NodeManager::GetNodesLinkTo(const UUID& uuid) const
             }
         }
     }
-    else if (auto param = std::dynamic_pointer_cast<ParamNode>(it->second)) // Handle ParamNode
+    else if (auto param = std::dynamic_pointer_cast<ParamNode>(it->second); processParam && param) // Handle ParamNode
     {
         std::string name = param->GetParamName();
         if (m_paramManager->Exist(name))
@@ -949,15 +951,17 @@ std::vector<NodeRef> NodeManager::GetNodesLinkTo(const UUID& uuid) const
             auto paramNode = m_paramManager->GetParamNodes(name);
             for (auto& node : paramNode)
             {
-                if (node->GetUUID() != uuid)
-                    result.push_back(GetNode(node->GetUUID()).lock());
+                auto paramUUID = node->GetUUID();
+                if (paramUUID != uuid)
+                    result.push_back(GetNode(paramUUID).lock());
             }
         }
+        paramProcessed = true;
     }
     std::vector<NodeWeak> children;
     for (int i = 0; i < result.size(); i++)
     {
-        auto r = GetNodesLinkTo(result[i]->GetUUID());
+        auto r = GetNodesLinkTo(result[i]->GetUUID(), !paramProcessed);
         children.insert(children.end(), r.begin(), r.end());
     }
     result.insert(result.end(), children.begin(), children.end());

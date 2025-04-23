@@ -16,7 +16,6 @@ struct MaterialNodeInput
 };
 
 /*TODO :
- * Add Output result of shader compilation, and error log
  * Add a way to not allow to make a infinite loop between nodes so it not crash
 */
 

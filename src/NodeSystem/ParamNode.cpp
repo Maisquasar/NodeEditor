@@ -143,7 +143,6 @@ void ParamNode::ShowInInspector()
     std::filesystem::path path = "";
     static bool s_firstFrame = true;
     static Vec4f s_valueAtStart = Vec4f(0);
-    //TODO Add action for each type
     switch (m_paramType)
     {
     case Type::None:
