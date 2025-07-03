@@ -2095,11 +2095,8 @@ bool Font::LoadFont()
     if (!m_default) {
         std::cerr << "Failed to load font from memory!" << '\n';
         m_default = ImGui::GetFont();
-        ImGui::GetIO().FontDefault = m_default;
         return false;
     }
-    
-    ImGui::GetIO().FontDefault = m_default;
 
     // Load font with different size
     ImFontConfig config2 = config;

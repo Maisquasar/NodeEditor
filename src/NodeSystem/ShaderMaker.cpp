@@ -11,7 +11,6 @@
 #include "NodeSystem/ParamNode.h"
 #include "NodeSystem/RerouteNodeNamed.h"
 #include "Render/Framebuffer.h"
-#include "Render/RenderDocAPI.h"
 
 class RerouteNodeNamed;
 
@@ -155,8 +154,6 @@ void ShaderMaker::FillRecurrence(NodeManager* manager, const NodeRef& node)
 
 void ShaderMaker::UpdateAllPreviewNodes(NodeManager* manager)
 {
-    RenderDocAPI::StartFrameCapture();
-
     for (const auto& previewUUID : manager->GetMainWindow()->GetPreviewNodes())
     {
         NodeRef node = manager->GetNode(previewUUID).lock();
@@ -168,8 +165,6 @@ void ShaderMaker::UpdateAllPreviewNodes(NodeManager* manager)
 
         node->m_shader->RecompileFragmentShader(content.c_str());
     }
-    
-    RenderDocAPI::EndFrameCapture();
 }
 
 void ShaderMaker::UpdateNodes(NodeManager* manager, const std::unordered_set<UUID>& nodesUUID)
