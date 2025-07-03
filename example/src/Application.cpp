@@ -1,20 +1,21 @@
 ﻿#include "Application.h"
 
 #include <filesystem>
-#include <imgui_internal.h>
 #include <galaxymath/Maths.h>
 #include <cpp_serializer/CppSerializer.h>
 
-#include "NodeEditor.h"
 #include "ResourceManager.h"
+
+#include "NodeEditor.h"
+#include "NodeSystem/NodeTemplateHandler.h"
 #include "NodeSystem/ParamNode.h"
-#include "NodeSystem/ShaderMaker.h"
-#include "Render/Framebuffer.h"
+#include "NodeWindow.h"
 
 using namespace GALAXY;
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 #include <glad/glad.h>
 #include "Serializer.h"
 
@@ -26,6 +27,15 @@ using namespace GALAXY;
 
 #include <nfd.hpp>
 
+struct Filter
+{
+    Filter(std::string _name, std::string _spec) : name(std::move(_name)), spec(std::move(_spec)) {}
+			
+    std::string name;
+    // ex : "Text file"
+    std::string spec;
+    // ex : "txt"
+};
 
 std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath)
 {
@@ -61,7 +71,7 @@ std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPa
     return resultString;
 }
 
-std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath)
+std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath = nullptr)
 {
     std::string resultString;
 
@@ -418,11 +428,6 @@ void Application::DrawMainBar() const
                 {
                     nodeWindow->SaveScene(path);
                 }
-            }
-            if (ImGui::MenuItem("Export to shaderToy"))
-            {
-                ShaderMaker shaderMaker;
-                shaderMaker.CreateShaderToyShader(nodeWindow->GetNodeManager());
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "ALT+F4"))

@@ -5,25 +5,9 @@
 #include "NodeSystem/NodeManager.h"
 #include "Actions/Action.h"
 
-#pragma region Dialog
 class Framebuffer;
 class Shader;
 class Mesh;
-
-struct Filter
-{
-    Filter(std::string _name, std::string _spec) : name(std::move(_name)), spec(std::move(_spec)) {}
-			
-    std::string name;
-    // ex : "Text file"
-    std::string spec;
-    // ex : "txt"
-};
-
-std::string SaveDialog(const std::vector<Filter>& filters, const char* defaultPath = nullptr);
-
-std::string OpenDialog(const std::vector<Filter>& filters, const char* defaultPath = nullptr);
-#pragma endregion
 
 class LinkManager;
 

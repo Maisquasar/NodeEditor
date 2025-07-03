@@ -2,7 +2,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "NodeWindow.h"
+
+#include <vector>
+#include <iostream>
+#include <Maths.h>
+
+#include "Type.h"
+
+class Mesh;
+class NodeWindow;
 
 class Framebuffer;
 

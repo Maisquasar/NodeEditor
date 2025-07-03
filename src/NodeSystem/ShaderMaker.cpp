@@ -345,6 +345,7 @@ void ShaderMaker::CreateFragmentShader(std::string& content, NodeManager* manage
     m_nodesToSerialize.clear();
 }
 
+/*
 void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 {
     //TODO : Fix this function
@@ -393,6 +394,7 @@ void ShaderMaker::CreateShaderToyShader(NodeManager* manager)
 
     std::cout << content;
 }
+*/
 
 void ShaderMaker::SerializeFunctions(NodeManager* manager, const NodeRef& node, std::string& content)
 {
