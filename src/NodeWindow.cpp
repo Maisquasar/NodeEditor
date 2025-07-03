@@ -110,7 +110,7 @@ void NodeWindow::Delete() const
     delete m_nodeManager;
 }
 
-void NodeWindow::Draw()
+void NodeWindow::DrawAndUpdate()
 {
     if (ImGui::Begin(m_windowName.c_str(), nullptr))
     {
@@ -120,7 +120,10 @@ void NodeWindow::Draw()
         DrawInspector();
         ImGui::SameLine();
         DrawGrid();
+        
+        Update();
     }
+    ImGui::End();
 }
 
 void NodeWindow::Render()

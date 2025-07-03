@@ -46,7 +46,7 @@ public:
     void PasteNode() const;
 
     void Update() const;
-    void Draw();
+    void DrawAndUpdate();
     void Render();
     void ResetActionManager();
 

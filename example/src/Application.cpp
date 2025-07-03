@@ -10,7 +10,6 @@
 #include "NodeSystem/ParamNode.h"
 #include "NodeSystem/ShaderMaker.h"
 #include "Render/Framebuffer.h"
-#include "Render/RenderDocAPI.h"
 
 using namespace GALAXY;
 #include <imgui.h>
@@ -293,7 +292,7 @@ void Application::Initialize()
     NodeEditor::SetTextureSelectorFunction([](const char* str, int* valueInt, std::filesystem::path* outputPath)
     {
         Weak<Texture> texture = ResourceManager::GetTextureWithID(*valueInt);
-        if (ImGui::ImageButton(str, reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(*valueInt)), ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
+        if (ImGui::ImageButton(str, *valueInt, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0)))
         {
             std::string texturePath = OpenDialog({{"Images", "png"}});
             *outputPath = std::filesystem::path(texturePath);
@@ -446,7 +445,6 @@ void Application::DrawMainBar() const
 
         if (ImGui::BeginMenu("Debug"))
         {
-            bool captureFrame = RenderDocAPI::ShouldCaptureFrame();
             if (ImGui::Button("Close All previews"))
             {
                 auto previewNodesUUID = nodeWindow->GetPreviewNodes(); 
@@ -465,10 +463,6 @@ void Application::DrawMainBar() const
                 {
                     it->second->OpenPreview(true);
                 }
-            }
-            if (ImGui::Checkbox("Capture Frame", &captureFrame))
-            {
-                RenderDocAPI::SetShouldCaptureFrame(captureFrame);
             }
             auto current = ActionManager::GetCurrent();
             if (current != nullptr)
@@ -549,11 +543,9 @@ void Application::Run()
 
         DrawMainBar();
 
-        for (auto& nodeWindow : m_nodeWindows)
+        for (NodeWindow*& nodeWindow : m_nodeWindows)
         {
-            nodeWindow->Draw();
-
-            nodeWindow->Update();
+            nodeWindow->DrawAndUpdate();
         }
 
         ImGui::Render();

@@ -11,7 +11,7 @@ set_languages("c++20")
 -- Custom repo
 add_repositories("galaxy-repo https://github.com/GalaxyEngine/xmake-repo")
 
-add_requires("imgui v1.91.1-docking", { configs = { opengl3 = true, glfw = true }})
+add_requires("imgui v1.92.0-docking", { configs = { opengl3 = true, glfw = true }})
 add_requires("glad", {configs = { extensions = "GL_KHR_debug"}})
 add_requires("galaxymath")
 add_requires("cpp_serializer")

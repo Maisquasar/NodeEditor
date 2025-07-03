@@ -2103,9 +2103,6 @@ bool Font::LoadFont()
     config2.SizePixels = 36.0f;
     ImFormatString(config2.Name, IM_ARRAYSIZE(config2.Name), "Robot-Medium.ttf, %dpx", static_cast<int>(config2.SizePixels));
     m_defaultScaled = io.Fonts->AddFontFromMemoryCompressedTTF(fontData, fontDataSize, config2.SizePixels, &config2);
-    
-    // Upload fonts to GPU
-    ImGui_ImplOpenGL3_CreateFontsTexture();
 
     return true;
 }
