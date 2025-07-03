@@ -75,7 +75,6 @@ public:
 
     void SendValue(const char* name, Vec4f value, Type type);
     
-    //TODO: Fix update values not called every frames
     static void SetUpdateValuesFunc(const UpdateValuesFunc& func) { m_updateValuesFunc = func; }
 
     bool IsLoaded() const { return m_loaded; }

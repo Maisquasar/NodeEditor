@@ -4,8 +4,6 @@
 
 #include "Node.h"
 
-//TODO: Fix the param node copy and paste + with sampler2d that add extra input
-
 class ParamNode;
 
 class ParamNodeManager
